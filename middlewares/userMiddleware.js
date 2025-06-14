@@ -1,65 +1,218 @@
-const Users = require('../models/userModel.js');
-const { verifyToken } = require('../utils/jwt');
+const {  getPageWiseBanner } = require('../services/bannerService');
+const { getAllBrands } = require('../services/brandServices');
+const { getProducts } = require('../services/userproductServices');
+const { findOneUserById } = require('../services/userServices');
+const { verifyToken, verifyResetToken } = require('../utils/jwt');
 
-const checkIsUserAuthenticated = async (req,res,next) => {
-  const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
-  
-  
+
+const checkIsUserAuthenticatedAndRedirect = async (req, res, next) => {
+  const token = req.cookies?.token;
 
   if (!token) {
-    return res.redirect('/user/login');
+    return res.redirect('/user/login')
   }
 
   try {
     const decoded = await verifyToken(token);
-    next(); 
-  } catch (err) {
-    return res.redirect('/user/login');
-  }
-
-}
-
-
-const checkIsUserExists = async (req,res,next) => {
-    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
-  try {
-    const decoded = await verifyToken(token);
-    return res.redirect('/user/home');
-  } catch {
-    next(); 
-  }
-
-}
-
-
-const checkIsUserVerified = async (req,res,next) =>{
-  const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
-
-  try{
-
-    const decoded = await verifyToken(token);
-    const user = await Users.findById(decoded.id);
-    
-    
+    const user = await findOneUserById(decoded.id);
 
     if (!user) {
       return res.redirect('/user/login');
     }
 
-    if (!user.isVerified) {
-      return res.redirect('/user/verify/email');
+    if (!user.isListed) {
+      res.locals.user = null;
+      return res.redirect(`/user/login?error=deleted`);
     }
 
-    if (user.isBlocked) {
+    if (!user.isVerified) {
+      res.locals.user = null;
+      return res.redirect(`/user/verify/email/${user._id}/otp`);
+    }
+
+    if(user.isBlocked) {
+      res.locals.user = null;
       return res.redirect('/user/login?error=blocked');
     }
 
+    res.locals.user = user;
     req.user = user;
-    next();
-  }catch(err){
-     return res.redirect('/user/login');
+    return next(); 
+  } catch (err) {
+    if(err.message == "deleted"){
+      return res.redirect('/user/login?error=deleted')
+    }
+
+    return res.redirect('/user/login');
+  }
+};
+
+
+const checkIsUserAuthenticated = async (req, res, next) => {
+  const token = req.cookies?.token;
+
+  if (!token) {
+    return next();
   }
 
+  try {
+    const decoded = await verifyToken(token);
+    const user = await findOneUserById(decoded.id);
+
+    if (!user.isListed) {
+      return next();
+    }
+
+    if (!user.isVerified) {
+      res.locals.user = null;
+      return next();
+    }
+
+    if(user.isBlocked) {
+      res.locals.user = null;
+      return next();
+    }
+
+    res.locals.user = user;
+    req.user = user;
+    return next(); 
+  } catch (err) {
+    if(err.message == "deleted"){
+      return next()
+    }
+
+    return next();
+  }
+};
+
+
+
+const checkIsUserExists = async (req,res,next) => {
+    const token = req.cookies?.token;
+  try {
+    const decoded = await verifyToken(token);
+    const user = await findOneUserById(decoded.id);
+    
+    if(user.isBlocked){
+      return next();
+    }
+    return res.redirect('/user/home');
+  } catch {
+    next(); 
+  }
+}
+
+
+const checkIsUserVerified = (req, res, next) => {
+  const user = req.user;
+
+  if(!user){
+   return next();
+  }
+  
+  if (!user.isVerified) {
+    return res.redirect('/user/verify/email');
+  }
+
+  if (user.isBlocked) {
+    return res.redirect('/user/login?error=blocked');
+  }
+
+  return next();
+
+};
+
+
+const checkAndRedirect = async (req, res) => {
+
+ const token = req.cookies?.token;
+
+ 
+ try {
+   const data = await getProducts();
+   const banner = await getPageWiseBanner();
+   const brands = await getAllBrands();
+   
+   if (!token) {
+     res.locals.user = null;
+     return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner, brands });
+    }
+
+    const decoded = await verifyToken(token);
+    
+    if (decoded) {
+      return res.redirect('/user/home');
+    }
+
+
+    res.locals.user = null;
+    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner });
+  } catch (err) {
+       const data = await getProducts();
+        const banner = await getPageWiseBanner();
+           const brands = await getAllBrands();
+
+    res.locals.user = null;
+    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner, brands });
+  }
+
+
+};
+
+const checkResetPasswordTokenValid = async (req,res,next) =>{
+  const {token} = req.query;
+  
+
+  if(!token){
+    return res.status(500).json({message: 'token expired'})
+  }
+
+  try{
+
+    const decoded = await verifyResetToken(token);
+
+    if(!decoded){
+      return res.status(500).json({message: 'token expired'})
+    }
+
+    const user = await findOneUserById(decoded.id);
+
+    req.user = user;
+    return next();
+ 
+  }catch(err){
+    return res.status(500).json({message: err.message || 'netwrok error'})
+  }
+
+}
+
+
+const checkIsResetPasswordLinkValid = async (req,res,next) =>{
+    const {token} = req.query;
+
+    console.log(req.query);
+    
+
+  if(!token){
+    return res.redirect('/user/forgotten-password?error=expired')
+  }
+
+    try{
+
+    const decoded = await verifyResetToken(token);
+
+    if(!decoded){
+      return res.redirect('/user/forgotten-password?error=expired')
+    }
+
+    const user = await findOneUserById(decoded.id);
+
+    req.user = user;
+    return next();
+
+  }catch(err){
+    return res.redirect('/user/forgotten-password?error=expired')
+  }
 
 }
 
@@ -67,4 +220,4 @@ const checkIsUserVerified = async (req,res,next) =>{
 
 
 
-module.exports = { checkIsUserAuthenticated, checkIsUserExists, checkIsUserVerified }
+module.exports = { checkIsUserAuthenticatedAndRedirect, checkIsUserAuthenticated, checkIsUserExists, checkIsUserVerified, checkAndRedirect, checkResetPasswordTokenValid, checkIsResetPasswordLinkValid }

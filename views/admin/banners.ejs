@@ -1,0 +1,1896 @@
+<div class="content-wrapper">
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <div class="page-card">
+        <div class="page-header">
+            <div class="header-content">
+                <h1 class="page-title">Banner Management</h1>
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <span>Add New Banner</span>
+            </button>
+
+        </div>
+
+
+                <% if (totalPages > 0) { %>
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Showing <%= Math.min(currentPage * limit, totalBanners) %> of <%= totalBanners %> banners
+                </div>
+                <div class="pagination-controls">
+                    <button 
+                        class="btn btn-icon" 
+                        onclick="goToPage(`<%= currentPage - 1 %>`)" 
+                        <%= currentPage === 1 ? 'disabled' : '' %>
+                    >
+                      <i class="lni lni-arrow-left-circle"></i>
+                    </button>
+                    
+                    <div class="page-input-container">
+                        <input 
+                            type="number" 
+                            id="page-input" 
+                            class="page-input" 
+                            value="<%= currentPage %>" 
+                            min="1" 
+                            max="<%= totalPages %>"
+                        >
+                        <span>of <%= totalPages %></span>
+                    </div>
+                    
+                    <button 
+                        class="btn btn-icon" 
+                        onclick="goToPage(`<%= currentPage + 1 %>`)" 
+                        <%= currentPage === totalPages ? 'disabled' : '' %>
+                    >
+                        <i class="lni lni-arrow-right-circle"></i>
+                    </button>
+                </div>
+            </div>
+        <% } %>
+
+        <div class="message-container">
+            <% if (messages && messages.error && messages.error.length > 0) { %>
+                <div class="alert alert-error show" id="error-msg"><%= messages.error[0] %></div>
+            <% } %>
+            <% if (messages && messages.success && messages.success.length > 0) { %>
+                <div class="alert alert-success show" id="success-msg"><%= messages.success[0] %></div>
+            <% } %>
+            <div class="alert alert-error" id="dynamic-error-msg"></div>
+            <div class="alert alert-success" id="dynamic-success-msg"></div>
+        </div>
+
+        <div class="filters-section">
+            <div class="filters-container">
+                <form id="search-form" class="search-form">
+                    <div class="search-input-container">
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="Search banners..." 
+                            class="search-input"
+                            value="<%= search || '' %>"
+                        >
+                        <button type="submit" class="search-btn">
+                            <svg width="22" height="22" viewBox="0 0 24 25" fill="#fff" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
+<path d="M11.2498 5.75037C10.8356 5.75037 10.4998 6.08615 10.4998 6.50037C10.4998 6.91458 10.8356 7.25037 11.2498 7.25037C13.874 7.25037 16.0011 9.37718 16.0011 12.0004C16.0011 12.4146 16.3369 12.7504 16.7511 12.7504C17.1653 12.7504 17.5011 12.4146 17.5011 12.0004C17.5011 8.54842 14.7021 5.75037 11.2498 5.75037Z"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2 11.9989C2 6.89126 6.14154 2.75098 11.25 2.75098C16.3585 2.75098 20.5 6.89126 20.5 11.9989C20.5 14.2836 19.6714 16.3747 18.2983 17.9883L21.7791 21.4695C22.072 21.7624 22.072 22.2372 21.7791 22.5301C21.4862 22.823 21.0113 22.823 20.7184 22.5301L17.2372 19.0486C15.6237 20.4197 13.5334 21.2469 11.25 21.2469C6.14154 21.2469 2 17.1066 2 11.9989ZM11.25 4.25098C6.96962 4.25098 3.5 7.72003 3.5 11.9989C3.5 16.2779 6.96962 19.7469 11.25 19.7469C15.5304 19.7469 19 16.2779 19 11.9989C19 7.72003 15.5304 4.25098 11.25 4.25098Z"/>
+</svg>
+
+                        </button>
+                    </div>
+                </form>
+
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="status-filter">Status:</label>
+                        <select id="status-filter" class="filter-select">
+                            <option value="all" <%= status === 'all' ? 'selected' : '' %>>All</option>
+                            <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
+                            <option value="inactive" <%= status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="page-filter">Page:</label>
+                        <select id="page-filter" class="filter-select">
+                            <option value="all" <%= pageFilter === 'all' ? 'selected' : '' %>>All Pages</option>
+                            <% if (uniquePages && uniquePages.length > 0) { %>
+                                <% uniquePages.forEach(page => { %>
+                                    <option value="<%= page %>" <%= pageFilter === page ? 'selected' : '' %>><%= page %></option>
+                                <% }) %>
+                            <% } %>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="sort-field">Sort By:</label>
+                        <select id="sort-field" class="filter-select">
+                            <option value="createdAt" <%= sortField === 'createdAt' ? 'selected' : '' %>>Date Created</option>
+                            <option value="name" <%= sortField === 'name' ? 'selected' : '' %>>Name</option>
+                            <option value="page" <%= sortField === 'page' ? 'selected' : '' %>>Page</option>
+                        </select>
+                        <button id="sort-order" class="sort-order-btn">
+                            <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </button>
+                    </div>
+
+                    <button type="button" id="reset-filters" class="btn btn-ghost btn-sm">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Page</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (banners && banners.length > 0) { %>
+                        <% banners.forEach(banner => { %>
+                            <tr>
+                                <td class="image-cell">
+                                    <div class="banner-image-preview">
+                                        <img src="<%= banner.image %>" alt="<%= banner.name %>">
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="banner-name"><%= banner.name %></div>
+                                    <% if (banner.description) { %>
+                                        <div class="banner-description"><%= banner.description.length > 50 ? banner.description.substring(0, 50) + '...' : banner.description %></div>
+                                    <% } %>
+                                </td>
+                                <td><%= banner.page %></td>
+                                <td>
+                                    <span class="status-badge <%= banner.isActive ? 'active' : 'blocked' %>">
+                                        <%= banner.isActive ? 'Active' : 'Inactive' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <%= new Date(banner.createdAt).toLocaleDateString() %>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button 
+                                            class="btn btn-icon" 
+                                            onclick="openEditModal('<%= banner._id %>')" 
+                                            title="Edit"
+                                        >
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
+<path d="M13.803 6.09787L5.83373 14.0672C5.57259 14.3283 5.37974 14.6497 5.27221 15.003L4.05204 19.0121C3.9714 19.2771 4.04336 19.565 4.23922 19.7608C4.43508 19.9567 4.72294 20.0287 4.98792 19.948L8.99703 18.7279C9.35035 18.6203 9.67176 18.4275 9.93291 18.1663L17.9022 10.1971L13.803 6.09787Z" fill="#343C54"/>
+<path d="M18.9628 9.13643L20.22 7.87928C21.0986 7.0006 21.0986 5.57598 20.22 4.6973L19.3028 3.7801C18.4241 2.90142 16.9995 2.90142 16.1208 3.7801L14.8637 5.03721L18.9628 9.13643Z" fill="#343C54"/>
+</svg>
+
+                                        </button>
+                                        <button 
+                                            class="btn btn-icon" 
+                                            onclick="toggleStatus('<%= banner._id %>', '<%= banner.name %>', '<%= banner.isActive %>')" 
+                                            title="<%= banner.isActive  %>"
+                                        >
+                                            <% if(banner.isActive) { %>
+
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2C9.10051 2 6.75 4.3505 6.75 7.25V9.125H5.5C4.25736 9.125 3.25 10.1324 3.25 11.375V17.2495C3.25 19.8729 5.37665 21.9995 8 21.9995H16C18.6234 21.9995 20.75 19.8729 20.75 17.2495V11.375C20.75 10.1324 19.7426 9.125 18.5 9.125H17.25V7.25C17.25 4.35051 14.8995 2 12 2ZM12 3.5C14.0711 3.5 15.75 5.17893 15.75 7.25V9.125H8.25V7.25C8.25 5.17893 9.92893 3.5 12 3.5ZM12 14.5C12.8284 14.5 13.5 15.1716 13.5 16V17.5C13.5 18.3284 12.8284 19 12 19C11.1716 19 10.5 18.3284 10.5 17.5V16C10.5 15.1716 11.1716 14.5 12 14.5Z" fill="#323544"/>
+</svg>
+
+                                                <% }else {%>
+
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6.75 7.25C6.75 4.35051 9.10051 2 12 2C13.9882 2 15.7172 3.10553 16.6076 4.73184C16.8066 5.09516 16.6733 5.55095 16.31 5.74987C15.9466 5.9488 15.4909 5.81553 15.2919 5.45221C14.6541 4.28724 13.4184 3.5 12 3.5C9.92893 3.5 8.25 5.17893 8.25 7.25V9.125H18.5C19.7426 9.125 20.75 10.1324 20.75 11.375V17.2495C20.75 19.8729 18.6234 21.9995 16 21.9995H8C5.37665 21.9995 3.25 19.8729 3.25 17.2495V11.375C3.25 10.1324 4.25736 9.125 5.5 9.125H6.75V7.25ZM12 14.5C11.1716 14.5 10.5 15.1716 10.5 16V17.5C10.5 18.3284 11.1716 19 12 19C12.8284 19 13.5 18.3284 13.5 17.5V16C13.5 15.1716 12.8284 14.5 12 14.5Z" fill="#323544"/>
+</svg>
+
+
+
+                                                    <% } %>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" class="empty-table">
+                                <div class="empty-state">
+                                    <p>No banners found</p>
+                                    <button class="btn btn-primary" onclick="openAddModal()">Add Banner</button>
+                                </div>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-view">
+            <% if (banners && banners.length > 0) { %>
+                <% banners.forEach(banner => { %>
+                    <div class="data-card">
+                        <div class="card-header">
+                            <div class="banner-image-preview">
+                                <img src="<%= banner.image %>" alt="<%= banner.name %>">
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="banner-name"><%= banner.name %></h3>
+                            <% if (banner.description) { %>
+                                <p class="banner-description"><%= banner.description.length > 50 ? banner.description.substring(0, 50) + '...' : banner.description %></p>
+                            <% } %>
+                            <div class="card-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Page:</span>
+                                    <span class="detail-value"><%= banner.page %></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Status:</span>
+                                    <span class="status-badge <%= banner.isActive ? 'active' : 'blocked' %>">
+                                        <%= banner.isActive ? 'Active' : 'blocked' %>
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Created:</span>
+                                    <span class="detail-value"><%= new Date(banner.createdAt).toLocaleDateString() %></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="action-buttons">
+                                <button 
+                                    class="btn btn-sm" 
+                                    onclick="openEditModal('<%= banner._id %>')"
+                                >
+                                    Edit
+                                </button>
+                                <button 
+                                    class="btn btn-sm <%= banner.isActive ? 'btn-warning' : 'btn-success' %>" 
+                                    onclick="toggleStatus('<%= banner._id %>', '<%= banner.name %>', '<%= !banner.isActive %>')"
+                                >
+                                    <%= banner.isActive ? 'Deactivate' : 'Activate' %>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="empty-state">
+                    <p>No banners found</p>
+                    <button class="btn btn-primary" onclick="openAddModal()">Add Banner</button>
+                </div>
+            <% } %>
+        </div>
+
+
+    </div>
+</div>
+
+<!-- Banner Modal -->
+<div class="modal-overlay" id="banner-modal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 id="modal-title">Add Banner</h3>
+            <button class="modal-close" onclick="closeModal()">
+                ×
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="banner-form" class="banner-form">
+                <div class="form-grid">
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">Banner Name <span class="required">*</span></label>
+                            <input type="text" 
+                                   id="banner-name" 
+                                   name="name" 
+                                   class="form-input" 
+                                   placeholder="Enter banner name"
+                                   maxlength="100"
+                                   required>
+                            <div class="form-error" id="name-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description <span class="char-count">(0/500)</span></label>
+                            <textarea id="banner-description" 
+                                      name="description" 
+                                      class="form-textarea" 
+                                      rows="3"
+                                      maxlength="500"
+                                      placeholder="Enter banner description"></textarea>
+                            <div class="form-error" id="description-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Page <span class="required">*</span></label>
+                            <input type="text" 
+                                   id="banner-page" 
+                                   name="page" 
+                                   class="form-input" 
+                                   placeholder="Enter page name (e.g., home, about)"
+                                   maxlength="100"
+                                   required>
+                            <div class="form-error" id="page-error"></div>
+                        </div>
+                    </div>
+
+                    <!-- Button Information -->
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">Button Text <span class="char-count">(0/50)</span></label>
+                            <input type="text" 
+                                   id="banner-button-text" 
+                                   name="buttonText" 
+                                   class="form-input" 
+                                   placeholder="Enter button text (optional)"
+                                   maxlength="50">
+                            <div class="form-error" id="buttonText-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Button Link</label>
+                            <input type="text" 
+                                   id="banner-button-link" 
+                                   name="buttonLink" 
+                                   class="form-input" 
+                                   placeholder="Enter button link (optional)">
+                            <div class="form-error" id="buttonLink-error"></div>
+                        </div>
+                    </div>
+
+                    <!-- Banner Image -->
+                    <div class="form-section">
+                        <label class="form-label">Banner Image <span class="required">*</span></label>
+                        <p class="section-description">Upload a banner image (recommended size: 1584x396 pixels)</p>
+                        
+                        <div class="image-upload-container">
+                            <div class="image-upload-area" id="image-upload-area">
+                                <div class="upload-placeholder">
+                                    <i>📤</i>
+                                    <p>Click to upload or drag and drop</p>
+                                    <span>PNG, JPG up to 5MB</span>
+                                </div>
+                                <input type="file" 
+                                       id="banner-image" 
+                                       name="image" 
+                                       accept="image/*" 
+                                       style="display: none;">
+                            </div>
+                            
+                            <div class="banner-preview-container" id="image-preview-container">
+                                <!-- Image preview will be added here dynamically -->
+                            </div>
+                            
+                            <input type="hidden" id="image-url" name="image" value="">
+                            <div class="form-error" id="image-error"></div>
+                        </div>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="form-section">
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="banner-active" name="isActive" checked>
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-text">Active</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" id="save-banner-btn" onclick="saveBanner()">
+                <span class="btn-spinner" id="save-spinner"></span>
+                <span id="save-text">Save Banner</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Image Crop Modal -->
+    <div class="modal-overlay" id="crop-modal">
+        <div class="modal-container modal-crop">
+            <div class="modal-header">
+                <h3>Crop Image</h3>
+                <button class="modal-close" onclick="closeCropModal()">
+                    ×
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="crop-container">
+                    <img id="crop-image" src="/placeholder.svg" alt="Crop">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeCropModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="applyCrop()">Apply Crop</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirm-modal">
+    <div class="modal-container modal-sm">
+        <div class="modal-header">
+            <h3 id="confirm-title">Confirm Action</h3>
+            <button class="modal-close" onclick="closeConfirmModal()">
+                ×
+            </button>
+        </div>
+        <div class="modal-body">
+            <p id="confirm-message">Are you sure you want to perform this action?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeConfirmModal()">Cancel</button>
+            <button class="btn btn-primary" id="confirm-btn" onclick="confirmAction()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Banner Management Styles */
+    :root {
+        --primary: #18191b;
+        --primary-hover: #131316;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        --white: #ffffff;
+        --radius: 8px;
+        --radius-lg: 12px;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin: 20px;
+    }
+
+    .page-card {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--white);
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    /* Messages */
+    .message-container {
+        padding: 0 2rem;
+    }
+
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius);
+        font-size: 0.875rem;
+        display: none;
+        margin: 1rem 0;
+    }
+
+    .alert.show {
+        display: block;
+    }
+
+    .alert-error {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    /* Filters */
+    .filters-section {
+        padding: 1rem 2rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .filters-container {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-around;
+        align-items: center;
+        text-align: center;
+    }
+
+    .search-form {
+        width: 100%;
+    }
+
+    .search-input-container {
+        display: flex;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--gray-300);
+        border-right: none;
+        border-radius: var(--radius) 0 0 var(--radius);
+        font-size: 0.875rem;
+    }
+
+    input:focus{
+        outline: none !important;
+    }
+
+    .search-btn {
+        padding: 0.5rem 1rem;
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        cursor: pointer;
+    }
+
+    .filter-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-group label {
+        font-size: 0.875rem;
+        color: var(--gray-700);
+    }
+
+    .filter-select {
+        padding: 0.5rem;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius);
+        font-size: 0.875rem;
+        background: var(--white);
+        text-align: center;
+    }
+
+    .sort-order-btn {
+        padding: 0.5rem;
+        background: var(--white);
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius);
+        cursor: pointer;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Table */
+    .table-responsive {
+        overflow-x: auto;
+        display: block;
+        width: 100%;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .data-table th {
+        background: var(--gray-50);
+        font-weight: 600;
+        color: var(--gray-700);
+        font-size: 0.875rem;
+    }
+
+    .image-cell {
+        width: 120px;
+    }
+
+    .banner-image-preview {
+        width: 100px;
+        height: 25px;
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: var(--gray-100);
+    }
+
+    .banner-image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .banner-name {
+        font-weight: 500;
+        color: var(--gray-900);
+    }
+
+    .banner-description {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin-top: 0.25rem;
+    }
+
+
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon i{
+        font-size: 1.5rem;
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        color: var(--white);
+        border-color: var(--danger);
+    }
+
+    .btn-warning {
+        background: var(--warning);
+        color: var(--white);
+        border-color: var(--warning);
+    }
+
+    .btn-success {
+        background: var(--success);
+        color: var(--white);
+        border-color: var(--success);
+    }
+
+    .empty-table {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem;
+    }
+
+    .empty-state p {
+        color: var(--gray-500);
+        font-size: 1rem;
+    }
+
+    /* Card View (for mobile) */
+    .card-view {
+        display: none;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .data-card {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 0;
+    }
+
+    .card-header .banner-image-preview {
+        width: 100%;
+        height: 50px;
+        border-radius: 0;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .card-details {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.875rem;
+    }
+
+    .detail-label {
+        color: var(--gray-600);
+    }
+
+    .card-footer {
+        padding: 1rem;
+        border-top: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+
+    .card-footer .action-buttons {
+        justify-content: space-between;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .pagination-info {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-input-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--gray-700);
+    }
+
+    .page-input {
+        width: 3rem;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius);
+        text-align: center;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-container {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow: hidden;
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-container {
+        transform: scale(1);
+    }
+
+    .modal-sm {
+        max-width: 400px;
+    }
+
+    .modal-crop .modal-container {
+        max-width: 800px;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .modal-header h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    .modal-close {
+        padding: 0.5rem;
+        background: none;
+        border: none;
+        color: var(--gray-400);
+        cursor: pointer;
+        border-radius: var(--radius);
+        transition: all 0.2s;
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+
+    .modal-close:hover {
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+
+    .modal-body {
+        padding: 2rem;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+
+    /* Form Styles */
+    .banner-form {
+        width: 100%;
+    }
+
+    .form-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray-700);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .char-count {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        font-weight: normal;
+    }
+
+    .required {
+        color: var(--danger);
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius);
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+    }
+
+    .form-input.error,
+    .form-textarea.error,
+    .form-select.error {
+        border-color: var(--danger);
+    }
+
+    .section-description {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-error {
+        font-size: 0.75rem;
+        color: var(--danger);
+        display: none;
+    }
+
+    .form-error.show {
+        display: block;
+    }
+
+    /* Checkbox Styles */
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        display: none;
+    }
+
+    .checkbox-custom {
+        width: 1rem;
+        height: 1rem;
+        border: 1px solid var(--gray-300);
+        border-radius: 0.25rem;
+        position: relative;
+        transition: all 0.2s;
+    }
+
+    .checkbox-label input:checked + .checkbox-custom {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .checkbox-label input:checked + .checkbox-custom:after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--white);
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .checkbox-text {
+        font-size: 0.875rem;
+        color: var(--gray-700);
+    }
+
+    /* Image Upload Styles */
+    .image-upload-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .image-upload-area {
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .image-upload-area:hover {
+        border-color: var(--primary);
+        background: var(--gray-50);
+    }
+
+    .upload-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .upload-placeholder i {
+        font-size: 2rem;
+        color: var(--gray-400);
+    }
+
+    .upload-placeholder p {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+
+    .upload-placeholder span {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+    }
+
+    .banner-preview-container {
+        position: relative;
+        width: 100%;
+        height: 100px;
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: var(--gray-100);
+    }
+
+    .banner-preview-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-remove {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        background: var(--danger);
+        color: var(--white);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+
+    /* Crop Modal */
+    .crop-container {
+        max-width: 100%;
+        max-height: 400px;
+        overflow: hidden;
+    }
+
+    .crop-container img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Loading Styles */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loading-spinner {
+        text-align: center;
+    }
+
+    .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid var(--gray-200);
+        border-top: 2px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .btn-spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 1px solid transparent;
+        border-top: 1px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: none;
+    }
+
+    .btn-spinner.active {
+        display: block;
+    }
+
+    /* Buttons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: var(--white);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: var(--primary-hover);
+    }
+
+    .btn-ghost {
+        background: transparent;
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+        background: var(--gray-50);
+        color: var(--gray-900);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .table-responsive {
+            display: none;
+        }
+        
+        .card-view {
+            display: flex;
+        }
+        
+        .filters-container {
+            flex-direction: column;
+        }
+        
+        .filter-controls {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .filter-group {
+            width: 100%;
+        }
+        
+        .filter-select {
+            width: 100%;
+        }
+        
+        .pagination-container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .modal-body {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script>
+    const BASE_URL = window.location.origin;
+    
+    // Global State
+    const STATE = {
+        currentBannerId: null,
+        isEditMode: false,
+        cropper: null,
+        currentCropFile: null,
+        isLoading: false,
+        confirmAction: null,
+        filters: {
+            search: '<%= search || "" %>',
+            status: '<%= status || "all" %>',
+            pageFilter: '<%= pageFilter || "all" %>',
+            sortField: '<%= sortField || "createdAt" %>',
+            sortOrder: '<%= sortOrder || "desc" %>',
+            page: '<%= currentPage || 1 %>',
+            limit: '<%= limit || 10 %>'
+        }
+    };
+
+    // Utility Functions
+    function showLoading() {
+        STATE.isLoading = true;
+        document.getElementById('loading-overlay').classList.add('active');
+    }
+
+    function hideLoading() {
+        STATE.isLoading = false;
+        document.getElementById('loading-overlay').classList.remove('active');
+    }
+
+    function showError(message) {
+        const errorMsg = document.getElementById('dynamic-error-msg');
+        if (errorMsg) {
+            errorMsg.textContent = message;
+            errorMsg.classList.add('show');
+            setTimeout(() => {
+                errorMsg.classList.remove('show');
+            }, 5000);
+        }
+    }
+
+    function showSuccess(message) {
+        const successMsg = document.getElementById('dynamic-success-msg');
+        if (successMsg) {
+            successMsg.textContent = message;
+            successMsg.classList.add('show');
+            setTimeout(() => {
+                successMsg.classList.remove('show');
+            }, 5000);
+        }
+    }
+
+    function showFormLoading(show) {
+        const spinner = document.getElementById('save-spinner');
+        const saveBtn = document.getElementById('save-banner-btn');
+        const saveText = document.getElementById('save-text');
+        
+        if (show) {
+            spinner.classList.add('active');
+            saveBtn.disabled = true;
+            saveText.style.opacity = '0';
+        } else {
+            spinner.classList.remove('active');
+            saveBtn.disabled = false;
+            saveText.style.opacity = '1';
+        }
+    }
+
+    function clearFormErrors() {
+        const errors = document.querySelectorAll('.form-error');
+        errors.forEach(error => {
+            error.classList.remove('show');
+            error.textContent = '';
+        });
+        
+        const inputs = document.querySelectorAll('.form-input, .form-textarea, .form-select');
+        inputs.forEach(input => {
+            input.classList.remove('error');
+        });
+    }
+
+    function showFormError(fieldName, message) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        const error = document.getElementById(`${fieldName}-error`);
+        
+        if (field) field.classList.add('error');
+        if (error) {
+            error.textContent = message;
+            error.classList.add('show');
+        }
+    }
+
+    function validateForm() {
+        clearFormErrors();
+        let isValid = true;
+        
+        const name = document.getElementById('banner-name').value.trim();
+        if (!name) {
+            showFormError('name', 'Banner name is required');
+            isValid = false;
+        } else if (name.length > 100) {
+            showFormError('name', 'Banner name cannot exceed 100 characters');
+            isValid = false;
+        }
+        
+        const description = document.getElementById('banner-description').value.trim();
+        if (description && description.length > 500) {
+            showFormError('description', 'Description cannot exceed 500 characters');
+            isValid = false;
+        }
+        
+        const page = document.getElementById('banner-page').value.trim();
+        if (!page) {
+            showFormError('page', 'Page is required');
+            isValid = false;
+        }
+        
+        const buttonText = document.getElementById('banner-button-text').value.trim();
+        if (buttonText && buttonText.length > 50) {
+            showFormError('buttonText', 'Button text cannot exceed 50 characters');
+            isValid = false;
+        }
+        
+        const imageUrl = document.getElementById('image-url').value;
+        if (!imageUrl) {
+            showFormError('image', 'Banner image is required');
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+
+    // Filter and Pagination Functions
+    function applyFilters() {
+        const queryParams = new URLSearchParams();
+        
+        if (STATE.filters.search) queryParams.set('search', STATE.filters.search);
+        if (STATE.filters.status !== 'all') queryParams.set('status', STATE.filters.status);
+        if (STATE.filters.pageFilter !== 'all') queryParams.set('pageFilter', STATE.filters.pageFilter);
+        if (STATE.filters.sortField) queryParams.set('sortField', STATE.filters.sortField);
+        if (STATE.filters.sortOrder) queryParams.set('sortOrder', STATE.filters.sortOrder);
+        if (STATE.filters.page > 1) queryParams.set('page', STATE.filters.page);
+        if (STATE.filters.limit !== 10) queryParams.set('limit', STATE.filters.limit);
+        
+        window.location.href = `${BASE_URL}/admin/banners?${queryParams.toString()}`;
+    }
+
+    function resetFilters() {
+        STATE.filters = {
+            search: '',
+            status: 'all',
+            pageFilter: 'all',
+            sortField: 'createdAt',
+            sortOrder: 'desc',
+            page: 1,
+            limit: 10
+        };
+        
+        applyFilters();
+    }
+
+    function goToPage(page) {
+        STATE.filters.page = page;
+        applyFilters();
+    }
+
+    function setSortField(field) {
+        if (STATE.filters.sortField === field) {
+            STATE.filters.sortOrder = STATE.filters.sortOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+            STATE.filters.sortField = field;
+            STATE.filters.sortOrder = 'asc';
+        }
+        
+        applyFilters();
+    }
+
+    function openAddModal() {
+        STATE.isEditMode = false;
+        STATE.currentBannerId = null;
+        
+        document.getElementById('banner-form').reset();
+        document.getElementById('modal-title').textContent = 'Add Banner';
+        document.getElementById('save-text').textContent = 'Save Banner';
+        document.getElementById('image-url').value = '';
+        document.getElementById('image-preview-container').innerHTML = '';
+        
+        clearFormErrors();
+        
+        document.getElementById('banner-modal').classList.add('active');
+    }
+
+    async function openEditModal(bannerId) {
+        STATE.isEditMode = true;
+        STATE.currentBannerId = bannerId;
+        
+        try {
+            showLoading();
+            
+            const response = await fetch(`${BASE_URL}/admin/banners/api/get/${bannerId}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                const banner = result.data;
+                
+                document.getElementById('banner-name').value = banner.name || '';
+                document.getElementById('banner-description').value = banner.description || '';
+                document.getElementById('banner-page').value = banner.page || '';
+                document.getElementById('banner-button-text').value = banner.buttonText || '';
+                document.getElementById('banner-button-link').value = banner.buttonLink || '';
+                document.getElementById('banner-active').checked = banner.isActive;
+                
+                if (banner.image) {
+                    document.getElementById('image-url').value = banner.image;
+                    document.getElementById('image-preview-container').innerHTML = `
+                        <img src="${banner.image}" alt="${banner.name}">
+                        <button type="button" class="image-remove" onclick="removeImage()">
+                            ×
+                        </button>
+                    `;
+                }
+                
+                document.getElementById('modal-title').textContent = 'Edit Banner';
+                document.getElementById('save-text').textContent = 'Update Banner';
+                
+                clearFormErrors();
+                
+                document.getElementById('banner-modal').classList.add('active');
+            } else {
+                showError(result.message || 'Failed to load banner data');
+            }
+        } catch (error) {
+            console.error('Error loading banner:', error);
+            showError('Error loading banner data');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('banner-modal').classList.remove('active');
+    }
+
+
+    function initializeImageUpload() {
+        const uploadArea = document.getElementById('image-upload-area');
+        const imageInput = document.getElementById('banner-image');
+        
+        uploadArea.addEventListener('click', () => {
+            imageInput.click();
+        });
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--primary)';
+            uploadArea.style.background = 'var(--gray-50)';
+        });
+        
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--gray-300)';
+            uploadArea.style.background = 'transparent';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--gray-300)';
+            uploadArea.style.background = 'transparent';
+            
+            const files = Array.from(e.dataTransfer.files);
+            handleImageFile(files[0]);
+        });
+        
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleImageFile(file);
+        });
+    }
+
+    function handleImageFile(file) {
+        if (!file) return;
+        
+        if (!file.type.startsWith('image/')) {
+            showError('Please select only image files');
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            showError('Image size should be less than 5MB');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            openCropModal(e.target.result, file);
+        };
+        reader.readAsDataURL(file);
+    }
+
+  function openCropModal(imageSrc, file) {
+            const modal = document.getElementById('crop-modal');
+            const cropImage = document.getElementById('crop-image');
+            
+            cropImage.src = imageSrc;
+            modal.classList.add('active');
+            
+            // Initialize cropper
+            if (STATE.cropper) {
+                STATE.cropper.destroy();
+            }
+            
+            STATE.cropper = new Cropper(cropImage, {
+                aspectRatio: 1,
+                viewMode: 1,
+                autoCropArea: 0.8,
+                responsive: true,
+                background: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false
+            });
+            
+            STATE.currentCropFile = file;
+        }
+
+
+    function closeCropModal() {
+        const modal = document.getElementById('crop-modal');
+        modal.classList.remove('active');
+        
+        if (STATE.cropper) {
+            STATE.cropper.destroy();
+            STATE.cropper = null;
+        }
+        
+        STATE.currentCropFile = null;
+    }
+
+     async function applyCrop() {
+            if (!STATE.cropper) return;
+            
+            try {
+                const canvas = STATE.cropper.getCroppedCanvas({
+                    width: 1000,
+                    height: 400,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high'
+                });
+                
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append('image', blob, `product-${Date.now()}.jpg`);
+                    
+                    try {
+                    showLoading();
+                    const response = await fetch(`${BASE_URL}/admin/banners/upload-image`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        document.getElementById('image-url').value = result.imageUrl;
+                        document.getElementById('image-preview-container').innerHTML = `
+                            <img src="${result.imageUrl}" alt="Banner Preview">
+                            <button type="button" class="image-remove" onclick="removeImage()">
+                                ×
+                            </button>
+                        `;
+                        closeCropModal();
+                        } else {
+                            showError(result.message || 'Failed to upload image');
+                        }
+                    } catch (error) {
+                        console.error('Error uploading image:', error);
+                        showError('Error uploading image');
+                    } finally {
+                        hideLoading();
+                    }
+                }, 'image/jpeg', 0.9);
+                
+            } catch (error) {
+                console.error('Error cropping image:', error);
+                showError('Error processing image');
+            }
+        }
+
+    function removeImage() {
+        document.getElementById('image-url').value = '';
+        document.getElementById('image-preview-container').innerHTML = '';
+    }
+
+    async function saveBanner() {
+        if (!validateForm()) {
+            return;
+        }
+        
+        showFormLoading(true);
+        
+        try {
+            const formData = {
+                name: document.getElementById('banner-name').value.trim(),
+                description: document.getElementById('banner-description').value.trim(),
+                page: document.getElementById('banner-page').value.trim(),
+                buttonText: document.getElementById('banner-button-text').value.trim(),
+                buttonLink: document.getElementById('banner-button-link').value.trim(),
+                image: document.getElementById('image-url').value,
+                isActive: document.getElementById('banner-active').checked
+            };
+            
+            let url, method;
+            
+            if (STATE.isEditMode) {
+                url = `${BASE_URL}/admin/banners/api/update/${STATE.currentBannerId}`;
+                method = 'PUT';
+            } else {
+                url = `${BASE_URL}/admin/banners/api/create`;
+                method = 'POST';
+            }
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showSuccess(STATE.isEditMode ? 'Banner updated successfully' : 'Banner created successfully');
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                if (result.errors) {
+                    Object.keys(result.errors).forEach(field => {
+                        showFormError(field, result.errors[field]);
+                    });
+                } else {
+                    showError(result.message || 'Failed to save banner');
+                }
+            }
+        } catch (error) {
+            console.error('Error saving banner:', error);
+            showError('An error occurred while saving the banner');
+        } finally {
+            showFormLoading(false);
+        }
+    }
+
+    function toggleStatus(id, name, active) {
+        STATE.confirmAction = async () => {
+            try {
+                showLoading();
+                
+                const response = await fetch(`${BASE_URL}/admin/banners/toggle-status/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ active: active == 'true'  })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(`Banner "${name}" ${active == 'true' ? 'deactivated' : 'activated'} successfully`);
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showError(result.message || 'Failed to update banner status');
+                }
+            } catch (error) {
+                console.error('Error updating banner status:', error);
+                showError('An error occurred while updating banner status');
+            } finally {
+                hideLoading();
+                closeConfirmModal();
+            }
+        };
+        
+        document.getElementById('confirm-title').textContent =  active == 'true' ?  'Deactivate Banner' : 'Activate Banner';
+        document.getElementById('confirm-message').textContent = `Are you sure you want to ${active == 'true' ?  'deactivate' : 'activate'} the banner "${name}"?`;
+        document.getElementById('confirm-btn').textContent = active == 'true' ? 'Deactivate' : 'Activate' ;
+        
+        document.getElementById('confirm-modal').classList.add('active');
+    }
+
+
+    function confirmAction() {
+        if (typeof STATE.confirmAction === 'function') {
+            STATE.confirmAction();
+        }
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirm-modal').classList.remove('active');
+        document.getElementById('confirm-btn').classList.remove('btn-danger');
+        STATE.confirmAction = null;
+    }
+
+
+    function updateCharCount(input, maxLength) {
+        const count = input.value.length;
+        const countElement = input.parentElement.querySelector('.char-count');
+        if (countElement) {
+            countElement.textContent = `(${count}/${maxLength})`;
+            if (count > maxLength) {
+                countElement.style.color = 'var(--danger)';
+            } else {
+                countElement.style.color = 'var(--gray-500)';
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeImageUpload();
+        
+        const descriptionField = document.getElementById('banner-description');
+        const buttonTextField = document.getElementById('banner-button-text');
+        
+        if (descriptionField) {
+            updateCharCount(descriptionField, 500);
+            descriptionField.addEventListener('input', () => updateCharCount(descriptionField, 500));
+        }
+        
+        if (buttonTextField) {
+            updateCharCount(buttonTextField, 50);
+            buttonTextField.addEventListener('input', () => updateCharCount(buttonTextField, 50));
+        }
+        
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            STATE.filters.search = document.getElementById('search-input').value.trim();
+            STATE.filters.page = 1; 
+            applyFilters();
+        });
+        
+                document.getElementById('status-filter').addEventListener('change', function() {
+            STATE.filters.status = this.value;
+            STATE.filters.page = 1;
+            applyFilters();
+        });
+        
+        document.getElementById('page-filter').addEventListener('change', function() {
+            STATE.filters.pageFilter = this.value;
+            STATE.filters.page = 1;
+            applyFilters();
+        });
+        
+        document.getElementById('sort-field').addEventListener('change', function() {
+            STATE.filters.sortField = this.value;
+            STATE.filters.page = 1;
+            applyFilters();
+        });
+        
+        document.getElementById('sort-order').addEventListener('click', function() {
+            STATE.filters.sortOrder = STATE.filters.sortOrder === 'asc' ? 'desc' : 'asc';
+            this.textContent = STATE.filters.sortOrder === 'asc' ? '↑' : '↓';
+            STATE.filters.page = 1;
+            applyFilters();
+        });
+        
+        document.getElementById('reset-filters').addEventListener('click', resetFilters);
+        
+        document.getElementById('page-input').addEventListener('change', function() {
+            const page = parseInt(this.value);
+            if (page >= 1 && page <= `<%= totalPages %>`) {
+                goToPage(page);
+            } else {
+                this.value = `<%= currentPage %>`;
+            }
+        });
+
+
+        // Modal event listeners
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('banner-modal').classList.contains('active')) {
+                    closeModal();
+                }
+                if (document.getElementById('crop-modal').classList.contains('active')) {
+                    closeCropModal();
+                }
+                if (document.getElementById('confirm-modal').classList.contains('active')) {
+                    closeConfirmModal();
+                }
+            }
+        });
+
+        // Close modals on backdrop click
+        document.getElementById('banner-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        document.getElementById('crop-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCropModal();
+            }
+        });
+        
+        document.getElementById('confirm-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeConfirmModal();
+            }
+        });
+
+        // Hide flash messages after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert.show');
+            alerts.forEach(alert => {
+                alert.classList.remove('show');
+            });
+        }, 5000);
+    });
+
+    // Hide loading on page load
+    window.addEventListener('load', function() {
+        hideLoading();
+    });
+</script>

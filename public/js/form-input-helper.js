@@ -11,7 +11,7 @@ const checkPhoneNumberValid = (phoneNumber) => {
 };
 
 const checkUsernameValid = (username) => {
-  return /^[a-zA-Z0-9_]{3,20}$/.test(username);
+  return /^(?! )[a-zA-Z0-9_ ]{3,20}(?<! )$/.test(username);
 };
 
 const checkPasswordValid = (password) => {
@@ -27,7 +27,7 @@ const checkPasswordMatch = (password, confirmPassword) => {
 };
 
 const checkOtpValid = (otp) => {
-  const otpRegex = /^\d{6}$/; // only 6 numeric digits
+  const otpRegex = /^\d{6}$/;
   return otpRegex.test(otp);
 };
 

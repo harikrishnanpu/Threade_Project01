@@ -1,0 +1,214 @@
+/* Modal System - Standalone CSS */
+
+/* Modal Overlay - Full Screen Background */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Modal Overlay - Visible State */
+.modal-overlay.show {
+  display: flex;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal Container */
+.custom-modal {
+  position: relative;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(0.7);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  margin: auto;
+  display: none;
+}
+
+/* Modal - Visible State */
+.modal-overlay.show .custom-modal {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Modal - Active State */
+.custom-modal.active {
+  display: block;
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 20px;
+  text-align: center;
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Success Modal Header */
+.success-modal .modal-header {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+/* Error Modal Header */
+.error-modal .modal-header {
+  background: linear-gradient(135deg, #dc3545, #e74c3c);
+}
+
+/* Modal Header Title */
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal Header Icon */
+.modal-header i {
+  margin-right: 8px;
+  font-size: 1.5rem;
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 30px 20px;
+  text-align: center;
+}
+
+/* Modal Icon Container */
+.modal-icon {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Modal Icon */
+.modal-icon i {
+  font-size: 4rem;
+}
+
+/* Success Modal Icon */
+.success-modal .modal-icon i {
+  color: #28a745;
+}
+
+/* Error Modal Icon */
+.error-modal .modal-icon i {
+  color: #dc3545;
+}
+
+/* Modal Message */
+.modal-body p {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 20px;
+  text-align: center;
+  border-top: 1px solid #eee;
+}
+
+/* Modal Button */
+.modal-btn {
+  padding: 10px 30px;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Success Button */
+.success-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.success-btn:hover {
+  background: linear-gradient(135deg, #218838, #1e7e34);
+  transform: translateY(-1px);
+}
+
+/* Error Button */
+.error-btn {
+  background: linear-gradient(135deg, #dc3545, #e74c3c);
+}
+
+.error-btn:hover {
+  background: linear-gradient(135deg, #c82333, #bd2130);
+  transform: translateY(-1px);
+}
+
+/* Modal Button Icon */
+.modal-btn i {
+  margin-right: 5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .custom-modal {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .modal-body {
+    padding: 20px 15px;
+  }
+  
+  .modal-icon i {
+    font-size: 3rem;
+  }
+}
+
+/* Fix for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .modal-overlay {
+    position: absolute;
+    height: 100vh;
+    /* Mobile Safari */
+    height: -webkit-fill-available;
+  }
+}
+
+/* Fix for older browsers */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  /* IE10+ specific styles */
+  .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal-overlay.show {
+    display: block;
+  }
+  
+  .custom-modal {
+    margin: 10% auto;
+  }
+}
