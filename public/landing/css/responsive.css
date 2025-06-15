@@ -8,7 +8,7 @@ Version:1.0
 /* Tablet Screen */
 @media only screen and (min-width: 768px) and (max-width: 991px) {
 .section{
-	padding:50px 0px;
+	padding:0px;
 }
 .shop.single {
 	padding: 30px 0 50px 0;
@@ -488,7 +488,7 @@ Version:1.0
 	margin: 0;
 }
 .section{
-	padding:50px 0px;
+	padding:0px;
 }
 .section-title {
 	margin-bottom: 30px;
@@ -1187,7 +1187,7 @@ Version:1.0
 	margin: 0;
 }
 .section{
-	padding:50px 0px;
+	padding:0px;
 }
 .section-title {
 	margin-bottom: 30px;
@@ -1233,12 +1233,6 @@ Version:1.0
 .header.shop .list-main li a:hover{
 	color:#fff;
 	text-decoration:underline;
-}
-.header.shop .top-left .list-main li i {
-	color: #fff;
-}
-.header.shop .list-main li i {
-	color: #fff;
 }
 .header.shop .topbar .right-content {
 	margin-top: 0px;

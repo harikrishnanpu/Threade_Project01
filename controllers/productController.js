@@ -149,10 +149,11 @@ const updateProductById = async (req, res) => {
     
 
     const updatedProduct = await editProductById(id, updateData);
+
     res.status(200).json({
       message: 'Product updated successfully', 
       success: true, 
-      data: updatedProduct
+      data: updatedProduct,
     });
   } catch (err) {
     res.status(500).json({ message: err.message, success: false });
@@ -161,10 +162,14 @@ const updateProductById = async (req, res) => {
 
 const createNewProduct = async (req, res) => {
   try {
+
     const productData = {
       ...req.body,
-      createdBy: req.admin._id
+      createdBy: req.admin._id,
     };
+
+    console.log(req.body);
+    
 
     const newProduct = await insertOneProduct(productData);
     res.status(201).json({

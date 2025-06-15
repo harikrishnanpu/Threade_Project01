@@ -125,24 +125,6 @@ const createProductValidator = [
   body('category')
     .notEmpty().withMessage('Category is required'),
 
-  body('regularPrice')
-    .notEmpty().withMessage('Regular price is required')
-    .isFloat({ min: 0 }).withMessage('Regular price must be a non-negative number'),
-
-  body('salePrice')
-    .optional()
-    .isFloat({ min: 0 }).withMessage('Sale price must be a non-negative number')
-    .custom((value, { req }) => {
-      if (value && req.body.regularPrice && parseFloat(value) >= parseFloat(req.body.regularPrice)) {
-        throw new Error('Sale price must be less than regular price');
-      }
-      return true;
-    }),
-
-  body('stock')
-    .optional()
-    .isInt({ min: 0 }).withMessage('Stock must be a non-negative integer'),
-
   body('images')
     .isArray({ min: 3 }).withMessage('At least 3 images are required'),
 

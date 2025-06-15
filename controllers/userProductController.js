@@ -11,17 +11,17 @@ const renderShopPage = async (req, res) => {
 
   try {
     const { filters, sortOptions, pageNum, limitNum, queryOptions } = await getUserProductFiltersAndSort(req.query);
-    
-
+    const allVariants = await productService.getAllVariants(filters); 
     const result = await productService.getProducts(filters, sortOptions, pageNum, limitNum);
 
-    const [categories, brands, tags, colors, sizes] = await Promise.all([
+    const [categories, brands, tags] = await Promise.all([
       Category.find().sort({ name: 1 }).lean(),
       Brand.find().sort({ name: 1 }).lean(),
-      productService.getAllTags(),
-      Product.distinct('colors', { isActive: true }),
-      Product.distinct('sizes', { isActive: true })
+      productService.getAllTags()
     ]);
+
+    console.log(allVariants[0].allColors[0]);
+    
 
     res.render('user/shop', {
       ...queryOptions,
@@ -33,8 +33,8 @@ const renderShopPage = async (req, res) => {
       categories,
       brands,
       tags,
-      colors,
-      sizes,
+      variantSizes: allVariants[0].allSizes,
+      variantColors: allVariants[0].allColors,
       title: 'Shop | Your Store',
       metaDescription: 'Browse our collection of products. Filter by category, brand, price, and more.'
     });
@@ -254,176 +254,18 @@ const getAllTags = async (req, res) => {
 };
 
 
-const createProduct = async (req, res) => {
-  try {
-    const productData = req.body;
-        productData.createdBy = req.user._id;
-    
-    const newProduct = await productService.createProduct(productData);
-    
-    res.status(201).json({
-      success: true,
-      message: 'Product created successfully',
-      product: newProduct
-    });
-  } catch (error) {
-    console.error('Error in createProduct controller:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create product',
-      error: error.message
-    });
-  }
-};
-
-
-const updateProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = req.body;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid product ID format'
-      });
-    }
-    
-    const updatedProduct = await productService.updateProduct(id, updateData);
-    
-    if (!updatedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
-    
-    res.status(200).json({
-      success: true,
-      message: 'Product updated successfully',
-      product: updatedProduct
-    });
-  } catch (error) {
-    console.error('Error in updateProduct controller:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update product',
-      error: error.message
-    });
-  }
-};
 
 
 
 
-const getProductsByCategory = async (req, res) => {
-  try {
-    const { categoryId } = req.params;
-    const { page = 1, limit = 9 } = req.query;
-    
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid category ID format'
-      });
-    }
-    
-    const result = await productService.getProductsByCategory(categoryId, parseInt(page), parseInt(limit));
-    
-    res.status(200).json({
-      success: true,
-      products: result.products,
-      totalProducts: result.totalProducts,
-      totalPages: result.totalPages,
-      currentPage: parseInt(page)
-    });
-  } catch (error) {
-    console.error('Error in getProductsByCategory controller:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch products by category',
-      error: error.message
-    });
-  }
-};
 
 
-const getProductsByBrand = async (req, res) => {
-  try {
-    const { brandId } = req.params;
-    const { page = 1, limit = 9 } = req.query;
-    
-    if (!mongoose.Types.ObjectId.isValid(brandId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid brand ID format'
-      });
-    }
-    
-    const result = await productService.getProductsByBrand(brandId, parseInt(page), parseInt(limit));
-    
-    res.status(200).json({
-      success: true,
-      products: result.products,
-      totalProducts: result.totalProducts,
-      totalPages: result.totalPages,
-      currentPage: parseInt(page)
-    });
-  } catch (error) {
-    console.error('Error in getProductsByBrand controller:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch products by brand',
-      error: error.message
-    });
-  }
-};
 
 
-const searchProducts = async (req, res) => {
-  try {
-    const { keyword } = req.params;
-    const { page = 1, limit = 9 } = req.query;
-    
-    const result = await productService.searchProducts(keyword, parseInt(page), parseInt(limit));
-    
-    res.status(200).json({
-      success: true,
-      products: result.products,
-      totalProducts: result.totalProducts,
-      totalPages: result.totalPages,
-      currentPage: parseInt(page)
-    });
-  } catch (error) {
-    console.error('Error in searchProducts controller:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to search products',
-      error: error.message
-    });
-  }
-};
 
 
-const getFeaturedProducts = async (req, res) => {
-  try {
-    const { limit = 8 } = req.query;
-    
-    const products = await productService.getFeaturedProducts(parseInt(limit));
-    
-    res.status(200).json({
-      success: true,
-      products
-    });
-  } catch (error) {
-    console.error('Error in getFeaturedProducts controller:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch featured products',
-      error: error.message
-    });
-  }
-};
+
+
 
 
 const getNewProducts = async (req, res) => {
@@ -457,12 +299,6 @@ module.exports = {
   getAllProducts,
   getProductById,
   getAllTags,
-  createProduct,
-  updateProduct,
-  getProductsByCategory,
-  getProductsByBrand,
-  searchProducts,
-  getFeaturedProducts,
   getNewProducts,
   renderShopPage,
   renderProductById

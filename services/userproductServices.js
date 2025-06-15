@@ -1,11 +1,11 @@
 const Product = require('../models/productModel');
-const Category = require('../models/categoryModel');
 const Brand = require('../models/brandModel');
 
 
 const getProducts = async (filters = {}, sortOptions = { createdAt: -1 }, page = 1, limit = 10) => {
   try {
     const skip = (page - 1) * limit;
+    filters.isActive = true;
     
     const totalProducts = await Product.countDocuments(filters);
     
@@ -72,91 +72,48 @@ const getAllTags = async () => {
 };
 
 
-const createProduct = async (productData) => {
-  try {
-    const newProduct = new Product(productData);
-    await newProduct.save();
+const getAllVariants = async (filter) => {
+
+  try{
+
+    const allVariants = await Product.aggregate([
+      {$match: { isActive: true, ...filter }},
+      {$unwind: '$variants'},
+      {
+        $facet: {
+          allSizes: [
+            { $group: { _id: "$variants.size" } },            
+            { $project: { _id: 0, size: "$_id" } }
+          ],
+          allColors: [
+            { $group: { _id: "$variants.color" } },
+            { $project: { _id: 0, color: "$_id" } }
+          ],
+          allPrices: [
+            { $group: { _id: "$variants.price" } },
+            { $project: { _id: 0, price: "$_id" } }
+          ]
+        }
+      }
+    ])
+
+    return allVariants;
     
-    return newProduct;
-  } catch (error) {
-    console.error('Error in createProduct service:', error);
-    throw error;
+  }catch(err){
+    throw new Error(err.message);
   }
-};
 
 
-const updateProduct = async (id, updateData) => {
-  try {
-    const updatedProduct = await Product.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-    
-    return updatedProduct;
-  } catch (error) {
-    console.error('Error in updateProduct service:', error);
-    throw error;
-  }
-};
+}
 
 
 
 
 
-const getProductsByCategory = async (categoryId, page = 1, limit = 9) => {
-  try {
-    const childCategories = await Category.find({ parentCategory: categoryId });
-    const categoryIds = [categoryId, ...childCategories.map(cat => cat._id)];
-    
-    const filters = {
-      category: { $in: categoryIds },
-      isActive: true
-    };
-    
-    return await getProducts(filters, { createdAt: -1 }, page, limit);
-  } catch (error) {
-    console.error('Error in getProductsByCategory service:', error);
-    throw error;
-  }
-};
 
 
-const getProductsByBrand = async (brandId, page = 1, limit = 9) => {
-  try {
-    const filters = {
-      brand: brandId,
-      isActive: true
-    };
-    
-    return await getProducts(filters, { createdAt: -1 }, page, limit);
-  } catch (error) {
-    console.error('Error in getProductsByBrand service:', error);
-    throw error;
-  }
-};
 
-
-const searchProducts = async (keyword, page = 1, limit = 9) => {
-  try {
-    const filters = {
-      $or: [
-        { name: { $regex: keyword, $options: 'i' } },
-        { description: { $regex: keyword, $options: 'i' } },
-        { tags: { $in: [keyword] } }
-      ],
-      isActive: true
-    };
-    
-    return await getProducts(filters, { createdAt: -1 }, page, limit);
-  } catch (error) {
-    console.error('Error in searchProducts service:', error);
-    throw error;
-  }
-};
-
-
-const getFeaturedProducts = async (limit = 8) => {
+const getFeaturedProducts = async (limit = 10) => {
   try {
     const products = await Product.find({ isFeatured: true, isActive: true })
       .sort({ createdAt: -1 })
@@ -172,20 +129,27 @@ const getFeaturedProducts = async (limit = 8) => {
   }
 };
 
-const getAllFeaturedBrands = async (limit = 8) => {
+
+const getHotProducts = async (limit = 5) => {
   try {
-    const brands = await Brand.find({ isListed: true, isActive: true })
-      .sort({ createdAt: -1  })
-      .limit(limit)
-      .populate('category', 'name')
-      .lean();
+
+    const products = await Product.aggregate([
+      {$match: { isActive: true }},
+      {$addFields: { discountPercentage: { $round: [ { $multiply: [
+        {$divide: [ {$subtract: ['$regularPrice', '$salePrice' ] } , '$regularPrice']},
+        100
+      ]},0]} }},
+      {$sort: { discountPercentage: -1 }},
+      {$limit: limit}
+    ])    
     
-    return brands;
-  } catch (error) {
-    console.error('Error in getFeaturedProducts service:', error);
-    throw error;
-  }
+    return products;
+  } catch (err) {
+    throw new Error(err.message);
+  } 
 };
+
+
 
 
 
@@ -234,28 +198,12 @@ const getRelatedProducts = async (productId, categoryId, limit = 4) => {
 };
 
 
-const getProductsByIds = async (ids) => {
-  try {
-    const products = await Product.find({
-      _id: { $in: ids },
-      isActive: true
-    })
-      .populate('category', 'name')
-      .populate('brand', 'name')
-      .lean();
-    
-    return products;
-  } catch (error) {
-    console.error('Error in getProductsByIds service:', error);
-    throw error;
-  }
-};
 
 
-const getLowStockProducts = async (threshold = 5) => {
+const getLowStockProducts = async (stockLimit = 5) => {
   try {
     const products = await Product.find({
-      stock: { $gt: 0, $lte: threshold },
+      stock: { $gt: 0, $lte: stockLimit },
       isActive: true
     })
       .sort({ stock: 1 })
@@ -270,19 +218,39 @@ const getLowStockProducts = async (threshold = 5) => {
   }
 };
 
+
+const getAllProductsByCategory  =  async (limit= 5) => {
+  try{
+
+    const result = await Product.aggregate([
+      {$match: { isActive: true }},
+      {$lookup: { from: 'categories' , localField: 'category' , foreignField: '_id', as: 'categoryData' }},
+      {$unwind: '$categoryData'},
+      { $match: { 'categoryData.isActive': true } },
+      {$group: { _id: '$categoryData.name' , products: { $push: '$$ROOT'  } }},
+      {$limit: limit}
+    ]);
+
+
+    return result;
+    
+
+  }catch(err){
+    throw new Error(err.message);
+  }
+}
+
+
+
 module.exports = {
   getProducts,
   getProductById,
   getAllTags,
-  createProduct,
-  updateProduct,
-  getProductsByCategory,
-  getProductsByBrand,
-  searchProducts,
   getFeaturedProducts,
   getNewProducts,
   getRelatedProducts,
-  getProductsByIds,
   getLowStockProducts,
-  getAllFeaturedBrands
+  getHotProducts,
+  getAllProductsByCategory,
+  getAllVariants
 }; 

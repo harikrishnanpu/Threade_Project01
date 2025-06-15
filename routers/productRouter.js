@@ -10,7 +10,6 @@ const {
   getProductById,
   toggleProductStatus,
   toggleProductFeatured,
-  deleteProduct,
   uploadProductImage,
   showCreateProductPage,
   showEditProductPage

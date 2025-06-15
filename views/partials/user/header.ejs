@@ -1,3 +1,21 @@
+<style>
+    .list-main{
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			@media (max-width: 500px) {
+				gap: 10px;
+			}
+		}
+
+        .header.shop .list-main li:last-child{
+            @media (max-width: 450px) {
+                border-bottom: 1px solid #eee;
+            }
+        }
+
+</style> 
+ 
  <header class="header">
         <div class="header__top">
             <div class="container">
@@ -89,4 +107,49 @@
 
 
     </header>
+
+
+    	<header class="header shop">
+		<!-- Topbar -->
+		<div class="topbar">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-5 col-md-12 col-12">
+						<!-- Top Left -->
+						<div class="top-left">
+							<ul class="list-main">
+								<li><i class="ti-headphone-alt"></i> +91 9XXXXXXX</li>
+								<li><i class="ti-email"></i> support@threade.com</li>
+							</ul>
+						</div>
+						<!--/ End Top Left -->
+					</div>
+
+                       <% if(user){ %> 
+					<div class="col-lg-7 col-md-12 col-12">
+						<div class="right-content">
+							<ul class="list-main">
+								<li><i class="ti-truck"></i> <a href="/user/orders">Track Orders</a></li>
+								<li><i class="ti-user"></i> <a href="/user/profile">My account</a></li>
+								<li><i style="color: #790909;" class="ti-power-off"></i><a style="color: #790909;" href="/user/logout">Logout</a></li>
+							</ul>
+						</div>
+					</div>
+                    <% }else{  %>
+
+                <div class="col-lg-7 col-md-12 col-12">
+						<div class="right-content">
+							<ul class="list-main">
+								<li><i class="ti-truck"></i> <a href="/track-order">Track Orders</a></li>
+								<li><i class="ti-user"></i> <a href="/deals">Deal of Day</a></li>
+								<li><i style="font-weight: 800;" class="ti-power-off"></i><a style="font-weight: 800;" href="/user/login">Login</a></li>
+							</ul>
+						</div>
+					</div>
+
+                    <% } %>
+				</div>
+			</div>
+		</div>
+	</header>
 

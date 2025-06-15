@@ -1,6 +1,6 @@
 const {  getPageWiseBanner } = require('../services/bannerService');
 const { getAllBrands } = require('../services/brandServices');
-const { getProducts } = require('../services/userproductServices');
+const { getProducts, getHotProducts, getAllProductsByCategory } = require('../services/userproductServices');
 const { findOneUserById } = require('../services/userServices');
 const { verifyToken, verifyResetToken } = require('../utils/jwt');
 
@@ -127,35 +127,42 @@ const checkAndRedirect = async (req, res) => {
 
  const token = req.cookies?.token;
 
+
+ try{
+
+  const [
+  data,
+  banner,
+  brands,
+  hotProducts,
+  categoryWiseProducts
+] = await Promise.all([
+  getProducts(),
+  getPageWiseBanner(),
+  getAllBrands(),
+  getHotProducts(15),
+  getAllProductsByCategory(6)
+]);
+
  
  try {
-   const data = await getProducts();
-   const banner = await getPageWiseBanner();
-   const brands = await getAllBrands();
-   
-   if (!token) {
-     res.locals.user = null;
-     return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner, brands });
-    }
 
     const decoded = await verifyToken(token);
     
     if (decoded) {
       return res.redirect('/user/home');
     }
-
-
     res.locals.user = null;
-    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner });
+    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner, brands, hotProducts, categoryWiseProducts });
   } catch (err) {
-       const data = await getProducts();
-        const banner = await getPageWiseBanner();
-           const brands = await getAllBrands();
-
     res.locals.user = null;
-    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner, brands });
+    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner, brands, hotProducts, categoryWiseProducts });
   }
 
+
+}catch(err){
+  return res.status(500).json({message: 'internal server error'})
+}
 
 };
 

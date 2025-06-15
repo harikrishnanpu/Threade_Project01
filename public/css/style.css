@@ -328,8 +328,6 @@ ol {
 	font-size: .8rem;
 	text-transform: uppercase;
 	letter-spacing: 2px;
-	margin-inline: 15px;
-
 	@media (max-width: 600px) {
 		font-size: .7rem;
 	}

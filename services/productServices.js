@@ -6,7 +6,7 @@ const getAllProducts = async (query) => {
   try{
  
   const { 
-           validSortFields,
+        validSortFields,
         sortField,
         sortOrderValue,
         sort,
@@ -57,19 +57,17 @@ const insertOneProduct = async (data) => {
   const { 
     name, 
     description, 
-    regularPrice,
-    salePrice = 0,
-    stock = 0,
     category, 
     brand,
     images,
     isFeatured = false,
     isActive = true, 
-    createdBy 
+    createdBy,
+    variants
   } = data;
   
   try {
-    // Check for duplicate names
+
     const existingProduct = await Product.findOne({ 
       name: name.trim()
     });
@@ -81,15 +79,13 @@ const insertOneProduct = async (data) => {
     const newProduct = new Product({
       name: name.trim(),
       description: description?.trim(),
-      regularPrice: Number(regularPrice),
-      salePrice: Number(salePrice),
-      stock: Number(stock),
       category,
       brand: brand || null,
       images,
       isFeatured: Boolean(isFeatured),
       isActive: Boolean(isActive),
-      createdBy
+      createdBy,
+      variants
     });
 
     return await newProduct.save();
@@ -101,8 +97,6 @@ const insertOneProduct = async (data) => {
 const findOneProductById = async (productId) => {
   try {
     const productData = await Product.findById(productId)
-      .populate('category', 'name')
-      .populate('brand', 'name')
       .populate('createdBy', 'name email');
 
     if (!productData) {
@@ -117,49 +111,49 @@ const findOneProductById = async (productId) => {
 
 const editProductById = async (productId, data) => {
   const { 
-    name, 
-    description, 
-    regularPrice,
-    salePrice,
-    stock,
-    category, 
+    name,
+    description,
+    category,
     brand,
     images,
     isFeatured,
-    isActive, 
-    createdBy 
+    isActive,
+    createdBy,
+    variants 
   } = data;
-  
+
   try {
     const product = await Product.findById(productId);
-
-    if (!product) {
-      throw new Error('Product not found');
-    }
+    if (!product) throw new Error('Product not found');
 
     if (name && name.trim() !== product.name) {
-      const existingProduct = await Product.findOne({ 
+      const conflict = await Product.findOne({
         name: name.trim(),
         _id: { $ne: productId }
       });
-      
-      if (existingProduct) {
-        throw new Error('Product with this name already exists');
-      }
+      if (conflict) throw new Error('Product with this name already exists');
     }
 
     const updateData = {};
     if (name !== undefined) updateData.name = name.trim();
-    if (description !== undefined) updateData.description = description?.trim();
-    if (regularPrice !== undefined) updateData.regularPrice = Number(regularPrice);
-    if (salePrice !== undefined) updateData.salePrice = Number(salePrice);
-    if (stock !== undefined) updateData.stock = Number(stock);
+    if (description !== undefined) updateData.description  = description.trim();
     if (category !== undefined) updateData.category = category;
     if (brand !== undefined) updateData.brand = brand || null;
-    if (images !== undefined) updateData.images = images;
+    if (images !== undefined)updateData.images = images;
     if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
-    if (createdBy !== undefined) updateData.createdBy = createdBy;
+    if (createdBy !== undefined) updateData.createdBy   = createdBy;
+
+    if (variants !== undefined) {
+      updateData.variants = variants.map(v => ({
+        size:      v.size,
+        color:     v.color,
+        price:     Number(v.price),
+        salePrice: Number(v.salePrice) || 0,
+        stock:     Number(v.stock),
+        images:    v.images
+      }));
+    }
 
     Object.assign(product, updateData);
     return await product.save();
@@ -167,6 +161,7 @@ const editProductById = async (productId, data) => {
     throw new Error(err.message);
   }
 };
+
 
 const toggleProductStatusById = async (productId, isActive) => {
   try {

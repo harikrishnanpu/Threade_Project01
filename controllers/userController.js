@@ -4,11 +4,12 @@ const { generateToken } = require("../utils/jwt");
 const { sendOtpToEmail, verifyEmailOtp, findAndDeletePreviousOtp, sendResetPasswordLinkToEmail } = require("../services/emailVerificationService.js");
 const otpModel = require("../models/otpModel.js");
 const { generateOtp } = require("../utils/otp");
-const { getFeaturedProducts, getNewProducts, getSaleProducts, getDealOfTheDay, getAllFeaturedBrands, getProducts } = require("../services/userproductServices.js");
+const { getFeaturedProducts, getNewProducts, getSaleProducts, getDealOfTheDay, getAllFeaturedBrands, getProducts, getHotProducts, getAllProductsByCategory } = require("../services/userproductServices.js");
 const Product = require("../models/productModel.js");
 const bannerModel = require("../models/bannerModel.js");
 const Category = require("../models/categoryModel.js");
 const { getPageWiseBanner } = require("../services/bannerService.js");
+const { getAllBrands } = require("../services/brandServices.js");
 require('../utils/passport');
 
 
@@ -31,17 +32,30 @@ const getChangePasswordPage = async (req,res)=>{
 const getUserHomePage = async (req, res) => {
   try {
 
-    const products = await getProducts();
-    const banners = await getPageWiseBanner();
+  const [
+  data,
+  banners,
+  brands,
+  hotProducts,
+  categoryWiseProducts
+] = await Promise.all([
+  getProducts(),
+  getPageWiseBanner(),
+  getAllBrands(),
+  getHotProducts(15),
+  getAllProductsByCategory(6)
+]);
     
     res.render('user/home', {
-      products: products.products,
+      data,
       banners,
+      brands,
+      hotProducts,
+      categoryWiseProducts,
       title: 'Home | Your Store',
       metaDescription: 'Welcome to our online store. Shop the latest products and deals.'
     });
   } catch (error) {
-    console.error('Error in home page route:', error);
     res.status(500).render('error', {
       message: 'Failed to load home page',
       error
