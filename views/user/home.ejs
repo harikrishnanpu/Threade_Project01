@@ -4,6 +4,7 @@
 
 	
 	<style>
+
 		.swiper{
 			padding-bottom: 20px !important;
 		}
@@ -137,17 +138,19 @@
 </section>
 
 
-	<div class="product-area most-popular section">
+<% if(hotProducts && hotProducts.length > 0 ) { %> 
+	<% hotProducts.forEach((data,ind)=>{ %>
+	<div class="product-area most-popular section mt-5">
         <div class="container">
             <div class="row">
 <div class="col-12">
   <h5 style="color: #d80027; font-weight: 600;">
-    🔥 Hot Items
+    Hot Items for <%= data.name %>
   </h5>
   <p style="color: #333;">
     Products with discounts up to 
     <span style="color: #d80027; font-weight: bold; font-size: 20px;">
-      <%= hotProducts[0].discountPercentage %>%
+      <%= data.products[0].discountPercentage %>%
     </span>
   </p>
 </div>
@@ -157,9 +160,9 @@
             <div class="row">
                 <div class="col-12 container">
                     <div class="owl-carousel popular-slider">
-<% if(hotProducts && hotProducts.length > 0 ) { %> 
 
-	<% hotProducts.forEach((product)=> {  %>
+
+	<% data.products.forEach((product)=> {  %>
 
 
 						<div class="single-product">
@@ -171,14 +174,22 @@
 							</div>
 							<div class="product-content">
 								<h3><a href="/user/products/<%= product._id %>"><%= product.name  %></a></h3>
+																<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+  <% const roundedRating = Math.round(product.rating || 0); %>
+  <% for (let i = 1; i <= 5; i++) { %>
+    <i class="fas fa-star" style="color: '<%= i <= roundedRating ? '#f7c948' : '#ccc' %>'; font-size: 14px;"></i>
+  <% } %>
+  <span style="font-size: 13px; color: #777;">(<%= product.rating?.toFixed(1) || '0.0' %>)</span>
+</div>
 								<div class="product-price mb-2">
 									<span style="color: #bd1c1c;" class="old">₹<%= product.regularPrice  %></span>
 									<span style="font-weight: bold;">₹<%= product.salePrice  %> <span style="background-color: #d80027;color: white;font-weight: 800;padding-inline: 4px;border-radius: 2px;"><%= product.discountPercentage%>%</span> </span>
 								</div>
 
+
 								<div class="product-actions">
 									<div>
-										<a style="color: #fff;" class="btn" href="#">Add to cart 
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="btn" href="javascript:void(0);">Add to cart 
 											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
 												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
 												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
@@ -197,13 +208,15 @@
 						</div>
 
 
-						<%  }) } %>
-
-
                     </div>
                 </div>
             </div>
         </div>
+
+
+						<%  })  %>
+
+									<% }) } %>
 
 
 		
@@ -250,14 +263,22 @@
 							</div>
 							<div class="product-content">
 								<h3><a href="/user/products/<%= product._id %>"><%= product.name  %></a></h3>
+																<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+  <% const roundedRating = Math.round(product.rating || 0); %>
+  <% for (let i = 1; i <= 5; i++) { %>
+    <i class="fas fa-star" style="color: '<%= i <= roundedRating ? '#f7c948' : '#ccc' %>'; font-size: 14px;"></i>
+  <% } %>
+  <span style="font-size: 13px; color: #777;">(<%= product.rating?.toFixed(1) || '0.0' %>)</span>
+</div>
 								<div class="product-price mb-2">
 									<span style="color: #bd1c1c;" class="old">₹<%= product.regularPrice  %></span>
 									<span style="font-weight: bold;">₹<%= product.salePrice  %> <span style="background-color: #d80027;color: white;font-weight: 800;padding-inline: 4px;border-radius: 2px;"><%= product.discountPercentage%>%</span> </span>
 								</div>
 
+
 								<div class="product-actions">
 									<div>
-										<a style="color: #fff;" class="btn" href="#">Add to cart 
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="btn" href="javascript:void(0);">Add to cart 
 											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
 												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
 												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
@@ -418,6 +439,8 @@
     <!-- Modal end -->
 	
 
+
+
  
 	<!-- Jquery -->
     <script src="/landing/js/jquery.min.js"></script>
@@ -456,6 +479,40 @@
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
 <script>
+
+
+async function addToCart(productId, variant, quantity = 1) {
+  try {
+    const res = await fetch('/user/cart/addtocart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ productId, variant, quantity })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      updateCartCount();
+      alert('Item added to cart!');
+    } else {
+      alert(data.message || 'Failed to add to cart');
+    }
+  } catch (err) {
+    console.error('Error adding to cart:', err);
+    alert('Something went wrong!');
+  }
+}
+
+async function updateCartCount() {
+  try {
+    const res = await fetch('/user/cart/count');
+    const data = await res.json();
+    document.getElementById('cartCount').innerText = data.count;
+  } catch (err) {
+    console.error('Failed to fetch cart count');
+  }
+}
 	
   const swiper = new Swiper('.myBrandSwiper', {
     slidesPerView: 4,
@@ -484,4 +541,5 @@
     }
   });
 </script>
+
 

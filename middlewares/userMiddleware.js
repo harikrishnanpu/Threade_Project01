@@ -1,6 +1,7 @@
 const {  getPageWiseBanner } = require('../services/bannerService');
 const { getAllBrands } = require('../services/brandServices');
-const { getProducts, getHotProducts, getAllProductsByCategory } = require('../services/userproductServices');
+const { getCartCount } = require('../services/userCartService');
+const { getProducts, getHotProducts, getAllProductsByCategory, getHotProductsByMainCategory } = require('../services/userproductServices');
 const { findOneUserById } = require('../services/userServices');
 const { verifyToken, verifyResetToken } = require('../utils/jwt');
 
@@ -15,27 +16,30 @@ const checkIsUserAuthenticatedAndRedirect = async (req, res, next) => {
   try {
     const decoded = await verifyToken(token);
     const user = await findOneUserById(decoded.id);
-
+    
     if (!user) {
       return res.redirect('/user/login');
     }
-
+    
     if (!user.isListed) {
       res.locals.user = null;
       return res.redirect(`/user/login?error=deleted`);
     }
-
+    
     if (!user.isVerified) {
       res.locals.user = null;
       return res.redirect(`/user/verify/email/${user._id}/otp`);
     }
-
+    
     if(user.isBlocked) {
       res.locals.user = null;
       return res.redirect('/user/login?error=blocked');
     }
+    
+    const cartCount = await getCartCount(user._id);
 
     res.locals.user = user;
+    res.locals.cartCount = cartCount;
     req.user = user;
     return next(); 
   } catch (err) {
@@ -140,7 +144,7 @@ const checkAndRedirect = async (req, res) => {
   getProducts(),
   getPageWiseBanner(),
   getAllBrands(),
-  getHotProducts(15),
+  getHotProductsByMainCategory(6),
   getAllProductsByCategory(6)
 ]);
 

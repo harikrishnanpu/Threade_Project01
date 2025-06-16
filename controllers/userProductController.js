@@ -2,41 +2,45 @@ const Brand = require('../models/brandModel');
 const Category = require('../models/categoryModel');
 const Product = require('../models/productModel');
 const productService = require('../services/userproductServices');
-const mongoose = require('mongoose');
 const { getUserProductFiltersAndSort } = require('../utils/queries/getAllProductsQuery');
 
 
 
 const renderShopPage = async (req, res) => {
-
   try {
-    const { filters, sortOptions, pageNum, limitNum, queryOptions } = await getUserProductFiltersAndSort(req.query);
-    const allVariants = await productService.getAllVariants(filters); 
-    const result = await productService.getProducts(filters, sortOptions, pageNum, limitNum);
+    const { filters, sortOptions, pageNum, limitNum, queryOptions } =
+      await getUserProductFiltersAndSort(req.query);      
 
-    const [categories, brands, tags] = await Promise.all([
-      Category.find().sort({ name: 1 }).lean(),
-      Brand.find().sort({ name: 1 }).lean(),
-      productService.getAllTags()
+    const allVariants = await productService.getAllVariants(queryOptions.mainCat);
+    const result      = await productService.getProducts(filters, sortOptions, pageNum, limitNum);
+    
+
+    
+    
+
+    const [mainCategories,subCategories, brands, tags] = await Promise.all([
+      Category.find({ parentCategory: null }).sort({ name: 1 }).lean(),
+      Category.find({ parentCategory: queryOptions.mainCat  }).sort({ name: 1 }).lean(),
+      Brand.find({ category: queryOptions.mainCat }).sort({ name: 1 }).lean(),
+      productService.getAllTags()               
     ]);
 
-    console.log(allVariants[0].allColors[0]);
+
     
 
     res.render('user/shop', {
       ...queryOptions,
-      products: result.products,
+      products:      result.products,
       totalProducts: result.totalProducts,
-      totalPages: result.totalPages,
-      currentPage: pageNum,
-      limit: limitNum,
-      categories,
+      totalPages:    result.totalPages,
+      currentPage:   pageNum,
+      limit:         limitNum,
+      mainCategories,
+      subCategories,
       brands,
       tags,
-      variantSizes: allVariants[0].allSizes,
-      variantColors: allVariants[0].allColors,
-      title: 'Shop | Your Store',
-      metaDescription: 'Browse our collection of products. Filter by category, brand, price, and more.'
+      variantSizes:  allVariants[0]?.allSizes  || [],
+      variantColors: allVariants[0]?.allColors || [],
     });
   } catch (error) {
     console.error('Error in shop page route:', error);
@@ -46,6 +50,7 @@ const renderShopPage = async (req, res) => {
     });
   }
 };
+
 
 
 const renderProductById = async (req,res) =>{

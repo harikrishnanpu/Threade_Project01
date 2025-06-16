@@ -91,9 +91,9 @@
 
                                     <div class="icon-group">
                                     <i class="fa-solid fa-cart-shopping"></i>
-                                    <div class="icon-group-inline">
+                                    <div onclick="gotoCartPage(`<%= user?._id %>`)" class="icon-group-inline">
                                         <span>Cart</span>
-                                        <span class="count">0 items</span>
+                                        <span class="count"><span id="HeadercartCount"><%= cartCount %></span> items</span>
                                     </div>
                                 </div>
                             </div> 
@@ -153,3 +153,9 @@
 		</div>
 	</header>
 
+
+    <script>
+      function gotoCartPage(userId) {
+        window.location.href = `/user/cart/${userId}`
+      }
+    </script>

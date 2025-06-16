@@ -1,5 +1,7 @@
 const Product = require('../models/productModel');
 const Brand = require('../models/brandModel');
+const { default: mongoose } = require('mongoose');
+const Category = require('../models/categoryModel');
 
 
 const getProducts = async (filters = {}, sortOptions = { createdAt: -1 }, page = 1, limit = 10) => {
@@ -50,10 +52,12 @@ const getProductById = async (id) => {
   } catch (err) {
     throw new Error(err.message);
   }
+
 };
 
 
 const getAllTags = async () => {
+  
   try {
     const tagsArray = await Product.aggregate([
       { $match: { isActive: true } },
@@ -69,15 +73,16 @@ const getAllTags = async () => {
     console.error('Error in getAllTags service:', error);
     throw error;
   }
+
 };
 
 
-const getAllVariants = async (filter) => {
+const getAllVariants = async (mainCat) => {
 
   try{
 
     const allVariants = await Product.aggregate([
-      {$match: { isActive: true, ...filter }},
+      {$match: { isActive: true, category: new mongoose.Types.ObjectId(mainCat) }},
       {$unwind: '$variants'},
       {
         $facet: {
@@ -150,7 +155,77 @@ const getHotProducts = async (limit = 5) => {
 };
 
 
+const getHotProductsByMainCategory = async (limit = 5) => {
+  try {
 
+const result = await Category.aggregate([
+  { $match: { isActive: true, parentCategory: null } },
+
+  {
+    $lookup: {
+      from: 'products',
+      localField: '_id',
+      foreignField: 'category',
+      as: 'products'
+    }
+  },
+
+  { $unwind: '$products' },
+
+  {
+    $addFields: {
+      'products.discountPercentage': {
+        $round: [
+          {
+            $multiply: [
+              {
+                $divide: [
+                  { $subtract: ['$products.regularPrice', '$products.salePrice'] },
+                  '$products.regularPrice'
+                ]
+              },
+              100
+            ]
+          },
+          0
+        ]
+      }
+    }
+  },
+  {$sort: {'products.discountPercentage': -1 }},
+  {
+    $group: {
+      _id: '$_id',
+      name: { $first: '$name' },
+      products: { $push: '$products' }
+    }
+  },
+  {$limit: limit },
+  { $project: { _id: 0, name: 1, products: {
+      $slice: [
+        {
+          $filter: {
+            input: '$products',
+            as: 'prod',
+            cond: { $eq: ['$$prod.isActive', true] }
+          }
+        },
+        6
+      ]
+    } } }
+]);
+
+// console.log(result); 
+
+     
+    
+    return result;
+  } catch (err) {
+    throw new Error(err.message);
+  } 
+};
+
+// getHotProductsByMainCategory() 
 
 
 
@@ -252,5 +327,6 @@ module.exports = {
   getLowStockProducts,
   getHotProducts,
   getAllProductsByCategory,
-  getAllVariants
+  getAllVariants,
+  getHotProductsByMainCategory
 }; 

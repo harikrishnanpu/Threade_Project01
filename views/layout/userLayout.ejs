@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="/css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="/css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/css/variantSidebar.css" type="text/css">
 
     	<!-- Web Font -->
 	<link href="https://fonts.googleapis.com/css?family=Poppins:200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
@@ -75,6 +76,53 @@
                 <% } %>
             </div>
 
+
+
+
+<!-- Dark overlay -->
+<div id="sidebarOverlay" onclick="closeVariantSidebar()"></div>
+
+<!-- Variant Sidebar -->
+<aside id="variantSidebar" class="shadow">
+  <div class="vs-header">
+    <button class="vs-close" onclick="closeVariantSidebar()">✕</button>
+    <h5 id="vsTitle" class="vs-title">Loading…</h5>
+  </div>
+
+  <div class="vs-content">
+    <!-- Main image -->
+    <div class="vs-main-image">
+      <img id="vsMainImg" src="" alt="Variant" />
+    </div>
+
+    <!-- Thumbnails -->
+    <div id="vsThumbs" class="vs-thumbs"></div>
+
+    <!-- Selectors -->
+    <div class="vs-selectors">
+      <div class="vs-group">
+        <label>Size</label>
+        <div id="vsSizes" class="vs-options"></div>
+      </div>
+      <div class="vs-group">
+        <label>Colour</label>
+        <div id="vsColours" class="vs-options"></div>
+      </div>
+      <div class="vs-group vs-qty">
+        <label>Quantity</label>
+        <div class="vs-qty-controls">
+          <button id="vsQtyMinus">−</button>
+          <input id="vsQty" type="number" value="1" min="1" readonly />
+          <button id="vsQtyPlus">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button id="vsAddBtn" class="vs-add-btn">Add to cart</button>
+</aside>
+
+
     <script src="/js/jquery-3.3.1.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
     <script src="/js/jquery.nice-select.min.js"></script>
@@ -85,5 +133,11 @@
     <script src="/js/mixitup.min.js"></script>
     <script src="/js/owl.carousel.min.js"></script>
     <script src="/js/main.js"></script>
+    <script src="/js/variantSidebar.js"></script>
+
+
+
+
+
 </body>
 </html>

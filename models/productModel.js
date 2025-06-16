@@ -70,7 +70,16 @@ const ProductSchema = new Schema({
   isFeatured: { type: Boolean, default: false },
   isActive:   { type: Boolean, default: true },
   createdBy:  { type: Schema.Types.ObjectId, ref: 'users' }
-}, { timestamps: true });
+}, { timestamps: true , toJSON: { virtuals: true }});
+
+
+ProductSchema.virtual('discountPercentage').get(function () {
+  if (!this.regularPrice || !this.salePrice || this.salePrice >= this.regularPrice)
+    return 0;
+  return Math.round(((this.regularPrice - this.salePrice) / this.regularPrice) * 100);
+});
+
+
 
 ProductSchema.pre('save', function(next) {
   if (this.variants && this.variants.length) {
@@ -90,6 +99,10 @@ ProductSchema.pre('save', function(next) {
     this.regularPrice = 0;
     this.salePrice   = 0;
   }
+
+  if (this.size) this.size = this.size.toLowerCase();
+  if (this.color) this.color = this.color.toLowerCase();
+
   next();
 });
 

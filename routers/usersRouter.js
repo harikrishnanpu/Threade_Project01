@@ -7,6 +7,7 @@ const { validateRegisterUser, validateLogin, validateOtp } = require('../validat
 const { validateUserIdParam } = require('../validators/ParamValidator');
 const { validateQueryEmail } = require('../validators/QueryValidator');
 const { validateBodyEmail } = require('../validators/bodyValidator');
+const cartRouter = require('./userCartRouter');
 const userRouter = express.Router();
 
 
@@ -14,6 +15,7 @@ userRouter.use((req,res,next)=>{
       res.locals.noHeader = false;
       res.locals.noFooter = false;
       res.locals.user = null;
+      res.locals.cartCount = 0;
       res.locals.layout = './layout/userLayout'
       next();
 });
@@ -21,6 +23,7 @@ userRouter.use((req,res,next)=>{
 
 
 userRouter.use('/products',checkIsUserAuthenticated, productRouter);
+userRouter.use('/cart', checkIsUserAuthenticated, cartRouter);
 
 
 userRouter.get('/login',checkIsUserExists, getLoginPage);

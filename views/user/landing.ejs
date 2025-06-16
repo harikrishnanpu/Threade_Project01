@@ -138,17 +138,19 @@
 </section>
 
 
-	<div class="product-area most-popular section">
+<% if(hotProducts && hotProducts.length > 0 ) { %> 
+	<% hotProducts.forEach((data,ind)=>{ %>
+	<div class="product-area most-popular section mt-5">
         <div class="container">
             <div class="row">
 <div class="col-12">
   <h5 style="color: #d80027; font-weight: 600;">
-    🔥 Hot Items
+    Hot Items for <%= data.name %>
   </h5>
   <p style="color: #333;">
     Products with discounts up to 
     <span style="color: #d80027; font-weight: bold; font-size: 20px;">
-      <%= hotProducts[0].discountPercentage %>%
+      <%= data.products[0].discountPercentage %>%
     </span>
   </p>
 </div>
@@ -158,9 +160,9 @@
             <div class="row">
                 <div class="col-12 container">
                     <div class="owl-carousel popular-slider">
-<% if(hotProducts && hotProducts.length > 0 ) { %> 
 
-	<% hotProducts.forEach((product)=> {  %>
+
+	<% data.products.forEach((product)=> {  %>
 
 
 						<div class="single-product">
@@ -172,10 +174,18 @@
 							</div>
 							<div class="product-content">
 								<h3><a href="/user/products/<%= product._id %>"><%= product.name  %></a></h3>
+																<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+  <% const roundedRating = Math.round(product.rating || 0); %>
+  <% for (let i = 1; i <= 5; i++) { %>
+    <i class="fas fa-star" style="color: '<%= i <= roundedRating ? '#f7c948' : '#ccc' %>'; font-size: 14px;"></i>
+  <% } %>
+  <span style="font-size: 13px; color: #777;">(<%= product.rating?.toFixed(1) || '0.0' %>)</span>
+</div>
 								<div class="product-price mb-2">
 									<span style="color: #bd1c1c;" class="old">₹<%= product.regularPrice  %></span>
 									<span style="font-weight: bold;">₹<%= product.salePrice  %> <span style="background-color: #d80027;color: white;font-weight: 800;padding-inline: 4px;border-radius: 2px;"><%= product.discountPercentage%>%</span> </span>
 								</div>
+
 
 								<div class="product-actions">
 									<div>
@@ -198,13 +208,15 @@
 						</div>
 
 
-						<%  }) } %>
-
-
                     </div>
                 </div>
             </div>
         </div>
+
+
+						<%  })  %>
+
+									<% }) } %>
 
 
 		
@@ -251,10 +263,18 @@
 							</div>
 							<div class="product-content">
 								<h3><a href="/user/products/<%= product._id %>"><%= product.name  %></a></h3>
+																<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+  <% const roundedRating = Math.round(product.rating || 0); %>
+  <% for (let i = 1; i <= 5; i++) { %>
+    <i class="fas fa-star" style="color: '<%= i <= roundedRating ? '#f7c948' : '#ccc' %>'; font-size: 14px;"></i>
+  <% } %>
+  <span style="font-size: 13px; color: #777;">(<%= product.rating?.toFixed(1) || '0.0' %>)</span>
+</div>
 								<div class="product-price mb-2">
 									<span style="color: #bd1c1c;" class="old">₹<%= product.regularPrice  %></span>
 									<span style="font-weight: bold;">₹<%= product.salePrice  %> <span style="background-color: #d80027;color: white;font-weight: 800;padding-inline: 4px;border-radius: 2px;"><%= product.discountPercentage%>%</span> </span>
 								</div>
+
 
 								<div class="product-actions">
 									<div>
@@ -484,6 +504,7 @@
       }
     }
   });
+  
 </script>
 
 

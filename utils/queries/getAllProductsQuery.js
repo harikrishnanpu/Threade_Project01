@@ -1,3 +1,5 @@
+const { default: mongoose } = require("mongoose");
+const Category = require("../../models/categoryModel");
 const { escapeRegex } = require("../regex");
 
 
@@ -64,10 +66,10 @@ const getFilteredProductList = async (queryParams) => {
 }
 
 const getUserProductFiltersAndSort = async (query) => {
-  
   const {
-    search='',
-    category,
+    search = '',
+    mainCat,
+    subCat,
     brand,
     priceRange,
     size,
@@ -78,52 +80,76 @@ const getUserProductFiltersAndSort = async (query) => {
     isSale,
     isFeatured,
     inStock,
-    sortBy = 'createdAt',
-    page = 1,
-    limit = 9
+    sortBy = 'newest',
+    page   = '1',
+    limit  = '9'
   } = query;
+
+  let mainCatfromUser = mainCat
 
   const filters = { isActive: true };
 
-  if (search) filters.name = { $regex: search, $options: 'i' };
-  if (category) filters.category = category;
-  if (brand) filters.brand = brand;
-  if (size) filters.sizes = { $in: [size] };
-  if (color) filters.colors = { $in: [color] };
-  if (tag) filters.tags = { $in: [tag] };
-  if (rating) filters.rating = { $gte: parseInt(rating) };
-  if (isNew === 'true') filters.isNew = true;
-  if (isSale === 'true') filters.isSale = true;
-  if (isFeatured === 'true') filters.isFeatured = true;
-  if (inStock === 'true') filters.stock = { $gt: 0 };
+  if (search)   filters.name   = { $regex: search, $options: 'i' };
+  if (mainCatfromUser && subCat) {
+    filters.category = new mongoose.Types.ObjectId(subCat); 
+  } else if (mainCatfromUser) {
+    const subCatIds = await Category.find({ parentCategory: mainCatfromUser, isActive: true }).select('_id').lean();
+    if (subCatIds.length) {
+      const subIds = subCatIds.map(s => new mongoose.Types.ObjectId(s._id));
+      filters.category = { $in: subIds }; 
+    } else {
+      filters.category = new mongoose.Types.ObjectId(mainCatfromUser);
+    }
+  }else{
+    const catId = await Category.findOne({}).sort({createdAt: 1}).select('_id').lean();  
+    mainCatfromUser = String(catId._id);  
+    filters.category =  String(catId._id);
+  }
 
+  
+
+
+  if (brand)    filters.brand  = brand;
+  if (size)     filters['variants.size'] = size;
+  if (color)    filters['variants.color'] = { $in: [color] };
+  if (tag)      filters.tags = { $in: [tag] };
+  if (rating)   filters.rating = { $gte: parseInt(rating, 10) };
+  if (isNew==='true') filters.isNew      = true;
+  if (isSale==='true') filters.isSale     = true;
+  if (isFeatured==='true') filters.isFeatured = true;
+  if (inStock==='true') filters.stock      = { $gt: 0 };
 
   if (priceRange) {
-    if (priceRange === '0-50') filters.regularPrice = { $gte: 0, $lte: 50 };
-    else if (priceRange === '50-100') filters.regularPrice = { $gte: 50, $lte: 100 };
-    else if (priceRange === '100-150') filters.regularPrice = { $gte: 100, $lte: 150 };
-    else if (priceRange === '150-200') filters.regularPrice = { $gte: 150, $lte: 200 };
-    else if (priceRange === '200-plus') filters.regularPrice = { $gte: 200 };
-    else if (priceRange.includes('-')) {
-      const [min, max] = priceRange.split('-').map(Number);
-      if (!isNaN(min) && !isNaN(max)) filters.regularPrice = { $gte: min, $lte: max };
+    switch (priceRange) {
+      case '0-50':   filters.regularPrice = { $gte: 0,   $lte: 50 };   break;
+      case '50-100': filters.regularPrice = { $gte: 50,  $lte: 100 };  break;
+      case '100-150':filters.regularPrice = { $gte: 100, $lte: 150 };  break;
+      case '150-200':filters.regularPrice = { $gte: 150, $lte: 200 };  break;
+      case '200+':   filters.regularPrice = { $gte: 200 };             break;
+      default:
+        if (priceRange.includes('-')) {
+          const [min, max] = priceRange.split('-').map(n => parseInt(n,10));
+          if (!isNaN(min) && !isNaN(max))
+            filters.regularPrice = { $gte: min, $lte: max };
+        }
     }
   }
 
-  let sortOptions = {};
-  switch (sortBy) {
-    case 'newest': sortOptions = { createdAt: -1 }; break;
-    case 'price-low': sortOptions = { regularPrice: 1 }; break;
-    case 'price-high': sortOptions = { regularPrice: -1 }; break;
-    case 'name-asc': sortOptions = { name: 1 }; break;
-    case 'name-desc': sortOptions = { name: -1 }; break;
-    case 'rating-high': sortOptions = { rating: -1 }; break;
-    case 'popular': sortOptions = { rating: -1, createdAt: -1 }; break;
-    default: sortOptions = { createdAt: -1 };
-  }
+  const sortMap = {
+    newest:      { createdAt: -1 },
+    'price-low': { regularPrice: 1 },
+    'price-high':{ regularPrice: -1 },
+    'name-asc':  { name: 1 },
+    'name-desc': { name: -1 },
+    'rating-high':{ rating: -1 },
+    popular:     { rating: -1, createdAt: -1 }
+  };
+  const sortOptions = sortMap[sortBy] || sortMap.newest;
 
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
+  const pageNum  = parseInt(page,  10);
+  const limitNum = parseInt(limit, 10);
+
+  
 
   return {
     filters,
@@ -131,22 +157,17 @@ const getUserProductFiltersAndSort = async (query) => {
     pageNum,
     limitNum,
     queryOptions: {
-      search,
-      category,
-      brand,
-      priceRange,
-      size,
-      color,
-      tag,
+      search, mainCat: mainCatfromUser, subCat, brand, priceRange,
+      size, color, tag,
       rating,
-      isNew: isNew === 'true',
-      isSale: isSale === 'true',
-      isFeatured: isFeatured === 'true',
-      inStock: inStock === 'true',
+      isNew:      isNew==='true',
+      isSale:     isSale==='true',
+      isFeatured: isFeatured==='true',
+      inStock:    inStock==='true',
       sortBy
     }
   };
-}
+};
 
 
 
