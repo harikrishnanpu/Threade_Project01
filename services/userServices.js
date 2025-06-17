@@ -224,4 +224,31 @@ const getHomePageData = async () => {
 };
 
 
-module.exports = { insertOneUser, loginUser, findOneUserByEmail, findOneUserById, getUserResetPasswordLink, changePassword, getHomePageData }
+const updateUserProfile = async (userId, { name, phone, dateOfBirth }) => {
+  try {
+    const user = await Users.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (name) user.name = name.trim();
+    if (phone !== undefined) user.phone = phone.trim();
+    if (dateOfBirth) user.dateOfBirth = dateOfBirth;
+
+    await user.save();
+    return user;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+module.exports = {
+  insertOneUser,
+  loginUser,
+  findOneUserByEmail,
+  findOneUserById,
+  getUserResetPasswordLink,
+  changePassword,
+  getHomePageData,
+  updateUserProfile,
+};
