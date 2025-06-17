@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shop</title>
+
+  <!-- icons -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    integrity="sha512-Fo3rlrZj/k7ujTU5q+8AX/7VZ9jWf+6sYQeCjg3ORNCQ4+ZUd1Po0i7zHjp5/4mE4aZQGHy3MjzhDl3vLeL0jw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer" />
+
+  <!-- SHOP-ONLY styles -->
+  <style>
+/* ========== RESET / BASE ========== */
+.shop-*,
+.shop-*::before,
+.shop-*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;color:#222;line-height:1.6}
+a{text-decoration:none;color:inherit}
+
+/* ========== LAYOUT ========== */
+.shop-container{max-width:1440px;margin:auto}
+.shop-layout{display:grid;grid-template-columns:260px 1fr;gap:1.5rem;padding:0 1rem 2rem}
+@media(max-width:900px){.shop-layout{grid-template-columns:1fr}}
+
+/* ========== BREADCRUMB ========== */
+.shop-breadcrumb{background:#fff;padding:1rem;margin:1rem;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.05)}
+.shop-breadcrumb a{color:#dc3545;font-weight:500}
+
+/* ========== TOP FILTER BAR ========== */
+.shop-filters-top{background:#fff;padding:1rem;margin:0 1rem 1rem;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.05)}
+.shop-main-cat-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.shop-main-cat-btn{padding:.5rem 1rem;border:1px solid #aaa;border-radius:20px;background:none;font-size:.9rem;cursor:pointer}
+.shop-main-cat-btn.active{background:#000;color:#fff;border-color:#000}
+.shop-search-row{display:flex;flex-wrap:wrap;gap:.75rem}
+.shop-search-row input{flex:1;min-width:200px;padding:.5rem .75rem;border:1px solid #ccc;border-radius:6px}
+.shop-search-row button{padding:0 .8rem;background:#dc3545;border:none;color:#fff;border-radius:6px;cursor:pointer}
+.shop-search-row select{padding:.5rem .75rem;border:1px solid #ccc;border-radius:6px;min-width:160px}
+
+/* ========== SIDEBAR ========== */
+.shop-sidebar{background:#fff;padding:1.25rem;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.05)}
+.shop-sidebar h4{margin:1rem 0 .5rem;font-size:1rem;color:#333}
+.shop-radio{display:block;margin:.35rem 0;font-size:.9rem;cursor:pointer}
+.shop-radio input{margin-right:.5rem;accent-color:#dc3545}
+.shop-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0}
+.shop-chip{padding:.35rem .65rem;border:1px solid #ccc;border-radius:12px;font-size:.85rem;cursor:pointer}
+.shop-chip.active{background:#dc3545;color:#fff;border-color:#dc3545}
+.shop-swatch{width:14px;height:14px;border-radius:50%;border:1px solid #ccc;display:inline-block;vertical-align:middle}
+.shop-clear-btn{margin-top:1.2rem;width:100%;padding:.6rem 0;background:none;border:1px solid #dc3545;color:#dc3545;border-radius:6px;font-size:.9rem;cursor:pointer}
+.shop-clear-btn:hover{background:#dc3545;color:#fff}
+
+/* ----- mobile sidebar (off-canvas) ----- */
+.shop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:1300}
+@media(max-width:900px){
+  .shop-sidebar{position:fixed;top:0;left:-280px;width:260px;height:100%;overflow-y:auto;z-index:1400;transition:left .3s ease}
+  .shop-sidebar.open{left:0}
+  .shop-overlay.show{display:block}
+  .shop-filter-toggle{display:inline-flex;align-items:center;gap:.4rem;background:#dc3545;border:none;color:#fff;padding:.45rem .9rem;border-radius:6px;cursor:pointer;margin-bottom:.8rem}
+}
+/* toggle visible on desktop hidden on mobile */
+@media(min-width:901px){.shop-filter-toggle{display:none}}
+
+/* ========== PRODUCTS ========== */
+.shop-products-area{width:100%}
+.shop-products-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.shop-products-head span{color:#555;font-size:.9rem}
+.shop-products-head select{padding:.4rem .6rem;border:1px solid #ccc;border-radius:6px}
+.shop-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.shop-card{background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.04);cursor:pointer;transition:transform .15s}
+.shop-card:hover{transform:translateY(-4px)}
+.shop-card img{width:100%;height:180px;object-fit:cover}
+.shop-card-body{padding:.75rem}
+.shop-card-body h5{font-size:.95rem;margin-bottom:.3rem;color:#333}
+.shop-price{font-size:.9rem;display:flex;align-items:center;gap:.5rem}
+.shop-sale{color:#dc3545;font-weight:600}
+.shop-regular{text-decoration:line-through;color:#777}
+.shop-no-products{font-size:1rem;color:#777;margin:2rem 0;text-align:center}
+
+/* ========== PAGINATION ========== */
+.shop-pagination{display:flex;justify-content:center;gap:.4rem;margin-top:2rem}
+.shop-pagination button{padding:.4rem .7rem;border:1px solid #ccc;background:#fff;border-radius:6px;font-size:.9rem;cursor:pointer}
+.shop-pagination button.active{background:#dc3545;color:#fff;border-color:#dc3545}
+.shop-pagination button:hover{background:#f2f2f2}
+  </style>
+</head>
+
+<body class="shop-container">
+
+  <!-- █ Breadcrumb -->
+  <nav class="shop-breadcrumb">
+    <a href="/">Home</a> › <span>Shop</span>
+  </nav>
+
+  <!-- █ Top filters -->
+  <section class="shop-filters-top">
+    <div class="shop-main-cat-nav">
+      <% mainCategories.forEach(cat=>{ %>
+        <button
+          class="shop-main-cat-btn <%= (mainCat) == cat._id ? 'active' :'' %>"
+          onclick="shopUpdate('mainCat','<%=cat._id%>')">
+          <%=cat.name%>
+        </button>
+      <% }) %>
+    </div>
+
+    <!-- mobile filter button -->
+    <button class="shop-filter-toggle" onclick="shopToggleSidebar()">
+      <i class="fas fa-sliders-h"></i> Filters
+    </button>
+
+    <div class="shop-search-row">
+      <input type="text" id="shopSearch" placeholder="Search products…" value="<%=search||''%>" />
+      <button onclick="shopApplySearch()"><i class="fas fa-search"></i></button>
+
+      <select onchange="shopUpdate('subCat',this.value)">
+        <option value="">All Sub-categories</option>
+        <% subCategories.forEach(sc=>{ %>
+          <option value="<%=sc._id%>" <%=subCat===String(sc._id)?'selected':''%>>
+            <%=sc.name%>
+          </option>
+        <% }) %>
+      </select>
+
+      <select onchange="shopUpdate('brand',this.value)">
+        <option value="">All Brands</option>
+        <% brands.forEach(br=>{ %>
+          <option value="<%=br._id%>" <%=brand===String(br._id)?'selected':''%>>
+            <%=br.name%>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+  </section>
+
+  <div class="shop-layout">
+
+
+    <aside id="shopSidebar" class="shop-sidebar">
+      <h4>Price</h4>
+      <% ['', '0-50', '50-100', '100-200', '200+'].forEach((r,index)=>{ const lbl=r||'All'; %>
+        <label class="shop-radio">
+          <input type="radio" name="priceRange" value="<%=r%>"
+                 <%=(priceRange == r || index == 0) ? 'checked' :''%>
+                 onchange="shopUpdate('priceRange',this.value)">
+          <%=lbl.replace('-','–')%>
+        </label>
+      <% }) %>
+
+      <h4>Size</h4>
+      <div class="shop-chips">
+        <% variantSizes.forEach(s => { %>
+          <span class="shop-chip <%=size===s.size?'active':''%>"
+                onclick="shopUpdate('size','<%=s.size%>')">
+            <%=s.size.toUpperCase()%>
+          </span>
+        <% }) %>
+      </div>
+
+      <h4>Color</h4>
+      <div class="shop-chips">
+        <% variantColors.forEach(c=>{ %>
+          <span class="shop-chip <%=color===c.color?'active':''%>"
+                onclick="shopUpdate('color','<%=c.color%>')">
+            <span class="shop-swatch" style="background:'<%=c.color%>'"></span>
+          </span>
+        <% }) %>
+      </div>
+
+      <h4>Rating</h4>
+      <div class="shop-chips">
+        <% [4,3,2].forEach(r=>{ %>
+          <span class="shop-chip <%=rating==r?'active':''%>"
+                onclick="shopUpdate('rating','<%=r%>')">
+            <%=r%>★ & up
+          </span>
+        <% }) %>
+      </div>
+
+      <button class="shop-clear-btn" onclick="location='/user/products/shop'">Clear All</button>
+    </aside>
+
+    <!-- backdrop for mobile sidebar -->
+    <div id="shopOverlay" class="shop-overlay" onclick="shopToggleSidebar()"></div>
+
+    <!-- ▒ Products -->
+    <section class="shop-products-area">
+      <div class="shop-products-head">
+        <span>
+          Showing <%=((currentPage-1)*limit)+1%>–<%=Math.min(currentPage*limit,totalProducts)%>
+          of <%=totalProducts%>
+        </span>
+        <select onchange="shopUpdate('sortBy',this.value)">
+          <% [
+               ['newest','Newest'],
+               ['price-low','Price: Low→High'],
+               ['price-high','Price: High→Low'],
+               ['name-asc','Name A→Z'],
+               ['name-desc','Name Z→A'],
+               ['rating-high','Top Rated'],
+               ['popular','Popular']
+             ].forEach(([v,l])=>{ %>
+            <option value="<%=v%>" <%=sortBy===v?'selected':''%>><%=l%></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="shop-grid">
+        <% if(products.length){ products.forEach(product=>{ %>
+						<div class="single-product">
+							<div class="product-img">
+								<a href="/user/products/<%= product._id %>">
+									<img class="default-img" src="<%= product.images[0]%>" alt="#">
+									<img class="hover-img" src="<%= product.images[1] %>" alt="#">
+								</a>
+							</div>
+							<div class="product-content">
+								<h3><a href="/user/products/<%= product._id %>"><%= product.name  %></a></h3>
+																<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+  <% const roundedRating = Math.round(product.rating || 0); %>
+  <% for (let i = 1; i <= 5; i++) { %>
+    <i class="fas fa-star" style="color: '<%= i <= roundedRating ? '#f7c948' : '#ccc' %>'; font-size: 14px;"></i>
+  <% } %>
+  <span style="font-size: 13px; color: #777;">(<%= product.rating?.toFixed(1) || '0.0' %>)</span>
+</div>
+								<div class="product-price mb-2">
+									<span style="color: #bd1c1c;" class="old">₹<%= product.regularPrice  %></span>
+									<span style="font-weight: bold;">₹<%= product.salePrice  %> <span style="background-color: #d80027;color: white;font-weight: 800;padding-inline: 4px;border-radius: 2px;"><%= product.discountPercentage%>%</span> </span>
+								</div>
+
+
+								<div class="product-actions">
+									<div>
+										<a style="color: #fff;" class="btn" href="/user/products/<%= product._id %>">Add to cart 
+											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
+												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
+												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
+												<path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
+											</svg>
+										</a>	
+																</div>
+										<div class="whishlist">
+											<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+												<path fill-rule="evenodd" clip-rule="evenodd" d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124ZM10.762 5.8319C9.10073 4.17062 6.40725 4.17062 4.74596 5.8319C3.08468 7.49319 3.08468 10.1867 4.74596 11.848L11.4697 18.5718C11.7625 18.8647 12.2374 18.8647 12.5303 18.5718L19.254 11.8481C20.9153 10.1868 20.9153 7.49329 19.254 5.83201C17.5927 4.17072 14.8993 4.17072 13.238 5.83201L12.5304 6.53961C12.3897 6.68026 12.199 6.75928 12 6.75928C11.8011 6.75928 11.6104 6.68026 11.4697 6.53961L10.762 5.8319Z" fill="#323544"/>
+											</svg>
+											
+										</div>
+									</div>
+							</div>
+						</div>
+        <% }) }else{ %>
+          <p class="shop-no-products">No products found.</p>
+        <% } %>
+      </div>
+
+      <% if(totalPages>1){ %>
+        <div class="shop-pagination">
+          <% if(currentPage>1){ %>
+            <button onclick="shopUpdate('page','<%=currentPage-1%>')">‹</button>
+          <% } %>
+          <% for(let i=Math.max(1,currentPage-2);i<=Math.min(totalPages,currentPage+2);i++){ %>
+            <button class="<%=i===currentPage?'active':''%>"
+                    onclick="shopUpdate('page','<%=i%>')"><%=i%></button>
+          <% } %>
+          <% if(currentPage<totalPages){ %>
+            <button onclick="shopUpdate('page','<%=currentPage+1%>')">›</button>
+          <% } %>
+        </div>
+      <% } %>
+    </section>
+  </div>
+
+
+  <script>
+
+   function shopUpdate(k,v) {
+      const u=new URL(location);
+      v ? u.searchParams.set(k,v) : u.searchParams.delete(k);
+      if(k!=='page')u.searchParams.delete('page');
+      location=u;
+    }
+
+    function shopApplySearch(){
+      shopUpdate('search',document.getElementById('shopSearch').value.trim());
+    }
+
+
+    function shopToggleSidebar(){
+      const sb=document.getElementById('shopSidebar');
+      const ov=document.getElementById('shopOverlay');
+      sb.classList.toggle('open');
+      ov.classList.toggle('show');
+    }
+  </script>
+</body>
+</html>

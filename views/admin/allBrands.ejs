@@ -1,0 +1,1819 @@
+<section class="table-components">
+  <div class="container-fluid">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="tables-wrapper">
+      <div class="card-style mb-30">
+        <div class="page-header">
+          <h6 class="page-title">Brand Management</h6>
+          <div class="header-stats">
+            <span class="stat-item">
+              Showing: <span id="result-count"><%= brands.length %></span> / <span id="total-count"><%= totalBrands %></span>
+            </span>
+          </div>
+        </div>
+        
+        <p class="error-msg" id="error-msg"></p>
+        <p class="success-msg" id="success-msg"></p>
+        
+        <div class="table-controls">
+          <div class="controls-row">
+            <!-- Filter Controls -->
+            <div class="filters-section">
+              <div class="filter-group">
+                <label class="filter-label">Status:</label>
+                <select class="filter form-select" id="status-filter">
+                  <option value="all" <%= status === 'all' ? 'selected' : '' %>>All Brands</option>
+                  <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
+                  <option value="inactive" <%= status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label">Listing:</label>
+                <select class="filter form-select" id="listed-filter">
+                  <option value="all" <%= listedFilter === 'all' ? 'selected' : '' %>>All</option>
+                  <option value="listed" <%= listedFilter === 'listed' ? 'selected' : '' %>>Listed</option>
+                  <option value="unlisted" <%= listedFilter === 'unlisted' ? 'selected' : '' %>>Unlisted</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label">Category:</label>
+                <select class="filter form-select" id="category-filter">
+                  <option value="all" <%= categoryFilter === 'all' ? 'selected' : '' %>>All Categories</option>
+                  <% if (categories && categories.length > 0) { %>
+                    <% categories.forEach(category => { %>
+                      <option value="<%= category._id %>" <%= categoryFilter === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
+                    <% }) %>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+            
+            <div class="toggle-group">
+              <label class="toggle-switch">
+                <input type="checkbox" id="show-inactive" <%= showInactive === 'true' ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Show Inactive</span>
+              </label>
+            </div>
+
+            <!-- Search Form -->
+            <div class="search-section">
+              <form class="search-form" id="search-form">
+                <div class="search-input-group">
+                  <input type="text"
+                         id="search-input"
+                         name="search"
+                         class="form-control search-input"
+                         placeholder="Search brands..."
+                         value="<%= search || '' %>">
+                  <button type="submit" class="btn btn-primary search-btn">
+                    <i class="lni lni-search"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="sort-section">
+              <div class="sort-group">
+                <label class="sort-label">Sort by:</label>
+                <select class="sort-field form-select" id="sort-field">
+                  <option value="name" <%= sortField === 'name' ? 'selected' : '' %>>Name</option>
+                  <option value="createdAt" <%= sortField === 'createdAt' ? 'selected' : '' %>>Created Date</option>
+                </select>
+                
+                <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
+                  <span class="sort-icon"><%= sortOrder === 'asc' ? '↑' : '↓' %></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="actions-section">
+              <button class="btn btn-secondary reset-btn" id="reset-filters" type="button">
+                <i class="lni lni-reload"></i>
+                <span class="btn-text">Reset</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Navigator -->
+        <div class="table-navigator">
+          <button class="btn btn-primary" onclick="openBrandModal('create')">
+            <i class="lni lni-plus"></i>
+            <span class="btn-text">Add Brand</span>
+          </button>
+          
+          <div class="pagination-controls">
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="prev-btn"
+                    <%= currentPage <= 1 ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage - 1 %>)">
+              <i class="lni lni-chevron-left"></i>
+              <span class="btn-text">Prev</span>
+            </button>
+            
+            <div class="page-info">
+              <span class="page-label">Page</span>
+              <input type="number" 
+                     min="1" 
+                     max="<%= totalPages %>"
+                     id="page-number"
+                     class="page-input" 
+                     value="<%= currentPage %>"
+                     onchange="goToPage(this.value)" />
+              <span class="page-total">of <%= totalPages %></span>
+            </div>
+            
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="next-btn"
+                    <%= currentPage >= totalPages ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage + 1 %>)">
+              <span class="btn-text">Next</span>
+              <i class="lni lni-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <div class="table-container">
+            <table class="table" id="brands-table">
+              <% if (brands && brands.length > 0) { %>
+              <thead>
+                <tr>
+                  <th class="sortable-header" onclick="setSortField('name')">
+                    <div class="header-content">
+                      <span>Brand Name</span>
+                      <% if (sortField === 'name') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th>Image</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th class="sortable-header" onclick="setSortField('createdAt')">
+                    <div class="header-content">
+                      <span>Created Date</span>
+                      <% if (sortField === 'createdAt') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th class="actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% brands.forEach((brand) => { %>
+                <tr class="brand-row <%= brand.isListed != 'true' ? 'unlisted' : '' %>" data-brand-id="<%= brand._id %>">
+                  <td class="brand-name">
+                    <div class="brand-info">
+                      <span class="name <%= brand.isListed ? 'listed-brand' : '' %>">
+                        <%= brand.name %>
+                        <% if (brand.isListed) { %>
+                          <i class="lni lni-checkmark-circle listed-icon" title="Listed"></i>
+                        <% } %>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="brand-image">
+                    <% if (brand.image) { %>
+                      <img src="<%= brand.image %>" alt="<%= brand.name %>" class="brand-img" style="max-width: 50px; max-height: 50px; object-fit: contain;">
+                    <% } else { %>
+                      <span class="text-muted">No image</span>
+                    <% } %>
+                  </td>
+                  <td class="brand-description">
+                    <% if (brand.description) { %>
+                      <%= brand.description.substring(0, 100) %><%= brand.description.length > 100 ? '...' : '' %>
+                    <% } else { %>
+                      <span class="text-muted">No description</span>
+                    <% } %>
+                  </td>
+                  <td class="brand-category">
+                    <% if (brand.category) { %>
+                      <span class="category-name"><%= brand.category.name %></span>
+                    <% } else { %>
+                      <span class="text-muted">No category</span>
+                    <% } %>
+                  </td>
+                  <td class="brand-status">
+                    <div class="status-badges">
+                      <span class="status-badge <%= brand.isActive ? 'active' : 'blocked' %>">
+                        <%= brand.isActive ? 'Active' : 'Inactive' %>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="brand-created">
+                    <span class="date-text">
+                      <%= brand.createdAt ? new Date(brand.createdAt).toLocaleDateString() : 'N/A' %>
+                    </span>
+                  </td>
+                  <td class="brand-actions">
+                    <div class="action-buttons">
+                      <button class="btn btn-sm btn-outline-primary edit-btn" 
+                              onclick="openBrandModal('edit', '<%= brand._id %>')"
+                              title="Edit Brand">
+                        <i class="lni lni-pencil"></i>
+                        <span class="btn-text">Edit</span>
+                      </button>
+                      <button class="btn btn-sm btn-outline-warning toggle-listed-btn" 
+                              onclick="toggleListed('<%= brand._id %>', '<%= brand.name %>', `<%= !brand.isListed %>`)"
+                              title="<%= brand.isListed ? 'Unlist' : 'List' %> Brand">
+                        <i class="lni lni-<%= brand.isListed ? 'eye-slash' : 'eye' %>"></i>
+                        <span class="btn-text"><%= brand.isListed ? 'Unlist' : 'List' %></span>
+                      </button>
+                      <button class="btn btn-sm <%= brand.isActive ? 'btn-outline-danger' : 'btn-outline-success' %> toggle-status-btn" 
+                              onclick="toggleStatus('<%= brand._id %>', '<%= brand.name %>', `<%= !brand.isActive %>`)"
+                              title="<%= brand.isActive ? 'Deactivate' : 'Activate' %> Brand">
+                        <i class="lni lni-<%= brand.isActive ? 'lock' : 'unlock' %>"></i>
+                        <span class="btn-text"><%= brand.isActive ? 'Deactivate' : 'Activate' %></span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+              <% } else { %>
+              <tbody>
+                <tr class="no-data-row">
+                  <td colspan="7" class="no-data-cell">
+                    <div class="no-data-content">
+                      <div class="no-data-icon">
+                        <i class="lni lni-layers"></i>
+                      </div>
+                      <p>No brands found</p>
+                      <% if (search || status !== 'all' || listedFilter !== 'all' || categoryFilter !== 'all' || showInactive) { %>
+                        <button class="btn btn-link" onclick="resetFilters()">Clear filters</button>
+                      <% } else { %>
+                        <button class="btn btn-primary" onclick="openBrandModal('create')">
+                          <i class="lni lni-plus"></i>
+                          Create First Brand
+                        </button>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+              <% } %>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirm-modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="confirm-modal-title">Confirm Action</h5>
+      <button class="modal-close" onclick="closeConfirmModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-modal-message">Are you sure you want to perform this action?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-modal-confirm" onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Brand Form Modal -->
+<div class="modal-overlay" id="brand-modal-overlay">
+  <div class="modal-content modal-lg">
+    <div class="modal-header">
+      <h5 class="modal-title" id="brand-modal-title">Add Brand</h5>
+      <button class="modal-close" onclick="closeBrandModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="brand-form" enctype="multipart/form-data">
+      <div class="modal-body">
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="brand-name" class="form-label">Brand Name <span class="required">*</span></label>
+            <input type="text" 
+                   id="brand-name" 
+                   name="name" 
+                   class="form-control" 
+                   placeholder="Enter brand name"
+                   required>
+            <div class="form-error" id="name-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="brand-image" class="form-label">Brand Image</label>
+            <input type="file" 
+                   id="brand-image" 
+                   name="image" 
+                   class="form-control" 
+                   accept="image/jpeg,image/png,image/webp">
+            <div class="form-error" id="image-error"></div>
+            <div class="image-preview" id="image-preview" style="display: none; margin-top: 10px;">
+              <img id="preview-img" src="" alt="Image Preview" style="max-width: 100px; max-height: 100px;">
+            </div>
+            <div class="crop-container" id="crop-container" style="display: none; margin-top: 10px;">
+              <img id="crop-img" src="" alt="Image to Crop" style="max-width: 100%;">
+              <div class="crop-controls" style="margin-top: 10px;">
+                <button type="button" class="btn btn-primary" id="crop-btn">Crop Image</button>
+                <button type="button" class="btn btn-secondary" id="cancel-crop-btn">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="brand-description" class="form-label">Description</label>
+            <textarea id="brand-description" 
+                      name="description" 
+                      class="form-control" 
+                      rows="3"
+                      placeholder="Enter brand description (optional)"></textarea>
+            <div class="form-error" id="description-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="brand-category" class="form-label">Category <span class="required">*</span></label>
+            <select id="brand-category" name="category" class="form-control" required>
+              <option value="">Select category</option>
+              <% if (categories && categories.length > 0) { %>
+                <% categories.forEach(category => { %>
+                  <option value="<%= category._id %>"><%= category.name %></option>
+                <% }) %>
+              <% } %>
+            </select>
+            <div class="form-error" id="category-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2 flex">
+          <div class="form-group-inline">
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="brand-active" name="isActive" checked>
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">Active</span>
+              </label>
+            </div>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="brand-listed" name="isListed" checked>
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">Listed</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" id="brand-id" name="id">
+        <input type="hidden" id="brand-image-url" name="imageUrl">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeBrandModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="brand-submit-btn">
+          <span class="btn-spinner" id="brand-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="brand-submit-text">Save Brand</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Cropper.js CDN -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+<style>
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-content.modal-lg {
+  max-width: 600px;
+}
+
+.modal-overlay.active .modal-content {
+  transform: scale(1);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6c757d;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.modal-body {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #f8f9fa;
+}
+
+/* Form Styles */
+.form-row {
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group-inline {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 6px;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.form-control {
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+  background: white;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-control.error {
+  border-color: #dc3545;
+}
+
+.form-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  display: none;
+}
+
+.form-error.show {
+  display: block;
+}
+
+/* Checkbox Styles */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e9ecef;
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.checkbox-label input:checked + .checkbox-custom {
+  background: #007bff;
+  border-color: #007bff;
+}
+
+.checkbox-label input:checked + .checkbox-custom:after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.checkbox-text {
+  font-size: 14px;
+  color: #495057;
+}
+
+/* Toggle Switch */
+.toggle-group {
+  margin-right: 15px;
+}
+
+
+
+
+
+
+
+/* Loading Overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.loading-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Success and Error Messages */
+.success-msg {
+  color: #155724;
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 15px;
+  display: none;
+}
+
+.success-msg.show {
+  display: block;
+}
+
+.error-msg {
+  color: #dc3545;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 15px;
+  display: none;
+}
+
+.error-msg.show {
+  display: block;
+}
+
+/* Table Styles (Matched to Category Page) */
+.table-components {
+  position: relative;
+  min-height: 400px;
+}
+
+.container-fluid {
+  padding: 20px;
+}
+
+.card-style {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 30px;
+}
+
+.mb-30 {
+  margin-bottom: 30px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.header-stats {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.stat-item {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.stat-item span {
+  font-weight: 600;
+  color: #495057;
+}
+
+.table-controls {
+  margin-bottom: 20px;
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filters-section {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label,
+.sort-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.search-section {
+  flex: 1;
+  max-width: 400px;
+  min-width: 250px;
+}
+
+.search-input-group {
+  display: flex;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.search-input-group:focus-within {
+  border-color: #007bff;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  padding: 10px 15px;
+  flex: 1;
+  font-size: 14px;
+}
+
+.form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.form-select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.sort-section {
+  display: flex;
+  align-items: center;
+}
+
+.sort-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-navigator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.page-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-label {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.page-input {
+  width: 60px;
+  text-align: center;
+  border: 2px solid #e9ecef;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 14px;
+}
+
+.page-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.page-total {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.table-container {
+  min-width: 800px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  margin: 0;
+}
+
+.table th,
+.table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+.sortable-header:hover {
+  background: #e9ecef;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sort-indicator {
+  font-size: 12px;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.actions-header {
+  text-align: center;
+}
+
+.brand-row {
+  transition: background-color 0.3s ease;
+}
+
+.brand-row:hover {
+  background: #f8f9fa;
+}
+
+.unlisted-brand {
+  background-color: #dc354686;
+  opacity: 0.7;
+}
+
+.unlisted-brand:hover{
+  background-color: #dc354686;
+
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.listed-brand {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.listed-icon {
+  color: #28a745;
+  margin-left: 4px;
+  font-size: 12px;
+}
+
+.brand-description {
+  max-width: 250px;
+}
+
+.category-name {
+  color: #131619;
+  font-weight: 500;
+}
+
+
+
+
+.brand-actions {
+  text-align: center;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+}
+
+.no-data-row {
+  background: #f8f9fa;
+}
+
+.no-data-cell {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.no-data-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.no-data-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.no-data-content p {
+  color: #6c757d;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Button Styles (Matched to Category Page) */
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #0b0d10;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #000000;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #545b62;
+}
+
+.btn-outline-primary {
+  background: transparent;
+  color: #0d0e0e;
+  border: 2px solid #000000;
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background: #000000;
+  outline: none;
+  color: white;
+}
+
+.btn-outline-secondary {
+  background: transparent;
+  color: #6c757d;
+  border: 2px solid #6c757d;
+}
+
+.btn-outline-secondary:hover:not(:disabled) {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-outline-warning {
+  background: transparent;
+  color: #ffc107;
+  border: 2px solid #ffc107;
+}
+
+.btn-outline-warning:hover:not(:disabled) {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-outline-danger {
+  background: transparent;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-outline-success {
+  background: transparent;
+  color: #28a745;
+  border: 2px solid #28a745;
+}
+
+.btn-outline-success:hover:not(:disabled) {
+  background: #28a745;
+  color: white;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.btn-link {
+  background: transparent;
+  color: #007bff;
+  border: none;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: #0056b3;
+}
+
+.btn-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+  .controls-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .search-section {
+    max-width: none;
+  }
+  
+  .table-navigator {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .btn-sm .btn-text {
+    display: none;
+  }
+  
+  .brand-actions {
+    width: 80px;
+  }
+  
+  .page-label, .page-total {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .table-container {
+    min-width: 700px;
+  }
+}
+</style>
+
+<script>
+  const BASE_URL = window.location.origin;
+  
+  // Global STATE
+  const STATE = {
+    page: parseInt('<%= currentPage %>') || 1,
+    status: '<%= status %>' || 'all',
+    listedFilter: '<%= listedFilter %>' || 'all',
+    categoryFilter: '<%= categoryFilter %>' || 'all',
+    sortField: '<%= sortField %>' || 'createdAt',
+    sortOrder: '<%= sortOrder %>' || 'desc',
+    search: '<%= search %>' || '',
+    showInactive: '<%= showInactive %>' === 'true',
+    pendingAction: null,
+    isLoading: false,
+    currentEditId: null,
+    cropper: null
+  };
+
+  function showLoading() {
+    STATE.isLoading = true;
+    document.getElementById('loading-overlay').classList.add('active');
+  }
+
+  function hideLoading() {
+    STATE.isLoading = false;
+    document.getElementById('loading-overlay').classList.remove('active');
+  }
+
+  function showError(message) {
+    const errorMsg = document.getElementById('error-msg');
+    errorMsg.textContent = message;
+    errorMsg.classList.add('show');
+    setTimeout(() => {
+      errorMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function showSuccess(message) {
+    const successMsg = document.getElementById('success-msg');
+    successMsg.textContent = message;
+    successMsg.classList.add('show');
+    setTimeout(() => {
+      successMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function buildUrl(overrides = {}) {
+    const params = {
+      page: overrides.page || STATE.page,
+      status: overrides.status || STATE.status,
+      listedFilter: overrides.listedFilter || STATE.listedFilter,
+      categoryFilter: overrides.categoryFilter || STATE.categoryFilter,
+      sortField: overrides.sortField || STATE.sortField,
+      sortOrder: overrides.sortOrder || STATE.sortOrder,
+      search: overrides.search !== undefined ? overrides.search : STATE.search,
+      showInactive: overrides.showInactive !== undefined ? overrides.showInactive : STATE.showInactive
+    };
+
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === null || params[key] === undefined || 
+          (key === 'showInactive' && !params[key]) ||
+          (params[key] === 'all' && key !== 'status' && key !== 'listedFilter' && key !== 'categoryFilter')) {
+        delete params[key];
+      }
+    });
+
+    const url = new URL(window.location.pathname, window.location.origin);
+    Object.keys(params).forEach(key => {
+      url.searchParams.set(key, params[key]);
+    });
+
+    return url.toString();
+  }
+
+  function navigateToUrl(url) {
+    showLoading();
+    window.location.href = url;
+  }
+
+  function goToPage(page) {
+    const pageNum = parseInt(page);
+    const maxPages = parseInt('<%= totalPages %>');
+    if (pageNum < 1 || pageNum > maxPages) return;
+    
+    STATE.page = pageNum;
+    navigateToUrl(buildUrl({ page: pageNum }));
+  }
+
+  function setSortField(field) {
+    const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+    STATE.sortField = field;
+    STATE.sortOrder = newOrder;
+    STATE.page = 1;
+    navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
+  }
+
+  function resetFilters() {
+    STATE.page = 1;
+    STATE.status = 'all';
+    STATE.listedFilter = 'all';
+    STATE.categoryFilter = 'all';
+    STATE.sortField = 'name';
+    STATE.sortOrder = 'asc';
+    STATE.search = '';
+    STATE.showInactive = false;
+    
+    navigateToUrl(buildUrl({
+      page: 1,
+      status: 'all',
+      listedFilter: 'all',
+      categoryFilter: 'all',
+      sortField: 'name',
+      sortOrder: 'asc',
+      search: '',
+      showInactive: false
+    }));
+  }
+
+  function openBrandModal(mode, brandId = null) {
+    const modal = document.getElementById('brand-modal-overlay');
+    const title = document.getElementById('brand-modal-title');
+    const form = document.getElementById('brand-form');
+    const submitBtn = document.getElementById('brand-submit-text');
+    
+    // Reset form
+    form.reset();
+    clearFormErrors();
+    resetImageCropper();
+    
+    if (mode === 'create') {
+      title.textContent = 'Add Brand';
+      submitBtn.textContent = 'Save Brand';
+      STATE.currentEditId = null;
+      document.getElementById('brand-active').checked = true;
+      document.getElementById('brand-listed').checked = true;
+      document.getElementById('brand-image-url').value = '';
+    } else if (mode === 'edit' && brandId) {
+      title.textContent = 'Edit Brand';
+      submitBtn.textContent = 'Update Brand';
+      STATE.currentEditId = brandId;
+      loadBrandData(brandId);
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+      document.getElementById('brand-name').focus();
+    }, 300);
+  }
+
+  function closeBrandModal() {
+    const modal = document.getElementById('brand-modal-overlay');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    STATE.currentEditId = null;
+    clearFormErrors();
+    resetImageCropper();
+  }
+
+  async function loadBrandData(brandId) {
+    try {
+      showFormLoading(true);
+      
+      const response = await fetch(`${BASE_URL}/admin/brands/api/brand/${brandId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const brand = data.data;
+        document.getElementById('brand-name').value = brand.name || '';
+        document.getElementById('brand-description').value = brand.description || '';
+        document.getElementById('brand-category').value = brand.category?._id || '';
+        document.getElementById('brand-active').checked = brand.isActive;
+        document.getElementById('brand-listed').checked = brand.isListed;
+        document.getElementById('brand-id').value = brand._id;
+        document.getElementById('brand-image-url').value = brand.image || '';
+        
+        if (brand.image) {
+          const previewImg = document.getElementById('preview-img');
+          previewImg.src = brand.image;
+          document.getElementById('image-preview').style.display = 'block';
+        }
+      } else {
+        showError('Failed to load brand data');
+        closeBrandModal();
+      }
+    } catch (error) {
+      console.error('Error loading brand:', error);
+      showError('Error loading brand data');
+      closeBrandModal();
+    } finally {
+      showFormLoading(false);
+    }
+  }
+
+  function showFormLoading(show) {
+    const spinner = document.getElementById('brand-spinner');
+    const submitBtn = document.getElementById('brand-submit-btn');
+    
+    if (show) {
+      spinner.style.display = 'inline-block';
+      submitBtn.disabled = true;
+    } else {
+      spinner.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+  }
+
+  function clearFormErrors() {
+    const errors = document.querySelectorAll('.form-error');
+    errors.forEach(error => {
+      error.classList.remove('show');
+      error.textContent = '';
+    });
+    
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+      input.classList.remove('error');
+    });
+  }
+
+  function showFormError(fieldName, message) {
+    const field = document.querySelector(`[name="${fieldName}"]`);
+    const error = document.getElementById(`${fieldName}-error`);
+    
+    if (field) field.classList.add('error');
+    if (error) {
+      error.textContent = message;
+      error.classList.add('show');
+    }
+  }
+
+  function validateForm() {
+    clearFormErrors();
+    let isValid = true;
+    
+    const name = document.getElementById('brand-name').value.trim();
+    if (!name) {
+      showFormError('name', 'Brand name is required');
+      isValid = false;
+    } else if (name.length > 100) {
+      showFormError('name', 'Brand name cannot exceed 100 characters');
+      isValid = false;
+    }
+    
+    const description = document.getElementById('brand-description').value.trim();
+    if (description && description.length > 500) {
+      showFormError('description', 'Description cannot exceed 500 characters');
+      isValid = false;
+    }
+    
+    const category = document.getElementById('brand-category').value;
+    if (!category) {
+      showFormError('category', 'Category is required');
+      isValid = false;
+    }
+    
+    return isValid;
+  }
+
+  function resetImageCropper() {
+    const cropContainer = document.getElementById('crop-container');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    const imageInput = document.getElementById('brand-image');
+    
+    if (STATE.cropper) {
+      STATE.cropper.destroy();
+      STATE.cropper = null;
+    }
+    
+    cropContainer.style.display = 'none';
+    imagePreview.style.display = 'none';
+    previewImg.src = '';
+    imageInput.value = '';
+    document.getElementById('brand-image-url').value = '';
+  }
+
+  function initCropper(file) {
+    const cropImg = document.getElementById('crop-img');
+    const cropContainer = document.getElementById('crop-container');
+    const imagePreview = document.getElementById('image-preview');
+    
+    imagePreview.style.display = 'none';
+    cropContainer.style.display = 'block';
+    
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      cropImg.src = e.target.result;
+      
+      if (STATE.cropper) {
+        STATE.cropper.destroy();
+      }
+      
+      STATE.cropper = new Cropper(cropImg, {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 0.8,
+        responsive: true,
+        zoomable: true,
+        scalable: true
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function uploadCroppedImage() {
+    if (!STATE.cropper) {
+      showFormError('image', 'No image selected for cropping');
+      return null;
+    }
+    
+    try {
+      const canvas = STATE.cropper.getCroppedCanvas({
+        width: 200,
+        height: 200,
+        imageSmoothingQuality: 'high'
+      });
+      
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(async (blob) => {
+          const formData = new FormData();
+          formData.append('image', blob, 'brand-image.jpg');
+          
+          const response = await fetch(`${BASE_URL}/admin/brands/api/upload-image`, {
+            method: 'POST',
+            body: formData
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            resolve(result.imageUrl);
+          } else {
+            reject(new Error(result.message || 'Failed to upload image'));
+          }
+        }, 'image/jpeg', 0.9);
+      });
+    } catch (error) {
+      showFormError('image', error.message);
+      return null;
+    }
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    // Image input change handler
+    document.getElementById('brand-image').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          showFormError('image', 'Invalid image format. Supported: jpg, png, webp');
+          e.target.value = '';
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+          showFormError('image', 'Image size must be less than 5MB');
+          e.target.value = '';
+          return;
+        }
+        initCropper(file);
+      }
+    });
+
+    // Crop button handler
+    document.getElementById('crop-btn').addEventListener('click', async function() {
+      const imageUrl = await uploadCroppedImage();
+      if (imageUrl) {
+        const previewImg = document.getElementById('preview-img');
+        previewImg.src = imageUrl;
+        document.getElementById('image-preview').style.display = 'block';
+        document.getElementById('crop-container').style.display = 'none';
+        document.getElementById('brand-image-url').value = imageUrl;
+        STATE.cropper.destroy();
+        STATE.cropper = null;
+      }
+    });
+
+    // Cancel crop button handler
+    document.getElementById('cancel-crop-btn').addEventListener('click', function() {
+      resetImageCropper();
+    });
+
+    // Brand form submission
+    document.getElementById('brand-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!validateForm()) {
+        return;
+      }
+      
+      showFormLoading(true);
+      
+      try {
+        const formData = new FormData(this);
+        const data = {
+          name: formData.get('name').trim(),
+          description: formData.get('description').trim(),
+          category: formData.get('category'),
+          isActive: formData.get('isActive') === 'on',
+          isListed: formData.get('isListed') === 'on',
+          image: formData.get('imageUrl') || ''
+        };
+        
+        const isEdit = STATE.currentEditId;
+        const url = isEdit 
+          ? `${BASE_URL}/admin/brands/api/update/${STATE.currentEditId}`
+          : `${BASE_URL}/admin/brands/api/create`;
+        
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showSuccess(isEdit ? 'Brand updated successfully' : 'Brand created successfully');
+          closeBrandModal();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          if (result.errors) {
+            Object.keys(result.errors).forEach(field => {
+              showFormError(field, result.errors[field]);
+            });
+          } else {
+            showError(result.message || 'Failed to save brand');
+          }
+        }
+      } catch (error) {
+        console.error('Error saving brand:', error);
+        showError('An error occurred while saving the brand');
+      } finally {
+        showFormLoading(false);
+      }
+    });
+
+    // Status filter
+    document.getElementById('status-filter').addEventListener('change', function(e) {
+      STATE.status = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
+    });
+
+    // Listed filter
+    document.getElementById('listed-filter').addEventListener('change', function(e) {
+      STATE.listedFilter = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ listedFilter: e.target.value, page: 1 }));
+    });
+
+    // Category filter
+    document.getElementById('category-filter').addEventListener('change', function(e) {
+      STATE.categoryFilter = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ categoryFilter: e.target.value, page: 1 }));
+    });
+
+    // Show inactive toggle
+    document.getElementById('show-inactive').addEventListener('change', function(e) {
+      STATE.showInactive = e.target.checked;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ showInactive: e.target.checked, page: 1 }));
+    });
+
+    // Sort field
+    document.getElementById('sort-field').addEventListener('change', function(e) {
+      STATE.sortField = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
+    });
+
+    // Sort order
+    document.getElementById('sort-order').addEventListener('click', function() {
+      const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
+      STATE.sortOrder = newOrder;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
+    });
+
+    // Search form
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const searchValue = document.getElementById('search-input').value.trim();
+      STATE.search = searchValue;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
+    });
+
+    // Reset button
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+    // Page input validation
+    document.getElementById('page-number').addEventListener('input', function(e) {
+      const value = parseInt(e.target.value);
+      const maxPages = parseInt('<%= totalPages %>');
+      if (value < 1) e.target.value = 1;
+      if (value > maxPages) e.target.value = maxPages;
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (document.getElementById('brand-modal-overlay').classList.contains('active')) {
+          closeBrandModal();
+        }
+        if (document.getElementById('confirm-modal-overlay').classList.contains('active')) {
+          closeConfirmModal();
+        }
+      }
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('brand-modal-overlay').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeBrandModal();
+      }
+    });
+
+    document.getElementById('confirm-modal-overlay').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeConfirmModal();
+      }
+    });
+  });
+
+  function toggleListed(brandId, brandName, listed) {
+    const action = listed === 'true' ? 'list' : 'unlist';
+    showConfirmModal(
+      `${action.charAt(0).toUpperCase() + action.slice(1)} Brand`,
+      `Are you sure you want to ${action} "${brandName}"?`,
+      action.charAt(0).toUpperCase() + action.slice(1),
+      () => performToggleListed(brandId, listed === 'true')
+    );
+  }
+
+  function toggleStatus(brandId, brandName, activate) {
+    const action = activate === 'true' ? 'activate' : 'deactivate';
+    showConfirmModal(
+      `${action.charAt(0).toUpperCase() + action.slice(1)} Brand`,
+      `Are you sure you want to ${action} "${brandName}"?`,
+      action.charAt(0).toUpperCase() + action.slice(1),
+      () => performToggleStatus(brandId, activate === 'true')
+    );
+  }
+
+
+  // API calls
+  async function performToggleListed(brandId, listed) {
+    if (STATE.isLoading) return;
+    showLoading();
+    
+    try {
+      const response = await fetch(`${BASE_URL}/admin/brands/toggle-listed/${brandId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listed })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        window.location.reload();
+      } else {
+        showError(data.message || 'Failed to update brand');
+      }
+    } catch (error) {
+      showError('An error occurred while updating the brand');
+      console.error('Error:', error);
+    } finally {
+      hideLoading();
+    }
+  }
+
+  async function performToggleStatus(brandId, active) {
+    if (STATE.isLoading) return;
+    showLoading();
+    
+    try {
+      const response = await fetch(`${BASE_URL}/admin/brands/toggle-status/${brandId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        window.location.reload();
+      } else {
+        showError(data.message || 'Failed to update brand');
+      }
+    } catch (error) {
+      showError('An error occurred while updating the brand');
+      console.error('Error:', error);
+    } finally {
+      hideLoading();
+    }
+  }
+
+
+  function showConfirmModal(title, message, confirmText, confirmCallback) {
+    document.getElementById('confirm-modal-title').textContent = title;
+    document.getElementById('confirm-modal-message').textContent = message;
+    document.getElementById('confirm-modal-confirm').textContent = confirmText;
+    STATE.pendingAction = confirmCallback;
+    document.getElementById('confirm-modal-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirm-modal-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+    STATE.pendingAction = null;
+  }
+
+  function confirmAction() {
+    if (STATE.pendingAction) {
+      STATE.pendingAction();
+      closeConfirmModal();
+    }
+  }
+
+  window.addEventListener('popstate', function() {
+    if (!STATE.isLoading) {
+      window.location.reload();
+    }
+  });
+
+  window.addEventListener('load', function() {
+    hideLoading();
+  });
+</script>

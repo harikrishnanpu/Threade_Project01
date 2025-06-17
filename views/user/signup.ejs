@@ -1,6 +1,5 @@
 <link rel="stylesheet" href="/css/login.css" />
 
-<!-- ===== Header Top (same as login) ===== -->
 <div class="header__top">
   <div class="container">
     <div class="row">
@@ -29,15 +28,11 @@
   </div>
 </div>
 
-<!-- ===== Signup Page Component ===== -->
 <section class="login-wrapper">
-  <!-- Left Image Section -->
   <div class="login-image">
-    <!-- Replace with a signup‑specific banner if desired -->
     <img src="/img/signup_banner.jpg" alt="Signup Banner" />
   </div>
 
-  <!-- Right Form Section -->
   <div class="login-section">
     <div class="login-box">
       <h2>Create Your Account</h2>
@@ -45,14 +40,12 @@
       <p class="error-msg" id="error-msg"></p>
 
       <form id="signup-form">
-        <!-- Name -->
         <div class="input-group floating">
           <input type="text" name="name" id="name" placeholder=" "  />
           <label for="name">Full Name</label>
           <p id="fullname-input-error" class="error-msg-input"></p>
         </div>
 
-        <!-- Email -->
         <div class="input-group floating">
           <input
             type="text"
@@ -64,7 +57,6 @@
            <p id="email-input-error" class="error-msg-input"></p>
         </div>
 
-        <!-- Phone -->
         <div class="input-group floating">
           <input
             type="text"
@@ -79,7 +71,6 @@
           <p id="phone-input-error" class="error-msg-input"></p>
         </div>
 
-        <!-- Password -->
         <div class="input-group floating">
           <input
             type="password"
@@ -97,7 +88,6 @@
           >
         </div>
 
-        <!-- Confirm Password -->
         <div class="input-group floating">
           <input
             type="password"
@@ -115,7 +105,7 @@
           >
         </div>
 
-        <!-- Buttons -->
+
         <button type="submit" class="login-btn primary">Sign Up</button>
         <div class="or-divider"><span>OR</span></div>
         <button type="button" onclick="googleAuth()" class="login-btn google">
@@ -131,7 +121,8 @@
 </section>
 
 <script>
-    const BASE_URL = window.location.origin;
+  
+  const BASE_URL = window.location.origin;
 
   function togglePwd(id, el) {
     const input = document.getElementById(id);
@@ -142,8 +133,8 @@
 
 
   function googleAuth() {
-      disableAllSubmitButtons();
-      window.location.href = '/user/auth/google';
+    disableAllSubmitButtons();
+    window.location.href = '/user/auth/google';
   }
 
 
@@ -151,7 +142,6 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const errorMessageInput = document.getElementById("error-msg");
 
-  // Clear previous error messages
   clearAllErrors();
   resetAllSubmitButtons();
   errorMessageInput.innerText = "";
@@ -193,15 +183,20 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
         body: JSON.stringify(formData),
       });      
 
+      const result = await response.json();
+
+      console.log(result);
+      
+
       if (response.ok) {
-        const result = await response.json();
         window.location.href = `/user/verify/email/${result.userId}/otp`;
       } else {
-        const result = await response.json();
         errorMessageInput.innerText = result.message || "Registration failed.";
       }
 
     } catch (err) {
+      console.log(err);
+      
       errorMessageInput.innerText = err.message || "Network error.";
     } finally{
  
@@ -216,11 +211,16 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       fullnameInput.classList.add('invalid');
       showInputErrorMessage('fullname',"Please re-enter your name properly.\n");
     }
+
+    if (!checkUsernameValid(fullname)) {
+      fullnameInput.classList.add('invalid');
+      showInputErrorMessage('fullname',"name must not contains .\n");
+    }
     if (!checkPhoneNumberValid(phone)) {
       phoneInput.classList.add('invalid');
       showInputErrorMessage('phone', "Please enter a valid phone number.\n");
     }
-    if (!checkEmailValid(email)) {
+     if (!checkEmailValid(email)) {
       emailInput.classList.add('invalid');
       showInputErrorMessage('email',"Please enter a valid email address.\n");
     }
@@ -239,6 +239,8 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     }, 6000);
     resetAllSubmitButtons();
   }
+
+      
 });
 
 

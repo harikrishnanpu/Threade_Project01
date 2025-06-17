@@ -1,0 +1,207 @@
+<!-- views/cart.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Cart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- ====== Minimal styling (Tailwind-like utility classes) ====== -->
+  <style>
+    :root { --bg: #fafafa; --card: #fff; --accent: #ff5722; --text: #222; }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
+    body{background:var(--bg);color:var(--text);line-height:1.4;}
+    .container{max-width:1100px;margin-inline:auto;padding:1rem;}
+    h1{font-size:clamp(1.4rem,2.5vw,2rem);margin-bottom:1rem;font-weight:600;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:.75rem .5rem;text-align:left;}
+    thead{background:var(--accent);color:#fff;}
+    tbody tr{background:var(--card);border-bottom:1px solid #e5e5e5;}
+    tbody img{width:64px;height:64px;object-fit:cover;border-radius:.5rem;}
+    .qty-btn,.remove-btn{border:none;background:none;cursor:pointer;font-size:1rem;}
+    .qty-btn{padding:.2rem .6rem;border-radius:.3rem;background:#eee;margin-inline:.2rem;}
+    .qty-btn[disabled]{opacity:.4;cursor:not-allowed;}
+    .remove-btn{color:#c00;}
+    .totals{margin-top:1.5rem;background:var(--card);padding:1rem;border-radius:.5rem;}
+    .totals h2{font-size:1.25rem;margin-bottom:.75rem;}
+    .totals-row{display:flex;justify-content:space-between;margin-bottom:.35rem;}
+    .totals-row:last-child{font-weight:600;font-size:1.1rem;}
+    .btn{display:inline-block;padding:.75rem 1.25rem;border-radius:.5rem;color:#fff;background:var(--accent);text-decoration:none;font-weight:600;}
+    .btn:disabled{opacity:.6;cursor:not-allowed;}
+    /* ====== Mobile tweaks ====== */
+    @media(max-width:640px){
+      thead{display:none;}
+      tbody tr{display:flex;flex-direction:column;padding:1rem;}
+      tbody td{padding:.25rem 0;}
+      tbody td:nth-child(1){order:1;}
+      tbody td:nth-child(2){order:3;}
+      tbody td:nth-child(3){order:4;}
+      tbody td:nth-child(4){order:2;align-self:center;}
+      tbody td:nth-child(5){order:5;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Cart (<span id="item-count"><%= cartItems.length %></span>)</h1>
+
+    <!-- ================= CART TABLE ================= -->
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Product</th>
+          <th>Price</th>
+          <th style="text-align:center;">Qty</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="cart-body">
+      <% cartItems.forEach(item => { %>
+        <tr id="row-<%= item._id %>">
+          <!-- Image -->
+          <td><img src="<%= item.image %>" alt="<%= item.name %>" /></td>
+
+          <!-- Name -->
+          <td>
+            <strong><%= item.name %></strong><br/>
+            <% if(item.isBlocked || item.isUnlisted){ %>
+              <small style="color:#c00">Item unavailable</small>
+            <% } %>
+          </td>
+
+          <!-- Price -->
+          <td>₹<%= item.price.toFixed(2) %></td>
+
+          <!-- Quantity controls -->
+          <td style="text-align:center;">
+            <button class="qty-btn"
+                    onclick="changeQty('<%= item._id %>', -1)"
+                    <%= item.quantity === 1 ? 'disabled' : '' %>>–</button>
+            <span id="qty-<%= item._id %>"><%= item.quantity %></span>
+            <button class="qty-btn"
+                    onclick="changeQty('<%= item._id %>', 1)"
+                    <%= item.quantity >= item.stock ? 'disabled' : '' %>>+</button>
+            <br/>
+            <small style="color:#666"><%= item.stock %> in stock</small>
+          </td>
+
+          <!-- Row total -->
+          <td id="row-total-<%= item._id %>">₹<%= (item.price * item.quantity).toFixed(2) %></td>
+
+          <!-- Remove -->
+          <td>
+            <button class="remove-btn" onclick="removeItem('<%= item._id %>')">&times;</button>
+          </td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+
+    <!-- ================= TOTALS CARD ================= -->
+    <div class="totals" id="totals-box">
+      <h2>Summary</h2>
+      <div class="totals-row">
+        <span>Subtotal</span>
+        <span id="subtotal">₹0.00</span>
+      </div>
+      <div class="totals-row">
+        <span>Shipping</span>
+        <span id="shipping">₹0.00</span>
+      </div>
+      <div class="totals-row">
+        <span>Grand Total</span>
+        <span id="grand-total">₹0.00</span>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:.75rem;flex-wrap:wrap;">
+        <a href="/shop" class="btn" style="background:#555;">Continue Shopping</a>
+        <button id="checkout-btn" class="btn">Checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CLIENT-SIDE JS ================= -->
+  <script>
+    // ====== Helpers ======
+    const money = n => '₹' + (+n).toFixed(2);
+
+    // ====== Recalculate totals ======
+    function recalc() {
+      let subtotal = 0;
+      document.querySelectorAll('[id^="row-total-"]').forEach(td => {
+        subtotal += parseFloat(td.textContent.replace('₹',''));
+      });
+      const shipping = subtotal === 0 ? 0 : 100;           // flat rate example
+      const grand   = subtotal + shipping;
+
+      document.getElementById('subtotal').textContent    = money(subtotal);
+      document.getElementById('shipping').textContent    = money(shipping);
+      document.getElementById('grand-total').textContent = money(grand);
+      document.getElementById('item-count').textContent  =
+        document.querySelectorAll('#cart-body tr').length;
+
+      // Disable checkout if cart empty
+      document.getElementById('checkout-btn').disabled = subtotal === 0;
+    }
+
+
+    async function changeQty(id, delta) {
+      const qtySpan = document.getElementById('qty-' + id);
+      const current = +qtySpan.textContent;
+      const newQty  = current + delta;
+      if (newQty < 1) return;
+
+      try {
+        const res = await fetch(`/api/cart/update/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity: newQty })
+        });
+        if(!res.ok) throw new Error('Server error');
+        const { stock } = await res.json();  // return latest stock for validation
+
+        // --- Update DOM ---
+        qtySpan.textContent = newQty;
+        document.getElementById('row-total-' + id).textContent =
+          money(parseFloat(document.querySelector('#row-' + id + ' td:nth-child(3)').textContent.replace('₹','')) * newQty);
+
+        // Enable/disable "+" btn based on stock
+        const plusBtn = qtySpan.nextElementSibling;
+        plusBtn.disabled = newQty >= stock;
+
+        // Enable/disable "–" btn
+        const minusBtn = qtySpan.previousElementSibling;
+        minusBtn.disabled = newQty === 1;
+
+        recalc();
+      } catch(err) {
+        alert(err.message);
+      }
+    }
+
+    // ====== Remove item ======
+    async function removeItem(id) {
+      if(!confirm('Remove this item?')) return;
+      try {
+        const res = await fetch(`/api/cart/remove/${id}`, { method:'DELETE' });
+        if(!res.ok) throw new Error('Could not remove item');
+        document.getElementById('row-' + id).remove();
+        recalc();
+      } catch(err) {
+        alert(err.message);
+      }
+    }
+
+    document.getElementById('checkout-btn').addEventListener('click', async () => {
+      try{
+        const res = await fetch('/api/checkout', { method:'POST' });
+        if(!res.ok) throw new Error('Checkout failed');
+        const { redirectUrl } = await res.json();
+        window.location.href = redirectUrl;             
+      }catch(err){ alert(err.message); }
+    });
+
+    recalc();
+  </script>
+</body>
+</html>

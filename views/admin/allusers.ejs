@@ -1,0 +1,513 @@
+<section class="table-components">
+  <div class="container-fluid">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="tables-wrapper">
+      <div class="card-style mb-30">
+        <div class="page-header">
+          <h6 class="page-title">User Management</h6>
+          <div class="header-stats">
+            <span class="stat-item">
+              Showing: <span id="result-count"><%= users.length %></span> / <span id="total-count"><%= totalUsers %></span>
+            </span>
+          </div>
+        </div>
+        
+        <p class="error-msg" id="error-msg"></p>
+        
+        <div class="table-controls">
+          <div class="controls-row">
+            <!-- Filter Controls -->
+            <div class="filters-section">
+              <div class="filter-group">
+                <label class="filter-label">Status:</label>
+                <select class="filter form-select" id="user-filter">
+                  <option value="all" <%= status==='all' ? 'selected' : '' %>>All Users</option>
+                  <option value="active" <%= status==='active' ? 'selected' : '' %>>Active</option>
+                  <option value="blocked" <%= status==='blocked' ? 'selected' : '' %>>Blocked</option>
+                </select>
+              </div>
+
+              <!-- New Toggle for Unlisted Users -->
+            </div>
+            
+            <div class="toggle-group">
+              <label class="toggle-switch">
+                <input type="checkbox" id="show-unlisted" <%= showUnlisted ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Show Unlisted</span>
+              </label>
+            </div>
+            <!-- Search Form -->
+            <div class="search-section">
+              <form class="search-form" id="search-form">
+                <div class="search-input-group">
+                  <input type="text"
+                         id="search-input"
+                         name="search"
+                         class="form-control search-input"
+                         placeholder="Search name, email, phone..."
+                         value="<%= search || '' %>">
+                  <button type="submit" class="btn btn-primary search-btn">
+                    <i class="lni lni-search"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Sort Controls -->
+            <div class="sort-section">
+              <div class="sort-group">
+                <label class="sort-label">Sort by:</label>
+                <select class="sort-field form-select" id="sort-field">
+                  <option value="name" <%= sortField==='name' ? 'selected' : '' %>>Name</option>
+                  <option value="email" <%= sortField==='email' ? 'selected' : '' %>>Email</option>
+                  <option value="phone" <%= sortField==='phone' ? 'selected' : '' %>>Phone</option>
+                  <option value="status" <%= sortField==='status' ? 'selected' : '' %>>Status</option>
+                  <option value="createdAt" <%= sortField==='createdAt' ? 'selected' : '' %>>Created</option>
+                </select>
+                
+                <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
+                  <span class="sort-icon"><%= sortOrder==='asc' ? '↑' : '↓' %></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions-section">
+              <button class="btn btn-secondary reset-btn" id="reset-filters" type="button">
+                <i class="lni lni-reload"></i>
+                <span class="btn-text">Reset</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Navigator -->
+        <div class="table-navigator">
+          <a href="/admin/users/create"  class="btn btn-primary">Create User</a>
+          <div class="pagination-controls">
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="prev-btn"
+                    <%= currentPage<=1 ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage-1 %>)">
+              <i class="lni lni-chevron-left"></i>
+              <span class="btn-text">Prev</span>
+            </button>
+            
+            <div class="page-info">
+              <span class="page-label">Page</span>
+              <input type="number" 
+                     min="1" 
+                     max="<%= totalPages %>"
+                     id="page-number"
+                     class="page-input" 
+                     value="<%= currentPage %>"
+                     onchange="goToPage(this.value)" />
+              <span class="page-total">of <%= totalPages %></span>
+            </div>
+            
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="next-btn"
+                    <%= currentPage>=totalPages ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage+1 %>)">
+              <span class="btn-text">Next</span>
+              <i class="lni lni-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <div class="table-container">
+            <table class="table" id="users-table">
+              <% if (users && users.length > 0) { %>
+              <thead>
+                <tr>
+                  <% 
+                    const columns = [
+                      { key: 'name', label: 'Name' },
+                      { key: 'email', label: 'Email' },
+                      { key: 'phone', label: 'Phone' },
+                      { key: 'status', label: 'Status' },
+                      { key: 'createdAt', label: 'Joined' }
+                    ];
+                  %>
+                  <% columns.forEach(col => { %>
+                    <th class="sortable-header" onclick="setSortField('<%= col.key %>')">
+                      <div class="header-content">
+                        <span><%= col.label %></span>
+                        <% if (sortField === col.key) { %>
+                          <span class="sort-indicator">
+                            <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                          </span>
+                        <% } %>
+                      </div>
+                    </th>
+                  <% }) %>
+                  <th class="actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% users.forEach((user, index) => { %>
+                <tr class="user-row <%= user.isListed ? '' : 'unlisted-user' %>" data-user-id="<%= user._id || index %>">
+                  <td class="user-name">
+                    <div class="user-info">
+                      <span class="name"><%= user.name %></span>
+                    </div>
+                  </td>
+                  <td class="user-email">
+                    <a href="mailto:<%= user.email %>" class="email-link"><%= user.email %></a>
+                  </td>
+                  <td class="user-phone">
+                    <span class="phone-text"><%= user.phone || 'N/A' %></span>
+                  </td>
+                  <td class="user-status">
+                    <span class="status-badge <%= user.isBlocked ? 'blocked' : 'active' %>">
+                      <%= user.isBlocked ? 'Blocked' : 'Active' %>
+                    </span>
+                  </td>
+                  <td class="user-joined">
+                    <span class="date-text">
+                      <%= user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' %>
+                    </span>
+                  </td>
+                  <td class="user-actions">
+                    <div class="action-buttons">
+                      <button class="btn btn-sm btn-outline-primary edit-btn" 
+                              onclick="editUser('<%= user._id || user.id || index %>')"
+                              title="Edit User">
+                        <i class="lni lni-pencil"></i>
+                        <span class="btn-text">Edit</span>
+                      </button>
+                      <button class="btn btn-sm <%= user.isListed ? 'btn-outline-danger' : 'btn-outline-success' %>"
+                              onclick="toggleListUser('<%= user._id %>', '<%= user.name %>', '<%= user.isListed %>')"
+                              title="Delete User">
+                        <i class="lni lni-trash"></i>
+                         <span class="btn-text"><%= user.isListed ? 'unlist' : 'list' %></span>
+                      </button>
+                      <button class="btn btn-sm btn-outline-warning toggle-btn" 
+                              onclick="toggleUserStatus('<%= user._id %>', `<%= user.isBlocked ? 'false' : 'true' %>`)"
+                              title="<%= user.isBlocked ? 'Unblock' : 'Block' %> User">
+                        <i class="lni lni-<%= user.isBlocked ? 'unlock' : 'lock' %>"></i>
+                        <span class="btn-text"><%= user.isBlocked ? 'Unblock' : 'Block' %></span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+              <% } else { %>
+              <tbody>
+                <tr class="no-data-row">
+                  <td colspan="6" class="no-data-cell">
+                    <div class="no-data-content">
+                      <div class="no-data-icon">
+                        <i class="lni lni-users"></i>
+                      </div>
+                      <p>No users found</p>
+                      <% if (search || status !== 'all' || showUnlisted) { %>
+                        <button class="btn btn-link" onclick="resetFilters()">Clear filters</button>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+              <% } %>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="modal-title">Confirm Action</h5>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-message">Are you sure you want to perform this action?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="modal-confirm" onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BASE_URL = window.location.origin;
+
+
+  const STATE = {
+    page: parseInt('<%= currentPage %>') || 1,
+    status: '<%= status %>' || 'all',
+    sortField: '<%= sortField %>' || 'createdAt',
+    sortOrder: '<%= sortOrder %>' || 'desc',
+    search: '<%= search %>' || '',
+    showUnlisted: `<%= showUnlisted ? 'true' : 'false' %>`,
+    pendingAction: null,
+    isLoading: false
+  };
+
+  function showLoading() {
+    // STATE.isLoading = true;
+    // document.getElementById('loading-overlay').classList.add('active');
+  }
+
+  function navigateToUrl(url) {
+    showLoading();
+    window.location.href = url;
+  }
+
+  function hideLoading() {
+    STATE.isLoading = false;
+    // document.getElementById('loading-overlay').classList.remove('active');
+  }
+
+  function showError(message) {
+    const errorMsg = document.getElementById('error-msg');
+    errorMsg.textContent = message;
+    errorMsg.style.display = 'block';
+    setTimeout(() => {
+      errorMsg.style.display = 'none';
+    }, 5000);
+  }
+
+  function buildUrl(overrides = {}) {
+    const params = {
+      page: overrides.page || STATE.page,
+      status: overrides.status || STATE.status,
+      sortField: overrides.sortField || STATE.sortField,
+      sortOrder: overrides.sortOrder || STATE.sortOrder,
+      search: overrides.search !== undefined ? overrides.search : STATE.search,
+      showUnlisted: overrides.showUnlisted !== undefined ? overrides.showUnlisted : STATE.showUnlisted
+    };
+
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === null || params[key] === undefined) {
+        delete params[key];
+      }
+    });
+
+    const url = new URL(window.location.pathname, window.location.origin);
+    Object.keys(params).forEach(key => {
+      url.searchParams.set(key, params[key]);
+    });
+
+    return url.toString();
+  }
+
+  function goToPage(page) {
+    const pageNum = parseInt(page);
+    const maxPages = parseInt('<%= totalPages %>');
+    if (pageNum < 1 || pageNum > maxPages) return;
+    
+    STATE.page = pageNum;
+    navigateToUrl(buildUrl({ page: pageNum }));
+  }
+
+  function setSortField(field) {
+    const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+    STATE.sortField = field;
+    STATE.sortOrder = newOrder;
+    STATE.page = 1;
+    navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
+  }
+
+  function resetFilters() {
+    STATE.page = 1;
+    STATE.status = 'all';
+    STATE.sortField = 'name';
+    STATE.sortOrder = 'asc';
+    STATE.search = '';
+    STATE.showUnlisted = false;
+    
+    navigateToUrl(buildUrl({
+      page: 1,
+      status: 'all',
+      sortField: 'name',
+      sortOrder: 'asc',
+      search: '',
+      showUnlisted: false
+    }));
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('user-filter').addEventListener('change', function(e) {
+      STATE.status = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('show-unlisted').addEventListener('change', function(e) {
+      STATE.showUnlisted = e.target.checked;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ showUnlisted: e.target.checked, page: 1 }));
+    });
+
+    document.getElementById('sort-field').addEventListener('change', function(e) {
+      STATE.sortField = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('sort-order').addEventListener('click', function() {
+      const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
+      STATE.sortOrder = newOrder;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
+    });
+
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const searchValue = document.getElementById('search-input').value.trim();
+      STATE.search = searchValue;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
+    });
+
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+    document.getElementById('page-number').addEventListener('input', function(e) {
+      const value = parseInt(e.target.value);
+      const maxPages = parseInt('<%= totalPages %>');
+      if (value < 1) e.target.value = 1;
+      if (value > maxPages) e.target.value = maxPages;
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        document.getElementById('search-input').focus();
+      }
+    });
+  });
+
+  // User action functions
+  function editUser(userId) {
+    if (STATE.isLoading) return;
+    window.location.href = `/admin/users/edit/${userId}`;
+  }
+
+  function toggleListUser(userId, userName, status) {
+    showModal(
+      `${status ? 'list User' : 'unlist user'}`,
+      `Are you sure you want to ${status == 'true' ? 'Unlist user' : 'list user'} "${userName}"? account`,
+      `${status == 'true' ? 'unList' : 'list'}`,
+      () => performtoggleUnlistUser(userId)
+    );
+  }
+
+  function toggleUserStatus(userId, block) {
+    const action = block === 'true' ? 'block' : 'unblock';
+    showModal(
+      `${action.charAt(0).toUpperCase() + action.slice(1)} User`,
+      `Are you sure you want to ${action} this user?`,
+      action.charAt(0).toUpperCase() + action.slice(1),
+      () => performToggleStatus(userId, block === 'true')
+    );
+  }
+
+  function performtoggleUnlistUser(userId) {
+    if (STATE.isLoading) return;
+    showLoading();
+    
+    fetch(`${BASE_URL}/admin/users/unlist/${userId}`, {method: 'PATCH'})
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        window.location.reload();
+      } else {
+        hideLoading();
+        showError(data.message || 'Failed to delete user');
+      }
+    })
+    .catch(error => {
+      hideLoading();
+      showError('An error occurred while deleting the user');
+      console.error('Error:', error);
+    });
+  }
+
+  function performToggleStatus(userId, block) {
+    if (STATE.isLoading) return;
+    showLoading();
+    
+    fetch(`${BASE_URL}/admin/users/toggle-status/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ block: block })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        window.location.reload();
+      } else {
+        hideLoading();
+        showError(data.message || 'Failed to update user status');
+      }
+    })
+    .catch(error => {
+      hideLoading();
+      showError('An error occurred while updating user status');
+      console.error('Error:', error);
+    });
+  }
+
+  // Modal functions
+  function showModal(title, message, confirmText, confirmCallback) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-message').textContent = message;
+    document.getElementById('modal-confirm').textContent = confirmText;
+    STATE.pendingAction = confirmCallback;
+    document.getElementById('modal-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+    STATE.pendingAction = null;
+  }
+
+  function confirmAction() {
+    if (STATE.pendingAction) {
+      STATE.pendingAction();
+      closeModal();
+    }
+  }
+
+  // Handle browser back/forward
+  window.addEventListener('popstate', function() {
+    if (!STATE.isLoading) {
+      window.location.reload();
+    }
+  });
+
+  // Hide loading on page load
+  window.addEventListener('load', function() {
+    hideLoading();
+  });
+
+  // Handle escape key for modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('modal-overlay').classList.contains('active')) {
+      closeModal();
+    }
+  });
+</script>

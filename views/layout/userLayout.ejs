@@ -22,9 +22,48 @@
     <link rel="stylesheet" href="/css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="/css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/css/variantSidebar.css" type="text/css">
 
-    <script src="/js/form-input-helper.js" async></script>
-    <script src="/js/form-helper.js" async></script>
+    	<!-- Web Font -->
+	<link href="https://fonts.googleapis.com/css?family=Poppins:200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
+	
+	<!-- StyleSheet -->
+	
+	<!-- Bootstrap -->
+	<link rel="stylesheet" href="/landing/css/bootstrap.css">
+	<!-- Magnific Popup -->
+    <link rel="stylesheet" href="/landing/css/magnific-popup.min.css">
+	<!-- Font Awesome -->
+    <link rel="stylesheet" href="/landing/css/font-awesome.css">
+	<!-- Fancybox -->
+	<link rel="stylesheet" href="/landing/css/jquery.fancybox.min.css">
+	<!-- Themify Icons -->
+    <link rel="stylesheet" href="/landing/css/themify-icons.css">
+	<!-- Nice Select CSS -->
+    <link rel="stylesheet" href="/landing/css/niceselect.css">
+	<!-- Animate CSS -->
+    <link rel="stylesheet" href="/landing/css/animate.css">
+	<!-- Flex Slider CSS -->
+    <link rel="stylesheet" href="/landing/css/flex-slider.min.css">
+	<!-- Owl Carousel -->
+    <link rel="stylesheet" href="/landing/css/owl-carousel.css">
+	<!-- Slicknav -->
+    <link rel="stylesheet" href="/landing/css/slicknav.min.css">
+	
+	<!-- Eshop StyleSheet -->
+	<link rel="stylesheet" href="/landing/css/reset.css">
+	<link rel="stylesheet" href="/landing/style.css">
+    <link rel="stylesheet" href="/landing/css/responsive.css">
+
+	<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
+
+    <!-- <link rel="stylesheet" href="/css/myStyles.css" type="text/css"> -->
+
+
+    <script src="/js/form-input-helper.js"></script>
+    <script src="/js/form-helper.js"></script>
 </head>
 <body>
     <div class="page-container">
@@ -37,6 +76,53 @@
                 <% } %>
             </div>
 
+
+
+
+<!-- Dark overlay -->
+<div id="sidebarOverlay" onclick="closeVariantSidebar()"></div>
+
+<!-- Variant Sidebar -->
+<aside id="variantSidebar" class="shadow">
+  <div class="vs-header">
+    <button class="vs-close" onclick="closeVariantSidebar()">✕</button>
+    <h5 id="vsTitle" class="vs-title">Loading…</h5>
+  </div>
+
+  <div class="vs-content">
+    <!-- Main image -->
+    <div class="vs-main-image">
+      <img id="vsMainImg" src="" alt="Variant" />
+    </div>
+
+    <!-- Thumbnails -->
+    <div id="vsThumbs" class="vs-thumbs"></div>
+
+    <!-- Selectors -->
+    <div class="vs-selectors">
+      <div class="vs-group">
+        <label>Size</label>
+        <div id="vsSizes" class="vs-options"></div>
+      </div>
+      <div class="vs-group">
+        <label>Colour</label>
+        <div id="vsColours" class="vs-options"></div>
+      </div>
+      <div class="vs-group vs-qty">
+        <label>Quantity</label>
+        <div class="vs-qty-controls">
+          <button id="vsQtyMinus">−</button>
+          <input id="vsQty" type="number" value="1" min="1" readonly />
+          <button id="vsQtyPlus">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button id="vsAddBtn" class="vs-add-btn">Add to cart</button>
+</aside>
+
+
     <script src="/js/jquery-3.3.1.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
     <script src="/js/jquery.nice-select.min.js"></script>
@@ -47,5 +133,11 @@
     <script src="/js/mixitup.min.js"></script>
     <script src="/js/owl.carousel.min.js"></script>
     <script src="/js/main.js"></script>
+    <script src="/js/variantSidebar.js"></script>
+
+
+
+
+
 </body>
 </html>

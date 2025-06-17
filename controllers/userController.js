@@ -1,10 +1,15 @@
 const passport = require("passport")
-const { insertOneUser, loginUser, findOneUserByEmail, findOneUserById, getUserResetPasswordLink } = require("../services/userServices")
+const { insertOneUser, loginUser, findOneUserByEmail, findOneUserById, getUserResetPasswordLink, changePassword, getHomePageData, updateUserProfile } = require("../services/userServices")
 const { generateToken } = require("../utils/jwt");
 const { sendOtpToEmail, verifyEmailOtp, findAndDeletePreviousOtp, sendResetPasswordLinkToEmail } = require("../services/emailVerificationService.js");
 const otpModel = require("../models/otpModel.js");
 const { generateOtp } = require("../utils/otp");
-const { body, validationResult } = require('express-validator');
+const { getFeaturedProducts, getNewProducts, getSaleProducts, getDealOfTheDay, getAllFeaturedBrands, getProducts, getHotProducts, getAllProductsByCategory, getHotProductsByMainCategory } = require("../services/userproductServices.js");
+const Product = require("../models/productModel.js");
+const bannerModel = require("../models/bannerModel.js");
+const Category = require("../models/categoryModel.js");
+const { getPageWiseBanner } = require("../services/bannerService.js");
+const { getAllBrands } = require("../services/brandServices.js");
 require('../utils/passport');
 
 
@@ -24,11 +29,41 @@ const getChangePasswordPage = async (req,res)=>{
     res.render('user/change-password',{noHeader: true})
 }
 
-const getUserHomePage = async (req,res) =>{
-    res.render('user/home')
-}
+const getUserHomePage = async (req, res) => {
+  try {
 
-const getVerifyEmailPage = async (req,res) =>{
+  const [
+  data,
+  banners,
+  brands,
+  hotProducts,
+  categoryWiseProducts
+] = await Promise.all([
+  getProducts(),
+  getPageWiseBanner(),
+  getAllBrands(),
+  getHotProductsByMainCategory(6),
+  getAllProductsByCategory(6)
+]);
+    
+    res.render('user/home', {
+      data,
+      banners,
+      brands,
+      hotProducts,
+      categoryWiseProducts,
+      title: 'Home | Your Store',
+      metaDescription: 'Welcome to our online store. Shop the latest products and deals.'
+    });
+  } catch (error) {
+    res.status(500).render('error', {
+      message: 'Failed to load home page',
+      error
+    });
+  }
+};
+
+const getVerifyEmailPage = async (req,res) => {
   res.render('user/verify-email', {noHeader: true});
 }
 
@@ -36,6 +71,9 @@ const getVerifyEmailOtpPage = async (req,res) => {
   try{
     const userId = req.params.id;
     const user = await findOneUserById(userId);
+    if(user.isVerified){
+      return res.redirect('/user/login?error=verified')
+    }
     res.render('user/email-otp',{ email: user.email, noHeader: true })
   }catch(err){
     res.redirect('/user/verify/email?error=invalid');
@@ -76,13 +114,12 @@ res.cookie('token', token, {
 
 const registerNewUser = async (req, res) => {
   const { name, phone, email, password } = req.body;
-
-  // await Users.deleteMany({});
-
   try {
     
     const newUser = await insertOneUser({ name, phone, email, password });
 
+    console.log(newUser);
+    
     const otp = generateOtp();
 
     await otpModel.create({
@@ -116,19 +153,29 @@ const loginUserAccount = async (req,res) =>{
     const token = generateToken(user._id);
 
     if(!user.isVerified){
-      return res.redirect(`/user/verify/email/${user._id}/otp`)
+      return   res.status(300).json({
+      success: false,
+      redirected: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      },
+    });
     }
     
 
 res.cookie('token', token, {
   httpOnly: true,
-  secure: true,       
+  secure: false,       
   sameSite: 'strict',   
   maxAge: 7 * 24 * 60 * 60 * 1000 
 });
 
     res.status(201).json({
       success: true,
+      redirected: false,
       user: {
         id: user._id,
         name: user.name,
@@ -140,7 +187,7 @@ res.cookie('token', token, {
 
     }catch(err){
     console.log('Login Error:', err.message);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, redirected: false, message: err.message });
     }
 }
 
@@ -171,6 +218,10 @@ const verifyUserEmailOtp = async (req, res) => {
 
     const user = await findOneUserByEmail(email);
 
+    if(user.isVerified){
+      res.status(500).json({message: 'user is already verified'})
+    }
+
     const isOtpValid = await verifyEmailOtp(email,otp);
 
     if(isOtpValid){
@@ -178,18 +229,15 @@ const verifyUserEmailOtp = async (req, res) => {
       user.isVerified = true;
       await user.save();
       
-      // 4. Generate token
       const token = generateToken(user._id);
       
-      // 5. Set token in cookie
       res.cookie('token', token, {
         httpOnly: true,
-        secure: true,       // set to false in development if not using HTTPS
+        secure: true,      
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
       
-      // 6. Send response
       res.status(200).json({
         success: true,
         user: {
@@ -219,6 +267,10 @@ const resendUserEmailOtp = async (req,res) =>{
 
     const deleted = await findAndDeletePreviousOtp(email);
     const user = await findOneUserByEmail(email);
+
+    if(user.isVerified){
+      res.redirect(`/user/login?error=verified`)
+    }
 
     if(deleted){
       const otp = generateOtp();
@@ -264,13 +316,86 @@ const forgottenUserPassword = async (req,res)=>{
 } 
 
 
+const changeUserPassword = async (req, res) => {
+  const { password } = req.body;
+
+
+
+  try {
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ success: false, message: 'Unauthorized request' });
+    }
+
+    const updatedUser = await changePassword(req.user.email, password);
+
+    return res.status(200).json({ success: true, message: 'Password successfully changed' });
+
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+
+    return res.redirect('/user/login');
+  } catch (err) {
+    return res.redirect('/user/login');
+  }
+};
+
+const getUserProfilePage = async (req, res) => {
+  res.render('user/profile', { user: req.user });
+};
+
+const getEditProfilePage = async (req, res) => {
+  res.render('user/edit-profile', { user: req.user, error: null });
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const updated = await updateUserProfile(req.user._id, req.body);
+    res.status(200).json({ success: true, user: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
 
 
 
 
 
-module.exports = { getLoginPage, getSignUpPage, getForgottenPasswordPage, getChangePasswordPage, registerNewUser , getUserHomePage, getGoogleAuth , getGoogleAuthCallback, loginUserAccount, verifyUserEmailOtp, getVerifyEmailPage,verifyUserEmail, getVerifyEmailOtpPage, resendUserEmailOtp, forgottenUserPassword};
+
+
+
+module.exports = {
+  getLoginPage,
+  getSignUpPage,
+  getForgottenPasswordPage,
+  getChangePasswordPage,
+  registerNewUser,
+  getUserHomePage,
+  getGoogleAuth,
+  getGoogleAuthCallback,
+  loginUserAccount,
+  verifyUserEmailOtp,
+  getVerifyEmailPage,
+  verifyUserEmail,
+  getVerifyEmailOtpPage,
+  resendUserEmailOtp,
+  forgottenUserPassword,
+  changeUserPassword,
+  logoutUser,
+  getUserProfilePage,
+  getEditProfilePage,
+  updateProfile,
+};
 
 
 

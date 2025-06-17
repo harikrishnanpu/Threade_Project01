@@ -43,7 +43,7 @@
         <!-- Email -->
         <div class="input-group floating">
           <input
-            type="email"
+            type="text"
             name="email"
             id="email"
             placeholder=" "
@@ -87,14 +87,27 @@
   const BASE_URL = window.location.origin;
   const params = new URLSearchParams(window.location.search);
   const error = params.get("error");
-  const errorMessage = document.getElementById("error-msg");
+  const errorMessageInput = document.getElementById("error-msg");
+
+  
 
   if (error === "blocked") {
-    errorMessage.innerText += "User account is blocked";
+    errorMessageInput.innerText += "User account is blocked";
+    setTimeout(() => {
+      errorMessageInput.innerText = "";
+    }, 6000);
+  }else if (error === "deleted") {
+    errorMessageInput.innerText += "Your account is deleted";
+    setTimeout(() => {
+      errorMessageInput.innerText = "";
+    }, 6000);
+  }else if (error === "verified") {
+    errorMessageInput.innerText += "Your account is already verified. login now";
+    setTimeout(() => {
+      errorMessageInput.innerText = "";
+    }, 6000);
   }
-  setTimeout(() => {
-    errorMessage.innerText = "";
-  }, 6000);
+  
 
     function googleAuth() {
       disableAllSubmitButtons();
@@ -115,7 +128,7 @@
     .addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      errorMessage.innerText = "";
+      errorMessageInput.innerText = "";
       clearAllErrors();
       resetAllSubmitButtons();
 
@@ -137,17 +150,21 @@
 
           const data = await response.json();
 
-          if (response.ok) {
+          if (response.ok && !data.redirected) {
             window.location.href = "/user/home";
-          } else {
-            errorMessage.innerText =
+          }else if(data.redirected) {
+            window.location.href = `/user/verify/email?error=notverified&email=${data.user.email}`
+          }else {
+            errorMessageInput.innerText =
               data.message || "Login failed. Please try again.";
           }
         } catch (err) {
-          console.error(err);
-          errorMessage.innerText = err.message || "Network error.";
+          errorMessageInput.innerText = err.message || "Network error.";
         } finally {
           resetAllSubmitButtons();
+        setTimeout(() => {
+        errorMessageInput.innerText = "";
+      }, 6000);
         }
       } else {
         if (!checkEmailValid(email)) {
@@ -156,12 +173,10 @@
         }
         if (!checkPasswordValid(password)) {
           passwordInput.classList.add('invalid')
-          showInputErrorMessage('password',"Weak password. Use letters, numbers, and special characters.\n");
+          showInputErrorMessage('password',"invalid password entered.\n");
         }
       }
 
-      setTimeout(() => {
-        errorMessage.innerText = "";
-      }, 6000);
+
     });
 </script>

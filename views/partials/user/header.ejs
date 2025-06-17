@@ -1,3 +1,21 @@
+<style>
+    .list-main{
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			@media (max-width: 500px) {
+				gap: 10px;
+			}
+		}
+
+        .header.shop .list-main li:last-child{
+            @media (max-width: 450px) {
+                border-bottom: 1px solid #eee;
+            }
+        }
+
+</style> 
+ 
  <header class="header">
         <div class="header__top">
             <div class="container">
@@ -26,41 +44,118 @@
                 </div>
             </div>
         </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-3">
+            <div class="navbar-main-content">
+
                     <div class="header__logo">
-                       <a href="/user/home"><h2>THREADË</h2></a>
+                       <a href="/"><h2>THREADË</h2></a>
                     </div>
-                </div>
-                <div class="col-lg-6 col-md-6">
-                    <nav class="header__menu mobile-menu">
-                        <ul>
-                            <li class="active"><a href="/user/home">Home</a></li>
-                            <li><a href="/user/shop">Shop</a></li>
-                            <li><a href="#">Pages</a>
-                                <ul class="dropdown">
-                                    <li><a href="./about.html">About Us</a></li>
-                                    <li><a href="./shop-details.html">Shop Details</a></li>
-                                    <li><a href="./shopping-cart.html">Shopping Cart</a></li>
-                                    <li><a href="./checkout.html">Check Out</a></li>
-                                    <li><a href="./blog-details.html">Blog Details</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="./blog.html">Blog</a></li>
-                            <li><a href="./contact.html">Contacts</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <div class="col-lg-3 col-md-3">
+
+  <div class="header-search">
+    <input type="text" placeholder="Search products..." />
+    <button type="submit"><i class="fa fa-search"></i></button>
+  </div>
+
+              <% if(user){ %>   <div class="header__nav__option">
+                                    <div class="icon-group">
+                                       <i class="fa-solid fa-user"></i>
+                                    <div class="icon-group-inline">
+                                        <span>Hi, <%= user.name%></span>
+                                        <a href="/user/logout" class="logout bold">Logout</a>
+                                    </div>
+                                    </div>
+
+                </div> <% }else{ %>
                     <div class="header__nav__option">
-                        <a href="#" class="search-switch"><img src="img/icon/search.png" alt=""></a>
-                        <a href="#"><img src="img/icon/heart.png" alt=""></a>
-                        <a href="#"><img src="img/icon/cart.png" alt=""> <span>0</span></a>
-                        <div class="price">$0.00</div>
-                    </div>
-                </div>
-            </div>
-            <div class="canvas__open"><i class="fa fa-bars"></i></div>
+                        <a class="header-link" href="/user/login">Login</a>
+                        <a class="header-link" href="/user/register">Signup</a>
+                </div>  <% } %>
         </div>
+
+        <div class="header__bottom_links">
+                      <% if(user){ %>   <div class="header__bottom__right">
+                            <div class="header__bottom_links">
+
+                                <div>
+
+                                    <a href="#"> <i class="fa fa-location"></i> Current Location</a>
+                                </div>
+
+                                    <div class="icon-group">
+                                        <i class="fa-regular fa-heart"></i>
+                                    <div class="icon-group-inline">
+                                        <span>Wishlist</span>
+                                        <span class="count">0 items</span>
+                                    </div>
+                                    </div>
+
+
+                                    <div class="icon-group">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                    <div onclick="gotoCartPage(`<%= user?._id %>`)" class="icon-group-inline">
+                                        <span>Cart</span>
+                                        <span class="count"><span id="HeadercartCount"><%= cartCount %></span> items</span>
+                                    </div>
+                                </div>
+                            </div> 
+                    </div> <% }else{ %>  <div class="header__bottom__right">
+                            <div class="header__bottom_links">
+                                <a href="#"> <i class="fa fa-location"></i> Current Location</a>
+                                <a href="/user/login">Signin</a>
+                            </div> 
+                    </div> <% } %>
+        </div>
+
+
     </header>
+
+
+    	<header class="header shop">
+		<!-- Topbar -->
+		<div class="topbar">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-5 col-md-12 col-12">
+						<!-- Top Left -->
+						<div class="top-left">
+							<ul class="list-main">
+								<li><i class="ti-headphone-alt"></i> +91 9XXXXXXX</li>
+								<li><i class="ti-email"></i> support@threade.com</li>
+							</ul>
+						</div>
+						<!--/ End Top Left -->
+					</div>
+
+                       <% if(user){ %> 
+					<div class="col-lg-7 col-md-12 col-12">
+						<div class="right-content">
+							<ul class="list-main">
+								<li><i class="ti-truck"></i> <a href="/user/orders">Track Orders</a></li>
+								<li><i class="ti-user"></i> <a href="/user/profile">My account</a></li>
+								<li><i style="color: #790909;" class="ti-power-off"></i><a style="color: #790909;" href="/user/logout">Logout</a></li>
+							</ul>
+						</div>
+					</div>
+                    <% }else{  %>
+
+                <div class="col-lg-7 col-md-12 col-12">
+						<div class="right-content">
+							<ul class="list-main">
+								<li><i class="ti-truck"></i> <a href="/track-order">Track Orders</a></li>
+								<li><i class="ti-user"></i> <a href="/deals">Deal of Day</a></li>
+								<li><i style="font-weight: 800;" class="ti-power-off"></i><a style="font-weight: 800;" href="/user/login">Login</a></li>
+							</ul>
+						</div>
+					</div>
+
+                    <% } %>
+				</div>
+			</div>
+		</div>
+	</header>
+
+
+    <script>
+      function gotoCartPage(userId) {
+        window.location.href = `/user/cart/${userId}`
+      }
+    </script>

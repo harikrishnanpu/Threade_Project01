@@ -1,0 +1,546 @@
+<div class="container-fluid">
+  <div class="title-wrapper pt-30 mb-20">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <div class="title">
+          <h2>Edit User</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card-style mb-30">
+
+        <div id="error-msg-parent" class="alert-box hide danger-alert mb-20">
+            <div class="alert">
+              <p class="text-danger" id="error-msg"><i class="lni lni-warning mr-1"></i></p>
+            </div>
+          </div>
+        
+ 
+          <div id="success-msg-parent" class="alert-box hide success-alert mb-20">
+            <div class="alert">
+              <p class="text-success" id="success-msg"><i class="lni lni-checkmark-circle mr-1"></i></p>
+            </div>
+          </div>
+
+        <% if (user) { %>
+          <!-- User Information Display -->
+          <div class="user-info-meta mb-20">
+            <div class="row">
+              <div class="col-md-4">
+                <span class="text-sm text-medium text-muted">User ID:</span>
+                <p class="text-sm text-dark"><%= user._id %></p>
+              </div>
+              <div class="col-md-4">
+                <span class="text-sm text-medium text-muted">Created:</span>
+                <p class="text-sm text-dark"><%= new Date(user.createdAt).toLocaleDateString() %></p>
+              </div>
+              <div class="col-md-4">
+                <span class="text-sm text-medium text-muted">Last Updated:</span>
+                <p class="text-sm text-dark"><%= new Date(user.updatedAt).toLocaleDateString() %></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit User Form -->
+          <form id="edit-user-form" >
+            <div class="row">
+              <!-- Full Name Field -->
+              <div class="col-md-6">
+                <div class="input-style-1">
+                  <label for="name" class="form-label text-sm">
+                    Full Name <span class="text-danger">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    value="<%= user.name || '' %>" 
+                    class="form-control form-control-sm" 
+                    required
+                    minlength="2"
+                    maxlength="50"
+                  >
+                  <div class="invalid-feedback"></div>
+                </div>
+              </div>
+              
+              <!-- Email Field -->
+              <div class="col-md-6">
+                <div class="input-style-1">
+                  <label for="email" class="form-label text-sm">
+                    Email Address <span class="text-danger">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    value="<%= user.email || '' %>" 
+                    class="form-control form-control-sm" 
+                    required
+                  >
+                  <div class="invalid-feedback"></div>
+                </div>
+              </div>
+              
+              <!-- Phone Field -->
+              <div class="col-md-6">
+                <div class="input-style-1">
+                  <label for="phone" class="form-label text-sm">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    value="<%= user.phone || '' %>"
+                    class="form-control form-control-sm"
+                    placeholder="Enter phone number"
+                  >
+                  <div class="invalid-feedback"></div>
+                </div>
+              </div>
+              
+              <!-- Date of Birth Field -->
+              <div class="col-md-6">
+                <div class="input-style-1">
+                  <label for="dateOfBirth" class="form-label text-sm">Date of Birth</label>
+                  <input 
+                    type="date" 
+                    id="dateOfBirth" 
+                    name="dateOfBirth" 
+                    value="<%= user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : '' %>"
+                    class="form-control form-control-sm"
+                  >
+                  <div class="invalid-feedback"></div>
+                </div>
+              </div>
+              
+              <!-- Password Field -->
+              <div class="col-md-6">
+                <div class="input-style-1">
+                  <label for="password" class="form-label text-sm">New Password</label>
+                  <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Leave blank to keep current password"
+                    class="form-control form-control-sm"
+                    minlength="8"
+                  >
+                  <div class="invalid-feedback"></div>
+                  <small class="text-xs text-muted">Leave blank to keep current password</small>
+                </div>
+              </div>
+            </div>
+            
+
+            <div class="row mt-3">
+              <div class="col-12">
+                <h5 class="text-sm mb-2">User Status & Permissions</h5>
+                <div class="card-style bg-light px-5 mb-30">
+                  <div class="row">
+                    <div class="col-md-4">
+                      <div class="form-check">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="isVerified" 
+                          name="isVerified" 
+                          value="true"
+                          <%= user.isVerified ? 'checked' : '' %>
+                        >
+                        <label class="form-check-label text-sm" for="isVerified">
+                          <i class="lni lni-checkmark-circle text-success mr-1"></i>
+                          Email Verified
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                      <div class="form-check">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="isBlocked" 
+                          name="isBlocked" 
+                          value="true"
+                          <%= user.isBlocked ? 'checked' : '' %>
+                        >
+                        <label class="form-check-label text-sm" for="isBlocked">
+                          <i class="lni lni-ban text-danger mr-1"></i>
+                          Account Blocked
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                      <div class="form-check">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="isListed" 
+                          name="isListed" 
+                          value="true"
+                          <%= user.isListed ? 'checked' : '' %>
+                        >
+                        <label class="form-check-label text-sm" for="isListed">
+                          <i class="lni lni-eye text-primary mr-1"></i>
+                          Account Listed
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="main-btn primary-btn btn-sm" id="submit-btn">
+                <i class="lni lni-save mr-1"></i> 
+                <span id="btn-text">Update User</span>
+              </button>
+              <a href="/admin/users/all" class="main-btn light-btn btn-sm">
+                <i class="lni lni-arrow-left mr-1"></i> Back to Users
+              </a>
+            </div>
+          </form>
+        <% } else { %>
+          <!-- User Not Found -->
+          <div class="alert-box danger-alert">
+            <div class="alert">
+              <p class="text-danger">
+                <i class="lni lni-warning mr-1"></i> 
+                User not found or has been deleted!
+              </p>
+            </div>
+          </div>
+          <div class="d-flex mt-4">
+            <a href="/admin/users/all" class="main-btn light-btn btn-sm">
+              <i class="lni lni-arrow-left mr-1"></i> Back to Users
+            </a>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Form Styling */
+  .form-control-sm {
+    height: 36px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  .form-control-sm:focus {
+    border-color: #365CF5;
+    box-shadow: 0 0 0 0.2rem rgba(54, 92, 245, 0.25);
+  }
+  
+  /* Text Sizes */
+  .text-xs { font-size: 0.75rem; }
+  .text-sm { font-size: 0.875rem; }
+  
+  /* User Info Meta */
+  .user-info-meta {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #365CF5;
+  }
+  
+  /* Input Styling */
+  .input-style-1 {
+    margin-bottom: 1rem;
+  }
+  
+  .input-style-1 label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  /* Form Check Styling */
+  .form-check {
+    padding: 0.5rem 0;
+  }
+  
+  .form-check-label {
+    margin-left: 0.25rem;
+    cursor: pointer;
+  }
+  
+  .form-check-input:checked {
+    background-color: #365CF5;
+    border-color: #365CF5;
+  }
+  
+  /* Validation Styling */
+  .invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #dc3545;
+  }
+  
+  .is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+  }
+  
+  .is-invalid ~ .invalid-feedback {
+    display: block;
+  }
+  
+  /* Loading State */
+  .loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  /* Button Styling */
+  .main-btn {
+    transition: all 0.3s ease;
+  }
+  
+  .main-btn:hover {
+    transform: translateY(-1px);
+  }
+  
+  /* Alert Styling */
+  .alert-box {
+    border-radius: 6px;
+    border: 1px solid transparent;
+  }
+  
+  .success-alert {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+  }
+  
+  .danger-alert {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .d-flex.gap-2 {
+      flex-direction: column;
+      gap: 0.5rem !important;
+    }
+    
+    .main-btn {
+      width: 100%;
+      text-align: center;
+    }
+    
+    .user-info-meta .row > div {
+      margin-bottom: 0.5rem;
+    }
+  }
+</style>
+
+<!-- JavaScript for Form Handling -->
+<script>
+
+  const BASE_URL = window.location.origin;
+
+const errorMessageElem = document.getElementById('error-msg');
+const successMessageElem = document.getElementById('success-msg');
+const errorMessageParentElem = document.getElementById('error-msg-parent');
+const succcessMessgeParentElem = document.getElementById('success-msg-parent');
+
+
+const params = new URLSearchParams(window.location.search);
+const error = params.get('error');
+const success = params.get('success');
+
+if(error){
+    errorMessageParentElem.classList.remove('hide');
+    errorMessageElem.innerText = error
+}else if (success){
+    succcessMessgeParentElem.classList.remove('hide');
+    successMessageElem.innerText = success
+}
+
+setTimeout(()=>{
+    succcessMessgeParentElem.classList.add('hide');
+    errorMessageParentElem.classList.add('hide');
+    errorMessageElem.innerText = "";
+    successMessageElem.innerText = "";
+},2000)
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('edit-user-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    
+form.addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  clearValidationErrors();
+
+  if (!validateForm()) {
+    return false;
+  }
+
+  setLoadingState(true);
+
+  const formData = new FormData(form);
+  const data = {};
+
+  formData.forEach((value, key) => {
+    if (value) {
+      data[key] = value;
+    }
+  });
+
+  try {
+    const response = await fetch(`${BASE_URL}/admin/users/edit/<%= user._id %>`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data), 
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      succcessMessgeParentElem.classList.remove('hide');
+      successMessageElem.innerText = result.message || 'User updated successfully';
+    } else {
+      errorMessageParentElem.classList.remove('hide');
+      errorMessageElem.innerText = result.message || 'An unknown error occurred.';
+    }
+
+  } catch (err) {
+    errorMessageParentElem.classList.remove('hide');
+    errorMessageElem.innerText = 'A network error occurred. Please try again.';
+  } finally {
+    setLoadingState(false);
+
+    setTimeout(() => {
+      succcessMessgeParentElem.classList.add('hide');
+      errorMessageParentElem.classList.add('hide');
+      errorMessageElem.innerText = "";
+      successMessageElem.innerText = "";
+    }, 4000); 
+  }
+});
+
+    
+    const inputs = form.querySelectorAll('input[required], input[type="email"], input[minlength]');
+    inputs.forEach(input => {
+        input.addEventListener('blur', () => validateInput(input));
+        input.addEventListener('input', () => {
+            if (input.classList.contains('is-invalid')) {
+                validateInput(input);
+            }
+        });
+    });
+    
+
+    function validateForm() {
+        let isValid = true;
+        const inputs = form.querySelectorAll('input[required], input[type="email"], input[minlength]');
+        
+        inputs.forEach(input => {
+            if (!validateInput(input)) {
+                isValid = false;
+            }
+        });
+        
+        return isValid;
+    }
+    
+    function validateInput(input) {
+        const value = input.value.trim();
+        let isValid = true;
+        let errorMessage = '';
+        
+        if (input.hasAttribute('required') && !value) {
+            isValid = false;
+            errorMessage = 'This field is required';
+        }
+        
+        else if (input.type === 'email' && value) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                isValid = false;
+                errorMessage = 'Please enter a valid email address';
+            }
+        }
+        
+        else if (input.hasAttribute('minlength') && value) {
+            const minLength = parseInt(input.getAttribute('minlength'));
+            if (value.length < minLength) {
+                isValid = false;
+                errorMessage = `Minimum ${minLength} characters required`;
+            }
+        }
+        
+        else if (input.hasAttribute('maxlength') && value) {
+            const maxLength = parseInt(input.getAttribute('maxlength'));
+            if (value.length > maxLength) {
+                isValid = false;
+                errorMessage = `Maximum ${maxLength} characters allowed`;
+            }
+        }
+        
+        else if (input.type === 'tel' && value) {
+            const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+            if (!phoneRegex.test(value.replace(/[\s\-()]/g, ''))) {
+                isValid = false;
+                errorMessage = 'Please enter a valid phone number';
+            }
+        }
+        
+        showValidationFeedback(input, isValid, errorMessage);
+        
+        return isValid;
+    }
+    
+
+    function showValidationFeedback(input, isValid, errorMessage) {
+        const feedback = input.parentNode.querySelector('.invalid-feedback');
+        
+        if (isValid) {
+            input.classList.remove('is-invalid');
+            if (feedback) feedback.textContent = '';
+        } else {
+            input.classList.add('is-invalid');
+            if (feedback) feedback.textContent = errorMessage;
+        }
+    }
+
+    function clearValidationErrors() {
+        const invalidInputs = form.querySelectorAll('.is-invalid');
+        invalidInputs.forEach(input => {
+            input.classList.remove('is-invalid');
+            const feedback = input.parentNode.querySelector('.invalid-feedback');
+            if (feedback) feedback.textContent = '';
+        });
+    }
+    
+
+    function setLoadingState(loading) {
+        if (loading) {
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<i class="lni lni-spinner-arrow mr-1"></i> Updating...';
+            form.classList.add('loading');
+        } else {
+            submitBtn.disabled = false;
+            btnText.innerHTML = 'Update User';
+            form.classList.remove('loading');
+        }
+    }
+});
+</script>
