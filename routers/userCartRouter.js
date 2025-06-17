@@ -7,8 +7,6 @@ cartRouter.get('/:id', renderCartPage);
 
 
 cartRouter.get('/api/count/:id', getCartCount);
-cartRouter.put('/api/update/:id', )
-
 cartRouter.post('/api/add/:id', addToCart);
 
 

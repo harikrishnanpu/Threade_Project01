@@ -66,4 +66,8 @@ const updateCart = async (req, res) => {
 
 
 
-module.exports = {addToCart, getCartCount, renderCartPage};
+module.exports = {
+  addToCart,
+  getCartCount,
+  renderCartPage,
+};
