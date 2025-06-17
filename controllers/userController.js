@@ -1,5 +1,5 @@
 const passport = require("passport")
-const { insertOneUser, loginUser, findOneUserByEmail, findOneUserById, getUserResetPasswordLink, changePassword, getHomePageData, updateUserProfile } = require("../services/userServices")
+const { insertOneUser, loginUser, findOneUserByEmail, findOneUserById, getUserResetPasswordLink, changePassword, getHomePageData } = require("../services/userServices")
 const { generateToken } = require("../utils/jwt");
 const { sendOtpToEmail, verifyEmailOtp, findAndDeletePreviousOtp, sendResetPasswordLinkToEmail } = require("../services/emailVerificationService.js");
 const otpModel = require("../models/otpModel.js");
@@ -349,22 +349,6 @@ const logoutUser = async (req, res) => {
   }
 };
 
-const getUserProfilePage = async (req, res) => {
-  res.render('user/profile', { user: req.user });
-};
-
-const getEditProfilePage = async (req, res) => {
-  res.render('user/edit-profile', { user: req.user, error: null });
-};
-
-const updateProfile = async (req, res) => {
-  try {
-    const updated = await updateUserProfile(req.user._id, req.body);
-    res.status(200).json({ success: true, user: updated });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
 
 
 
@@ -373,29 +357,7 @@ const updateProfile = async (req, res) => {
 
 
 
-
-module.exports = {
-  getLoginPage,
-  getSignUpPage,
-  getForgottenPasswordPage,
-  getChangePasswordPage,
-  registerNewUser,
-  getUserHomePage,
-  getGoogleAuth,
-  getGoogleAuthCallback,
-  loginUserAccount,
-  verifyUserEmailOtp,
-  getVerifyEmailPage,
-  verifyUserEmail,
-  getVerifyEmailOtpPage,
-  resendUserEmailOtp,
-  forgottenUserPassword,
-  changeUserPassword,
-  logoutUser,
-  getUserProfilePage,
-  getEditProfilePage,
-  updateProfile,
-};
+module.exports = { getLoginPage, getSignUpPage, getForgottenPasswordPage, getChangePasswordPage, registerNewUser , getUserHomePage, getGoogleAuth , getGoogleAuthCallback, loginUserAccount, verifyUserEmailOtp, getVerifyEmailPage,verifyUserEmail, getVerifyEmailOtpPage, resendUserEmailOtp, forgottenUserPassword, changeUserPassword, logoutUser};
 
 
 
