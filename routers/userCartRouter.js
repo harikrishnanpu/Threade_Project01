@@ -5,10 +5,7 @@ const cartRouter = express.Router();
 
 cartRouter.get('/', renderCartPage);
 
-
-cartRouter.get('/api/count', getCartCount);
-cartRouter.put('/api/update/:id', updateCart)
-
+cartRouter.get('/api/count/:id', getCartCount);
 cartRouter.post('/api/add/:id', addToCart);
 
 

@@ -102,5 +102,5 @@ const updateCart = async (req, res) => {
 };
 
 
-
 module.exports = {addToCart, getCartCount, renderCartPage, updateCart};
+

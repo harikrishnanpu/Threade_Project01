@@ -1,5 +1,5 @@
 const express = require('express');
-const { getLoginPage, getSignUpPage, getForgottenPasswordPage, getChangePasswordPage, registerNewUser, getUserHomePage, getGoogleAuth, getGoogleAuthCallback, loginUserAccount, getVerifyEmailPage, verifyUserEmail, getVerifyEmailOtpPage, verifyUserEmailOtp, resendUserEmailOtp, forgottenUserPassword, changeUserPassword, logoutUser } = require('../controllers/userController');
+const { getLoginPage, getSignUpPage, getForgottenPasswordPage, getChangePasswordPage, registerNewUser, getUserHomePage, getGoogleAuth, getGoogleAuthCallback, loginUserAccount, getVerifyEmailPage, verifyUserEmail, getVerifyEmailOtpPage, verifyUserEmailOtp, resendUserEmailOtp, forgottenUserPassword, changeUserPassword, logoutUser, getUserProfilePage, getEditProfilePage, updateProfile } = require('../controllers/userController');
 const { checkIsUserAuthenticatedAndRedirect, checkIsUserExists, checkResetPasswordTokenValid, checkIsResetPasswordLinkValid, checkIsUserAuthenticated } = require('../middlewares/userMiddleware');
 const productRouter = require('./userProductRouter');
 const { handleValidationErrors } = require('../validators/validator');
@@ -39,6 +39,9 @@ userRouter.get('/auth/google',checkIsUserExists,getGoogleAuth);
 userRouter.get('/auth/google/callback',checkIsUserExists, getGoogleAuthCallback);
 userRouter.get('/home',checkIsUserAuthenticatedAndRedirect, getUserHomePage);
 userRouter.get('/logout', checkIsUserAuthenticatedAndRedirect, logoutUser );
+userRouter.get('/profile', checkIsUserAuthenticatedAndRedirect, getUserProfilePage);
+userRouter.get('/profile/edit', checkIsUserAuthenticatedAndRedirect, getEditProfilePage);
+userRouter.post('/profile/edit', checkIsUserAuthenticatedAndRedirect, updateProfile);
 
 
 

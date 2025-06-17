@@ -24,14 +24,7 @@ const renderAdderssBookPage = async (req,res) => {
 }
 
 
-const addNewAddress = async (req,res) => {
-    const userId = req.user._id;
-    try{
-        const address = await 
-    }catch(err){
 
-    }
-}
 
 
 module.exports = { renderProfilePage, renderAdderssBookPage };
