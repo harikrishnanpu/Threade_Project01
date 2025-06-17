@@ -77,7 +77,10 @@ const checkIsUserAuthenticated = async (req, res, next) => {
       return next();
     }
 
+    const cartCount = await getCartCount(user._id);
+
     res.locals.user = user;
+    res.locals.cartCount = cartCount;
     req.user = user;
     return next(); 
   } catch (err) {

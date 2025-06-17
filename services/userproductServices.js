@@ -246,6 +246,16 @@ const getNewProducts = async (limit = 8) => {
 };
 
 
+const getProductByIds = async (productIds) => {
+  try{
+    const products = await Product.find({ _id: { $in: productIds }})
+    return products
+  }catch(err){
+    throw new Error(err.message)
+  }
+}
+
+
 
 
 
@@ -328,5 +338,6 @@ module.exports = {
   getHotProducts,
   getAllProductsByCategory,
   getAllVariants,
-  getHotProductsByMainCategory
+  getHotProductsByMainCategory,
+  getProductByIds
 }; 

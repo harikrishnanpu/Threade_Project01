@@ -1,13 +1,13 @@
 const express = require('express');
-const { addToCart, getCartCount, renderCartPage } = require('../controllers/userCartController');
+const { addToCart, getCartCount, renderCartPage, updateCart } = require('../controllers/userCartController');
 const cartRouter = express.Router();
 
 
-cartRouter.get('/:id', renderCartPage);
+cartRouter.get('/', renderCartPage);
 
 
-cartRouter.get('/api/count/:id', getCartCount);
-cartRouter.put('/api/update/:id', )
+cartRouter.get('/api/count', getCartCount);
+cartRouter.put('/api/update/:id', updateCart)
 
 cartRouter.post('/api/add/:id', addToCart);
 

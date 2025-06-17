@@ -159,7 +159,7 @@
   async function updateCartCount(userId) {
     const BASE_URL = window.location.origin;
   try {
-    const res = await fetch(`${BASE_URL}/user/cart/api/count/${userId}`);
+    const res = await fetch(`${BASE_URL}/user/cart/api/count`);
     const result = await res.json();
     if(res.ok){
         const el = document.getElementById('HeadercartCount');

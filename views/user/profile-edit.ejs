@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Edit Account – <%= user.name %></title>
+
+  <!-- libs -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+  <!-- style -->
+  <style>
+    :root{--up-primary:#000;--up-medium:#e5e5e5;--up-round:8px;}
+    body{font-family:'Nunito Sans',sans-serif;background:#fff;}
+    #up-edit-page{padding:2rem 0;}
+    .up-edit-card{max-width:580px;margin:auto;border:1px solid var(--up-medium);border-radius:var(--up-round);}
+    .up-avatar-preview{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid var(--up-medium);}
+    @media(max-width:575px){.up-avatar-preview{width:80px;height:80px;}}
+  </style>
+</head>
+<body>
+
+  <main id="up-edit-page" class="container">
+    <div class="up-edit-card p-4">
+
+      <h3 class="mb-3 text-center">Edit Profile</h3>
+
+      <form id="up-edit-form" action="/profile/edit" method="POST" enctype="multipart/form-data">
+        <!-- avatar -->
+        <div class="text-center mb-4">
+          <img id="avatarPreview" class="up-avatar-preview" src="<%= user.profileImage||'/img/no-avatar.png' %>" alt="Avatar"/>
+          <div class="custom-file mt-2 w-75 mx-auto">
+            <input type="file" class="custom-file-input" id="avatarInput" name="profileImage" accept="image/*">
+            <label class="custom-file-label" for="avatarInput">Choose new photo</label>
+          </div>
+        </div>
+
+        <!-- name -->
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" name="name" class="form-control" value="<%= user.name %>" required>
+        </div>
+
+        <!-- phone -->
+        <div class="form-group">
+          <label>Phone *</label>
+          <input type="tel" name="phone" class="form-control" value="<%= user.phone %>" required>
+        </div>
+
+        <!-- email change -->
+        <div class="form-group">
+          <label>Email *</label>
+          <div class="input-group">
+            <input type="email" id="newEmail" name="email" class="form-control" value="<%= user.email %>" required>
+            <div class="input-group-append">
+              <button type="button" id="sendOtpBtn" class="btn btn-outline-secondary">Send OTP</button>
+            </div>
+          </div>
+          <small class="form-text text-muted">Changing email requires OTP verification.</small>
+        </div>
+
+        <!-- otp -->
+        <div class="form-group d-none" id="otpGroup">
+          <label>Enter OTP sent to new email</label>
+          <input type="text" id="otpInput" name="otp" class="form-control" minlength="4" maxlength="6">
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <a href="/profile" class="btn btn-link">← Back</a>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+
+      <hr/>
+
+      <!-- Change password -->
+      <h5 class="mt-4">Change Password</h5>
+      <form action="/profile/password" method="POST">
+        <div class="form-group">
+          <label>Current Password *</label>
+          <input type="password" name="currentPassword" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>New Password *</label>
+          <input type="password" name="newPassword" class="form-control" minlength="6" required>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary">Update Password</button>
+      </form>
+
+    </div>
+  </main>
+
+
+  <!-- libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+
+  <!-- page JS -->
+  <script>
+    /* preview avatar */
+    $('#avatarInput').on('change',function(e){
+      const file=e.target.files[0];
+      if(file){$('#avatarPreview').attr('src',URL.createObjectURL(file));}
+      $(this).next('.custom-file-label').text(file?file.name:'Choose file');
+    });
+
+    /* email-OTP flow */
+    $('#sendOtpBtn').on('click',function(){
+      const newEmail=$('#newEmail').val().trim();
+      if(!newEmail) return alert('Enter a valid email first');
+      $.post('/profile/request-email-change',{email:newEmail})
+        .done(()=>{$('#otpGroup').removeClass('d-none');alert('OTP sent!');})
+        .fail(res=>alert(res.responseJSON?.message||'Error sending OTP'));
+    });
+  </script>
+</body>
+</html>

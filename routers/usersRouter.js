@@ -8,6 +8,7 @@ const { validateUserIdParam } = require('../validators/ParamValidator');
 const { validateQueryEmail } = require('../validators/QueryValidator');
 const { validateBodyEmail } = require('../validators/bodyValidator');
 const cartRouter = require('./userCartRouter');
+const userProfileRouter = require('./userProfileRouter');
 const userRouter = express.Router();
 
 
@@ -24,6 +25,7 @@ userRouter.use((req,res,next)=>{
 
 userRouter.use('/products',checkIsUserAuthenticated, productRouter);
 userRouter.use('/cart', checkIsUserAuthenticated, cartRouter);
+userRouter.use('/profile', checkIsUserAuthenticated, userProfileRouter);
 
 
 userRouter.get('/login',checkIsUserExists, getLoginPage);

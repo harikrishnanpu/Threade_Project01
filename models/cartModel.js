@@ -23,16 +23,6 @@ const cartItemSchema = new Schema({
     required: true,
     min: 1
   },
-  price: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  salePrice: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
   total: {
     type: Number,
     min: 0
