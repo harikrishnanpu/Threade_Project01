@@ -9,6 +9,7 @@ const { validateQueryEmail } = require('../validators/QueryValidator');
 const { validateBodyEmail } = require('../validators/bodyValidator');
 const cartRouter = require('./userCartRouter');
 const userProfileRouter = require('./userProfileRouter');
+const orderRouter = require('./userOrderRouter');
 const userRouter = express.Router();
 
 
@@ -24,8 +25,9 @@ userRouter.use((req,res,next)=>{
 
 
 userRouter.use('/products',checkIsUserAuthenticated, productRouter);
-userRouter.use('/cart', checkIsUserAuthenticated, cartRouter);
-userRouter.use('/profile', checkIsUserAuthenticated, userProfileRouter);
+userRouter.use('/cart', checkIsUserAuthenticatedAndRedirect, cartRouter);
+userRouter.use('/profile', checkIsUserAuthenticatedAndRedirect, userProfileRouter);
+userRouter.use('/orders', checkIsUserAuthenticatedAndRedirect, orderRouter);
 
 
 userRouter.get('/login',checkIsUserExists, getLoginPage);
@@ -39,9 +41,10 @@ userRouter.get('/auth/google',checkIsUserExists,getGoogleAuth);
 userRouter.get('/auth/google/callback',checkIsUserExists, getGoogleAuthCallback);
 userRouter.get('/home',checkIsUserAuthenticatedAndRedirect, getUserHomePage);
 userRouter.get('/logout', checkIsUserAuthenticatedAndRedirect, logoutUser );
-userRouter.get('/profile', checkIsUserAuthenticatedAndRedirect, getUserProfilePage);
-userRouter.get('/profile/edit', checkIsUserAuthenticatedAndRedirect, getEditProfilePage);
-userRouter.post('/profile/edit', checkIsUserAuthenticatedAndRedirect, updateProfile);
+
+// userRouter.get('/profile', checkIsUserAuthenticatedAndRedirect, getUserProfilePage);
+// userRouter.get('/profile/edit', checkIsUserAuthenticatedAndRedirect, getEditProfilePage);
+// userRouter.post('/profile/edit', checkIsUserAuthenticatedAndRedirect, updateProfile);
 
 
 

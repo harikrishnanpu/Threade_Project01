@@ -74,7 +74,7 @@ const sendResetPasswordLinkToEmail = async (email, link) => {
 
 const verifyEmailOtp = async (email, otp) => {
 
-  try{
+  try{    
 
     const dbOtp = await otpModel.findOne({email});
 

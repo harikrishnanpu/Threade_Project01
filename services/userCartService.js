@@ -1,6 +1,9 @@
 const { default: mongoose } = require("mongoose");
 const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
+const Coupon = require('../models/coupounModel');
+const Addresses = require("../models/addressModel");
+const CheckoutSession = require('../models/checkoutSessionModel');
 
 
 
@@ -86,7 +89,7 @@ const getCartCount = async (userId) => {
       console.log(cart);
       return cart ? cart.items.length : 0; 
     }else{
-      throw new Error('cart not found')
+      return 0;
     }
   } catch (err) {
     throw new Error(err.message);
@@ -108,7 +111,7 @@ const getCartItems = async (userId) =>{
 }
 
 
-const updateCart = async (userId, itemId, quantity) => {
+const updateCart = async (userId, itemId, variant, quantity) => {
   quantity = parseInt(quantity, 10);
 
   if (isNaN(quantity)) {
@@ -128,7 +131,7 @@ const updateCart = async (userId, itemId, quantity) => {
     }
 
     const cartItemIndex = cart.items.findIndex(item =>
-      item.product.toString() === itemId
+      item.product.toString() === itemId && item.variant.color === variant.color && item.variant.size === variant.size
     );
     
     if (cartItemIndex === -1) {
@@ -170,4 +173,90 @@ const updateCart = async (userId, itemId, quantity) => {
 
 
 
-module.exports = {addToCart, getCartCount, getCartItems, updateCart};
+const applyCoupon = async (code, userId, cartTotal, userType) => {
+  try {
+
+    const coupon = await Coupon.findOne({ code: code.toUpperCase() });
+
+    if (!coupon) throw new Error('Coupon not found');
+
+    if (!coupon.isActive) throw new Error('Coupon is not active');
+
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+      throw new Error('Coupon has expired');
+    }
+
+    if (coupon.usedCount >= coupon.maxUsage) {
+      throw new Error('Coupon usage limit reached');
+    }
+
+    if (coupon.minOrderAmount && cartTotal < coupon.minOrderAmount) {
+      throw new Error(`Minimum order amount is ₹${coupon.minOrderAmount}`);
+    }
+
+    if (coupon.onlyFor !== 'all' && coupon.onlyFor !== userType) {
+      throw new Error(`Coupon is not valid for ${userType === 'newUsers' ? 'new' : 'Premium'} users`);
+    }
+
+    const discountAmount = (coupon.discount / 100) * cartTotal;
+    // const finalAmount = cartTotal - discountAmount;
+
+    return {
+      couponCode: coupon.code,
+      discount: discountAmount,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+
+const saveCheckoutSession = async (userId, { addressId, shippingMethod, couponCode }) => {
+  try {
+
+    const address = await Addresses.findOne({ _id: addressId, user: userId });
+    if (!address) throw new Error('Invalid or missing delivery address.');
+
+    const validMethods = ['free', 'regular', 'express'];
+    if (!validMethods.includes(shippingMethod)) {
+      throw new Error('Invalid shipping method.');
+    }
+
+    let validCoupon = null;
+    if (couponCode) {
+      validCoupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
+      if (!validCoupon) throw new Error('Invalid or expired coupon code.');
+    }
+
+    const session = await CheckoutSession.findOneAndUpdate(
+      { userId },
+      {
+        userId,
+        addressId,
+        shippingMethod,
+        couponCode: couponCode || null
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    return session;
+  } catch (err) {
+    throw new Error(err.message || 'faileed to save checkout session');
+  }
+};
+
+const getCheckoutSession = async (userId) =>{
+  try{
+    const session = await CheckoutSession.findOne({ userId });
+    if(!session){
+      throw new Error('caanot find checkout session for user')
+    }
+    return session;
+  }catch(err){
+    throw new Error(err.message)
+  }
+}
+
+
+
+module.exports = {addToCart, getCartCount, getCartItems, updateCart, applyCoupon, saveCheckoutSession, getCheckoutSession};

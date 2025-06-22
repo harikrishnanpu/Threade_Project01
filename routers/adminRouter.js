@@ -11,6 +11,9 @@ const { validateLogin } = require('../validators/authValidator');
 const { validateUserListQuery } = require('../validators/QueryValidator');
 const { validateUserIdParam } = require('../validators/ParamValidator');
 const { validateUserBody } = require('../validators/bodyValidator');
+const couponsRouter = require('./adminCouponsRouter');
+const adminOrderRouter = require('./adminOrderRouter');
+const adminInventoryRouter = require('./adminInventoryRouter');
 const adminRouter = express.Router();
 
 
@@ -27,6 +30,9 @@ adminRouter.use('/categories',checkIsAdminAuthenticated, categoryRouter);
 adminRouter.use('/brands', checkIsAdminAuthenticated, brandRouter);
 adminRouter.use('/products',checkIsAdminAuthenticated, productRouter);
 adminRouter.use('/banners',checkIsAdminAuthenticated, bannerRouter);
+adminRouter.use('/coupons',checkIsAdminAuthenticated, couponsRouter);
+adminRouter.use('/orders',checkIsAdminAuthenticated, adminOrderRouter);
+adminRouter.use('/inventory', checkIsAdminAuthenticated, adminInventoryRouter);
 
 
 adminRouter.get('/login',checkIsAdminExists, getAdminLoginPage);
@@ -36,7 +42,7 @@ adminRouter.get('/users/edit/:id', validateUserIdParam, handleValidationErrors, 
 adminRouter.get('/users/create',checkIsAdminAuthenticated, handleValidationErrors, getCreateUserPage);
 
 
-adminRouter.get('/create/admin', createAdmin); // for creating admin account
+adminRouter.get('/create/admin', createAdmin); // admin account
 
 
 adminRouter.post('/login',validateLogin, handleValidationErrors, checkIsAdminExists , loginAdminAccount );

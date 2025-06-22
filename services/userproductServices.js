@@ -26,29 +26,30 @@ const getProducts = async (filters = {}, sortOptions = { createdAt: -1 }, page =
       totalProducts,
       totalPages
     };
-  } catch (error) {
-    console.error('Error in getProducts service:', error);
-    throw error;
+  } catch (err) {
+    throw new Error(err.message);
   }
 };
 
 
 const getProductById = async (id) => {
   try {
-    const product = await Product.findById(id)
-      .populate('category', 'name')
-      .populate('brand', 'name')
-      .lean();
+const product = await Product.findById(id)
+  .populate('category', 'name')
+  .populate('brand', 'name')
+  .lean();
 
-      if(!product){
-        throw new Error('product not found')
-      }
+if (!product) {
+  throw new Error('Product not found');
+}
 
-      if(!product.isActive){
-        throw new Error('product is currently unavailbale')
-      }
-    
-    return product;
+if (!product.isActive) {
+  throw new Error('Product is currently unavailable');
+}
+
+product.variants = product.variants.filter(v => v.isActive);
+
+return product;
   } catch (err) {
     throw new Error(err.message);
   }

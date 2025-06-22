@@ -146,12 +146,13 @@ const editProductById = async (productId, data) => {
 
     if (variants !== undefined) {
       updateData.variants = variants.map(v => ({
-        size:      v.size,
-        color:     v.color,
-        price:     Number(v.price),
+        size: v.size,
+        color: v.color,
+        price: Number(v.price),
         salePrice: Number(v.salePrice) || 0,
-        stock:     Number(v.stock),
-        images:    v.images
+        stock:  Number(v.stock),
+        images:   v.images,
+        isActive:  v.isActive
       }));
     }
 

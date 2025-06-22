@@ -10,8 +10,8 @@
 
   <style>
     :root {
-      --primary: #08090b;
-      --primary-hover: #0e0f11;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
@@ -121,11 +121,21 @@
 
     .category-tag { padding:.25rem .5rem; background:var(--gray-100); color:var(--gray-700); border-radius:.375rem; font-size:.75rem; }
 
+    .status-badge { padding:.25rem .5rem; border-radius:.375rem; font-size:.75rem; font-weight:500; }
     .status-badge.active   { background:#d1fae5; color:#065f46; }
     .status-badge.inactive { background:#fee2e2; color:#991b1b; }
 
-    .actions-cell { min-width:150px; }
-    .action-buttons { display:flex; gap:.25rem; }
+    /* Variants Column */
+    .variants-cell { min-width:150px; }
+    .variants-info { display:flex; flex-direction:column; gap:.25rem; }
+    .variants-count { font-size:.875rem; font-weight:600; color:var(--gray-900); }
+    .variants-status { display:flex; gap:.25rem; flex-wrap:wrap; }
+    .variant-badge { padding:.125rem .375rem; border-radius:.25rem; font-size:.625rem; font-weight:500; }
+    .variant-active { background:#d1fae5; color:#065f46; }
+    .variant-inactive { background:#fee2e2; color:#991b1b; }
+
+    .actions-cell { min-width:180px; }
+    .action-buttons { display:flex; gap:.25rem; flex-wrap:wrap; }
 
     /* Card view for mobile */
     .card-view { display:none; grid-template-columns:1fr; gap:1rem; }
@@ -133,9 +143,18 @@
     .product-card:hover { box-shadow:var(--shadow-lg); }
     .card-header { display:flex; gap:1rem; padding:1rem; }
     .card-info { flex:1; min-width:0; }
+    .card-title { font-size:1rem; font-weight:600; margin-bottom:.25rem; }
+    .card-brand { font-size:.875rem; color:var(--gray-500); margin-bottom:.5rem; }
+    .card-badges { display:flex; gap:.5rem; flex-wrap:wrap; }
     .card-body { padding:0 1rem 1rem; }
-    .card-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
-    .card-actions { display:flex; gap:.5rem; padding:1rem; border-top:1px solid var(--gray-100); background:var(--gray-50); }
+    .card-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:1rem; margin-bottom:1rem; }
+    .card-stat { text-align:center; }
+    .card-stat-value { font-size:1.125rem; font-weight:600; color:var(--gray-900); }
+    .card-stat-label { font-size:.75rem; color:var(--gray-500); }
+    .card-variants { margin-bottom:1rem; }
+    .card-variants-title { font-size:.875rem; font-weight:600; margin-bottom:.5rem; }
+    .card-variants-list { display:flex; gap:.25rem; flex-wrap:wrap; }
+    .card-actions { display:flex; gap:.5rem; padding:1rem; border-top:1px solid var(--gray-100); background:var(--gray-50); flex-wrap:wrap; }
 
     .empty-state { text-align:center; padding:4rem 2rem; }
     .empty-icon { font-size:4rem; color:var(--gray-300); margin-bottom:1rem; }
@@ -151,6 +170,14 @@
     .modal-body   { padding:2rem; max-height:60vh; overflow-y:auto; }
     .modal-footer { display:flex; gap:1rem; justify-content:flex-end; padding:1.5rem 2rem; border-top:1px solid var(--gray-200); background:var(--gray-50); }
     .modal-close  { background:none; border:none; cursor:pointer; font-size:1.25rem; }
+
+    /* Variant Details Modal */
+    .variant-details-modal .modal-container { max-width:700px; }
+    .variant-item { display:flex; align-items:center; justify-content:space-between; padding:1rem; border:1px solid var(--gray-200); border-radius:var(--radius); margin-bottom:.5rem; }
+    .variant-info { flex:1; }
+    .variant-name { font-weight:600; margin-bottom:.25rem; }
+    .variant-meta { font-size:.875rem; color:var(--gray-600); }
+    .variant-actions { display:flex; gap:.5rem; }
 
     /* Loading Overlay */
     .loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:all .3s ease; }
@@ -169,13 +196,30 @@
     .icon-star-filled:before { content: "★"; }
     .icon-eye:before         { content: "👁️"; }
     .icon-eye-off:before     { content: "🙈"; }
+    .icon-edit:before        { content: "✏️"; }
+    .icon-variants:before    { content: "🔧"; }
+    .icon-arrow-up:before    { content: "↑"; }
+    .icon-arrow-down:before  { content: "↓"; }
 
-    @media (max-width:1024px) {
-      .filters-grid { grid-template-columns:1fr; }
+    @media (max-width:1200px) {
+      .filters-grid { grid-template-columns:1fr 1fr 1fr; }
+      .filter-item:first-child { grid-column: 1 / -1; }
     }
     @media (max-width:768px) {
       .table-view { display:none; }
       .card-view { display:grid; }
+      .page-header { flex-direction:column; gap:1rem; text-align:center; }
+      .header-content { flex-direction:column; gap:.5rem; }
+      .filters-grid { grid-template-columns:1fr; }
+      .pagination-wrapper { flex-direction:column; gap:1rem; }
+      .card-actions { justify-content:center; }
+    }
+    @media (max-width:480px) {
+      .products-management { padding:.5rem; }
+      .page-header { padding:1rem; }
+      .controls-panel { padding:1rem; }
+      .products-container { padding:1rem; }
+      .card-stats { grid-template-columns:1fr 1fr; }
     }
   </style>
 </head>
@@ -212,6 +256,18 @@
             <a href="/admin/products/create" class="btn btn-primary btn-add">
               <i class="icon-plus"></i><span>Add Product</span>
             </a>
+          </div>
+
+          <!-- Messages -->
+          <div class="message-container">
+            <% if (messages && messages.error && messages.error.length > 0) { %>
+              <div class="alert alert-error show" id="error-msg"><%= messages.error[0] %></div>
+            <% } %>
+            <% if (messages && messages.success && messages.success.length > 0) { %>
+              <div class="alert alert-success show" id="success-msg"><%= messages.success[0] %></div>
+            <% } %>
+            <div class="alert alert-error" id="dynamic-error-msg"></div>
+            <div class="alert alert-success" id="dynamic-success-msg"></div>
           </div>
 
           <!-- Filters -->
@@ -303,6 +359,7 @@
                       <th class="sortable" onclick="setSortField('regularPrice')">Price <i class="sort-icon icon-<%=sortField==='regularPrice'?(sortOrder==='asc'?'arrow-up':'arrow-down'):''%>"></i></th>
                       <th class="sortable" onclick="setSortField('stock')">Stock <i class="sort-icon icon-<%=sortField==='stock'?(sortOrder==='asc'?'arrow-up':'arrow-down'):''%>"></i></th>
                       <th>Category</th>
+                      <th>Variants</th>
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -313,7 +370,7 @@
                         <td class="product-cell">
                           <div class="product-info">
                             <div class="product-image">
-                              <% if(product.images){ %>
+                              <% if(product.images && product.images.length > 0){ %>
                                 <img src="<%=product.images[0]%>" alt="<%=product.name%>" loading="lazy">
                               <% } else { %>
                                 <div class="image-placeholder"><i class="icon-image"></i></div>
@@ -332,12 +389,14 @@
                         <!-- Price cell -->
                         <td class="price-cell">
                           <div class="price-info">
-                            <span class="regular-price">$<%=product.salePrice.toFixed(2)%></span>
-                            <% if(product.salePrice>0 && product.salePrice<product.regularPrice){ %>
+                            <% if(product.salePrice > 0 && product.salePrice < product.regularPrice){ %>
+                              <span class="regular-price">$<%=product.salePrice.toFixed(2)%></span>
                               <span class="sale-price">$<%=product.regularPrice.toFixed(2)%></span>
                               <span class="discount-badge">
                                 <%= Math.round(((product.regularPrice-product.salePrice)/product.regularPrice)*100) %>% OFF
                               </span>
+                            <% } else { %>
+                              <span class="regular-price">$<%=product.regularPrice.toFixed(2)%></span>
                             <% } %>
                           </div>
                         </td>
@@ -356,6 +415,27 @@
                           <% } %>
                         </td>
 
+                        <!-- Variants -->
+                        <td class="variants-cell">
+                          <div class="variants-info">
+                            <div class="variants-count"><%=product.variants ? product.variants.length : 0%> variants</div>
+                            <% if(product.variants && product.variants.length > 0){ %>
+                              <div class="variants-status">
+                                <% 
+                                  const activeVariants = product.variants.filter(v => v.isActive).length;
+                                  const inactiveVariants = product.variants.length - activeVariants;
+                                %>
+                                <% if(activeVariants > 0){ %>
+                                  <span class="variant-badge variant-active"><%=activeVariants%> active</span>
+                                <% } %>
+                                <% if(inactiveVariants > 0){ %>
+                                  <span class="variant-badge variant-inactive"><%=inactiveVariants%> inactive</span>
+                                <% } %>
+                              </div>
+                            <% } %>
+                          </div>
+                        </td>
+
                         <!-- Status -->
                         <td>
                           <span class="status-badge <%=product.isActive?'active':'inactive'%>">
@@ -368,8 +448,14 @@
                           <div class="action-buttons">
                             <!-- Edit -->
                             <a href="/admin/products/edit/<%=product._id%>" class="btn btn-ghost btn-sm" title="Edit">
-                              <i class="icon-plus"></i>
+                              <i class="icon-edit"></i>
                             </a>
+                            <!-- View Variants -->
+                            <button class="btn btn-ghost btn-sm"
+                              onclick="showVariantDetails('<%=product._id%>','<%=product.name%>')"
+                              title="View Variants">
+                              <i class="icon-variants"></i>
+                            </button>
                             <!-- Toggle Featured -->
                             <button class="btn btn-ghost btn-sm"
                               onclick="toggleFeatured('<%=product._id%>','<%=product.name%>','<%=product.isFeatured%>')"
@@ -389,10 +475,100 @@
                   </tbody>
                 </table>
               </div>
+
+              <!-- Card view for mobile -->
+              <div class="card-view">
+                <% products.forEach(product => { %>
+                  <div class="product-card">
+                    <div class="card-header">
+                      <div class="product-image">
+                        <% if(product.images && product.images.length > 0){ %>
+                          <img src="<%=product.images[0]%>" alt="<%=product.name%>" loading="lazy">
+                        <% } else { %>
+                          <div class="image-placeholder"><i class="icon-image"></i></div>
+                        <% } %>
+                        <% if(product.isFeatured){ %>
+                          <span class="featured-badge"><i class="icon-star-filled"></i></span>
+                        <% } %>
+                      </div>
+                      <div class="card-info">
+                        <h3 class="card-title"><%=product.name%></h3>
+                        <% if(product.brand){ %><div class="card-brand"><%=product.brand.name%></div><% } %>
+                        <div class="card-badges">
+                          <span class="status-badge <%=product.isActive?'active':'inactive'%>">
+                            <%=product.isActive?'Active':'Inactive'%>
+                          </span>
+                          <% if(product.category){ %>
+                            <span class="category-tag"><%=product.category.name%></span>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="card-stats">
+                        <div class="card-stat">
+                          <div class="card-stat-value">
+                            <% if(product.salePrice > 0 && product.salePrice < product.regularPrice){ %>
+                              $<%=product.salePrice.toFixed(2)%>
+                            <% } else { %>
+                              $<%=product.regularPrice.toFixed(2)%>
+                            <% } %>
+                          </div>
+                          <div class="card-stat-label">Price</div>
+                        </div>
+                        <div class="card-stat">
+                          <div class="card-stat-value <%=product.stock<=0?'text-red-600':product.stock<=10?'text-yellow-600':''%>">
+                            <%=product.stock%>
+                          </div>
+                          <div class="card-stat-label">Stock</div>
+                        </div>
+                        <div class="card-stat">
+                          <div class="card-stat-value"><%=product.variants ? product.variants.length : 0%></div>
+                          <div class="card-stat-label">Variants</div>
+                        </div>
+                      </div>
+                      <% if(product.variants && product.variants.length > 0){ %>
+                        <div class="card-variants">
+                          <div class="card-variants-title">Variant Status</div>
+                          <div class="card-variants-list">
+                            <% 
+                              const activeVariants = product.variants.filter(v => v.isActive).length;
+                              const inactiveVariants = product.variants.length - activeVariants;
+                            %>
+                            <% if(activeVariants > 0){ %>
+                              <span class="variant-badge variant-active"><%=activeVariants%> active</span>
+                            <% } %>
+                            <% if(inactiveVariants > 0){ %>
+                              <span class="variant-badge variant-inactive"><%=inactiveVariants%> inactive</span>
+                            <% } %>
+                          </div>
+                        </div>
+                      <% } %>
+                    </div>
+                    <div class="card-actions">
+                      <a href="/admin/products/edit/<%=product._id%>" class="btn btn-ghost btn-sm">
+                        <i class="icon-edit"></i> Edit
+                      </a>
+                      <button class="btn btn-ghost btn-sm"
+                        onclick="showVariantDetails('<%=product._id%>','<%=product.name%>')">
+                        <i class="icon-variants"></i> Variants
+                      </button>
+                      <button class="btn btn-ghost btn-sm"
+                        onclick="toggleFeatured('<%=product._id%>','<%=product.name%>','<%=product.isFeatured%>')">
+                        <i class="icon-<%=product.isFeatured?'star-filled':'star'%>"></i>
+                      </button>
+                      <button class="btn btn-ghost btn-sm"
+                        onclick="toggleStatus('<%=product._id%>','<%=product.name%>','<%=product.isActive%>')">
+                        <i class="icon-<%=product.isActive?'eye-off':'eye'%>"></i>
+                      </button>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
             <% } else { %>
               <!-- Empty state -->
               <div class="empty-state">
-                <div class="empty-icon"><i class="icon-package"></i></div>
+                <div class="empty-icon">📦</div>
                 <h3>No products found</h3>
                 <p>Get started by adding your first product</p>
                 <% if(search||status!=='all'||categoryFilter!=='all'||brandFilter!=='all'){ %>
@@ -425,6 +601,22 @@
     </div>
   </div>
 
+  <!-- Variant Details Modal -->
+  <div class="modal-overlay variant-details-modal" id="variant-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="variant-modal-title">Product Variants</h3>
+        <button class="modal-close" onclick="closeVariantModal()"><i class="icon-x"></i></button>
+      </div>
+      <div class="modal-body" id="variant-modal-body">
+        <!-- Variants will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeVariantModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const BASE_URL = window.location.origin;
     const STATE = {
@@ -448,11 +640,11 @@
       document.getElementById('loading-overlay').classList.remove('active');
     }
     function showError(msg){
-      const e=document.getElementById('error-msg');
+      const e=document.getElementById('dynamic-error-msg');
       if(e){ e.textContent=msg; e.classList.add('show'); setTimeout(()=>e.classList.remove('show'),5000); }
     }
     function showSuccess(msg){
-      const e=document.getElementById('success-msg');
+      const e=document.getElementById('dynamic-success-msg');
       if(e){ e.textContent=msg; e.classList.add('show'); setTimeout(()=>e.classList.remove('show'),5000); }
     }
 
@@ -540,6 +732,106 @@
       } catch(e){ hideLoading(); showError('Error'); console.error(e); }
     }
 
+    // New function to show variant details
+    async function showVariantDetails(productId, productName) {
+      document.getElementById('variant-modal-title').textContent = `${productName} - Variants`;
+      document.getElementById('variant-modal-body').innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading variants...</p></div>';
+      document.getElementById('variant-modal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      try {
+        const res = await fetch(`${BASE_URL}/admin/products/variants/${productId}`);
+        const json = await res.json();
+        
+        if (json.success && json.variants) {
+          renderVariants(json.variants, productId);
+        } else {
+          document.getElementById('variant-modal-body').innerHTML = '<p>No variants found for this product.</p>';
+        }
+      } catch (e) {
+        document.getElementById('variant-modal-body').innerHTML = '<p>Error loading variants.</p>';
+        console.error(e);
+      }
+    }
+
+    function renderVariants(variants, productId) {
+      const container = document.getElementById('variant-modal-body');
+      if (!variants.length) {
+        container.innerHTML = '<p>No variants found for this product.</p>';
+        return;
+      }
+
+      const html = variants.map((variant, index) => `
+        <div class="variant-item">
+          <div class="variant-info">
+            <div class="variant-name">${variant.size.toUpperCase()} - ${variant.color}</div>
+            <div class="variant-meta">
+              Price: $${variant.price.toFixed(2)} | 
+              Stock: ${variant.stock} | 
+              Status: <span class="status-badge ${variant.isActive ? 'active' : 'inactive'}">${variant.isActive ? 'Active' : 'Inactive'}</span>
+            </div>
+          </div>
+          <div class="variant-actions">
+            <button class="btn btn-ghost btn-sm" 
+              onclick="toggleVariantStatus('${productId}', ${index}, '${variant.size} - ${variant.color}', ${variant.isActive})"
+              title="${variant.isActive ? 'Deactivate' : 'Activate'} Variant">
+              <i class="icon-${variant.isActive ? 'eye-off' : 'eye'}"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = html;
+    }
+
+    function closeVariantModal() {
+      document.getElementById('variant-modal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    async function toggleVariantStatus(productId, variantIndex, variantName, isActive) {
+      const action = isActive ? 'Deactivate' : 'Activate';
+      showConfirmModal(
+        `${action} Variant "${variantName}"`,
+        `Are you sure you want to ${action.toLowerCase()} this variant?`,
+        action,
+        () => performToggleVariantStatus(productId, variantIndex, isActive)
+      );
+    }
+
+    async function performToggleVariantStatus(productId, variantIndex, isActive) {
+      if (STATE.isLoading) return;
+      showLoading();
+      
+      try {
+        const res = await fetch(`${BASE_URL}/admin/products/toggle-variant-status/${productId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            variantIndex: variantIndex,
+            isActive: !isActive 
+          })
+        });
+        
+        const json = await res.json();
+        hideLoading();
+        
+        if (json.success) {
+          showSuccess('Variant status updated successfully');
+          // Refresh the variant modal
+          showVariantDetails(productId, 'Product');
+          // Optionally refresh the main page after a delay
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showError(json.message || 'Error updating variant status');
+        }
+      } catch (e) {
+        hideLoading();
+        showError('Error updating variant status');
+        console.error(e);
+      }
+    }
+
     document.addEventListener('DOMContentLoaded',()=>{
       document.getElementById('status-filter').addEventListener('change',e=>{
         STATE.status=e.target.value; STATE.page=1;
@@ -573,12 +865,22 @@
       });
 
       document.addEventListener('keydown',e=>{
-        if(e.key==='Escape' && document.getElementById('confirm-modal').classList.contains('active')){
-          closeConfirmModal();
+        if(e.key==='Escape') {
+          if(document.getElementById('confirm-modal').classList.contains('active')){
+            closeConfirmModal();
+          }
+          if(document.getElementById('variant-modal').classList.contains('active')){
+            closeVariantModal();
+          }
         }
       });
+      
       document.getElementById('confirm-modal').addEventListener('click',e=>{
         if(e.target===document.getElementById('confirm-modal')) closeConfirmModal();
+      });
+      
+      document.getElementById('variant-modal').addEventListener('click',e=>{
+        if(e.target===document.getElementById('variant-modal')) closeVariantModal();
       });
     });
 

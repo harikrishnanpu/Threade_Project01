@@ -1,377 +1,191 @@
-<!-- views/cart.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Cart</title>
+  <title>My Cart | Elecxo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    :root {
-      --bg: #121212;
-      --card: #E6DCD1;
-      --accent: #121212;
-      --text: #E6DCD1;
+    :root{--primary:#0066cc;--text-dark:#333;--text-light:#666;--border-color:#e5e5e5;--bg-light:#f8f9fa;--bg-white:#fff;--danger:#dc3545;--success:#28a745}
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif}
+    body{color:var(--text-dark);line-height:1.5;background:var(--bg-light)}
+    .container{max-width:1200px;margin:0 auto;padding:0 1rem}
+    .progress-indicator{display:flex;justify-content:center;margin:2rem 0;position:relative}
+    .progress-step{display:flex;flex-direction:column;align-items:center;z-index:2;width:120px}
+    .step-icon{width:50px;height:50px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;margin-bottom:.5rem;font-size:1.2rem;color:var(--text-light)}
+    .step-icon.active{background:var(--primary);color:#fff}
+    .step-label{font-size:.85rem;color:var(--text-light)}
+    .step-label.active{color:var(--primary);font-weight:500}
+    .progress-line{position:absolute;top:25px;left:calc(50% - 120px);right:calc(50% - 120px);height:2px;background:#f0f0f0;z-index:1}
+    .cart-content{display:grid;grid-template-columns:1fr;gap:1.5rem;margin-bottom:2rem}
+    @media(min-width:992px){.cart-content{grid-template-columns:2fr 1fr}}
+    .cart-items{background:var(--bg-white);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.05);overflow:hidden}
+    .cart-item{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:1rem;padding:1.5rem;border-bottom:1px solid var(--border-color);align-items:center}
+    .cart-item:last-child{border-bottom:none}
+    .item-image{width:100px;height:80px;object-fit:contain}
+    .item-details h3{font-size:1rem;margin-bottom:.25rem}
+    .item-meta{display:flex;gap:.5rem;margin-bottom:.5rem}
+    .item-meta span{font-size:.75rem;padding:.1rem .5rem;border:1px solid var(--border-color);border-radius:4px}
+    .item-price,.item-total{font-weight:600}
+    .item-quantity{display:flex;flex-direction:column;align-items:center}
+    .quantity-controls{display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem}
+    .qty-btn{width:24px;height:24px;border-radius:50%;border:1px solid var(--border-color);background:var(--bg-white);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;line-height:1}
+    .qty-btn:disabled{opacity:.5;cursor:not-allowed}
+    .stock-info{font-size:.75rem;color:var(--text-light)}
+    .remove-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:1rem}
+    .payment-details{background:var(--bg-white);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.05);padding:1.5rem;position:sticky;top:100px}
+    .payment-details h2{font-size:1.25rem;margin-bottom:1.5rem;padding-bottom:.5rem;border-bottom:1px solid var(--border-color)}
+    .payment-row{display:flex;justify-content:space-between;margin-bottom:1rem}
+    .payment-row:last-of-type{font-weight:600;font-size:1.1rem;padding-top:.5rem;margin-top:.5rem;border-top:1px solid var(--border-color)}
+    .checkout-btn{display:block;width:100%;padding:.75rem;background:var(--primary);color:#fff;border:none;border-radius:4px;font-weight:600;cursor:pointer;text-align:center;margin-top:1.5rem;transition:background .2s}
+    .checkout-btn:hover{background:#0055b3}
+    .checkout-btn:disabled{background:#ccc;cursor:not-allowed}
+    @media(max-width:768px){
+      .cart-item{grid-template-columns:80px 1fr;grid-template-rows:auto auto auto;gap:.75rem}
+      .item-image{grid-row:span 3;width:80px;height:80px}
+      .item-details{grid-column:2}
+      .item-price{grid-column:2}
+      .item-quantity,.item-total,.remove-btn{grid-column:2;justify-self:start}
+      .item-quantity{flex-direction:row;align-items:center;gap:1rem}
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, sans-serif;
-    }
-
-    button:focus{
-      outline: none;
-    }
-
-    body {
-      color: var(--bg);
-      line-height: 1.4;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin-inline: auto;
-      padding: 1rem;
-    }
-
-    h5 {
-      margin-bottom: 1rem;
-      font-weight: 600;
-      color: var(--card);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th,
-    td {
-      padding: 0.75rem 0.5rem;
-      text-align: left;
-    }
-
-    thead {
-      background: var(--accent);
-      color: #fff;
-    }
-
-
-    tbody tr {
-      background: var(--card);
-      border-bottom: 1px solid #e5e5e5;
-      border-radius: 0.5rem;
-      overflow: hidden;
-    }
-
-    tbody img {
-      width: 64px;
-      height: 64px;
-      object-fit: cover;
-      border-radius: 0.5rem;
-    }
-
-    .qty-btn,
-    .remove-btn {
-      border: none;
-      background: none;
-      cursor: pointer;
-      font-size: 1rem;
-      color: var(--bg);
-    }
-
-    .qty-btn {
-      padding: 5px 10px;
-      border-radius: 0.3rem;
-      background: #eee;
-      margin-inline: 0.2rem;
-    }
-
-    .qty-btn[disabled] {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .remove-btn {
-      color: #c00;
-    }
-
-    .totals {
-      margin-top: 1.5rem;
-      background: var(--card);
-      padding: 1rem;
-      border-radius: 0.5rem;
-    }
-
-    .totals h2 {
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-      color: var(--bg);
-    }
-
-    .totals-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.35rem;
-      color: var(--bg);
-    }
-
-    .totals-row:last-child {
-      font-weight: 600;
-      font-size: 1.1rem;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 5px 10px;
-      color: #fff !important;
-      background: var(--accent);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: .8rem;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* ====== Layout for large screens ====== */
-    @media (min-width: 1024px) {
-     .cart.container {
-        display: flex;
-        gap: 2rem;
-        align-items: flex-start;
-      }
-
-      .cart.container table {
-        flex: 2;
-      }
-
-      .totals {
-        flex: 1;
-        position: sticky;
-        top: 1rem;
-      }
-    }
-
-    /* ====== Mobile tweaks ====== */
-    @media (max-width: 640px) {
-      thead {
-        display: none;
-      }
-
-      tbody tr {
-        display: flex;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        gap: 10px;
-      }
-
-      tbody td {
-        padding: 0.25rem 0;
-        color: var(--bg);
-      }
-
-      tbody td:nth-child(1) {
-        order: 1;
-      }
-
-      tbody td:nth-child(2) {
-        order: 3;
-      }
-
-      tbody td:nth-child(3) {
-        order: 5;
-      }
-
-      tbody td:nth-child(4) {
-        order: 2;
-        align-self: flex-start;
-      }
-
-      tbody td:nth-child(5) {
-        order: 4;
-      }
+    @media(max-width:576px){
+      .progress-indicator{margin:1rem 0}
+      .progress-step{width:80px}
+      .step-icon{width:40px;height:40px;font-size:1rem}
+      .step-label{font-size:.75rem}
+      .progress-line{left:calc(50% - 80px);right:calc(50% - 80px);top:20px}
     }
   </style>
 </head>
 <body>
-  <div class="cart container">
-    <div class="col-lg-8">
-    <h5 class="my-2">Your Cart (<span id="item-count"><%= cartItems.length %></span>)</h5>
-
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Product</th>
-          <th>Price</th>
-          <th style="text-align:center;">Qty</th>
-          <th>Total</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="cart-body">
-        <% cartItems.forEach(item => { %>
-          <tr id="row-<%= item.product %>">
-            <td><img src="<%= item.image %>" alt="<%= item.name %>" /></td>
-            <td>
-              <strong><%= item.name %></strong>
-              <div style="gap:5px;" class="d-flex my-2">
-                <p style="border:.5px solid var(--bg);padding-inline:2px;border-radius:2px;text-align:center;"><%= item.variant.size.toUpperCase() %></p>
-                <p style="border:.5px solid var(--bg);padding-inline:2px;border-radius:2px;text-align:center;"><%= item.variant.color.toUpperCase() %></p>
-              </div>
-              <% if (!item.isActive) { %>
-                <small style="color:#c00">Item unavailable</small>
-              <% } %>
-              <small id="item-isactive-<%= item.product %>"></small>
-            </td>
-
-            <td>₹<%= item.salePrice.toFixed(2) %></td>
-
-            <td style="text-align:center;">
-              <button class="qty-btn"
-                      onclick="changeQty('<%= item.product %>', -1)"
-                      <%= item.quantity === 1 || item.isActive == 'false' ? 'disabled' : '' %>>–</button>
-              <span id="qty-<%= item.product %>"><%= item.quantity %></span>
-              <button class="qty-btn"
-                      onclick="changeQty('<%= item.product %>', 1)"
-                      <%= item.quantity >= item.stock ? 'disabled' : '' %>>+</button>
-              <br/>
-              <small style="color:#666"><span id="item-stock-<%= item.product %>"><%= item.stock %></span> in stock</small>
-            </td>
-
-            <td id="row-total-<%= item.product %>">₹<%= (item.salePrice * item.quantity).toFixed(2) %></td>
-
-            <td>
-              <button class="remove-btn" onclick="removeItem('<%= item.product %>')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M7.99902 4.25C7.99902 3.00736 9.00638 2 10.249 2H13.749C14.9917 2 15.999 3.00736 15.999 4.25V5H18.498C19.7407 5 20.748 6.00736 20.748 7.25C20.748 8.28958 20.043 9.16449 19.085 9.42267C18.8979 9.4731 18.7011 9.5 18.498 9.5H5.5C5.29694 9.5 5.10016 9.4731 4.91303 9.42267C3.95503 9.16449 3.25 8.28958 3.25 7.25C3.25 6.00736 4.25736 5 5.5 5H7.99902V4.25ZM14.499 5V4.25C14.499 3.83579 14.1632 3.5 13.749 3.5H10.249C9.83481 3.5 9.49902 3.83579 9.49902 4.25V5H14.499Z" fill="#FF0000"/>
-<path d="M4.97514 10.4578L5.54076 19.8848C5.61205 21.0729 6.59642 22 7.78672 22H16.2113C17.4016 22 18.386 21.0729 18.4573 19.8848L19.0229 10.4578C18.8521 10.4856 18.6767 10.5 18.498 10.5H5.5C5.32131 10.5 5.146 10.4856 4.97514 10.4578ZM10.774 13.4339L10.9982 17.9905C11.0185 18.4042 10.6996 18.7561 10.2859 18.7764C9.8722 18.7968 9.52032 18.4779 9.49997 18.0642L9.27581 13.5076C9.25546 13.0938 9.57434 12.742 9.98805 12.7216C10.4018 12.7013 10.7536 13.0201 10.774 13.4339ZM14.0101 12.7216C14.4238 12.742 14.7427 13.0938 14.7223 13.5076L14.4982 18.0642C14.4778 18.4779 14.1259 18.7968 13.7122 18.7764C13.2985 18.7561 12.9796 18.4042 13 17.9905L13.2241 13.4339C13.2445 13.0201 13.5964 12.7013 14.0101 12.7216Z" fill="#FF0000"/>
-</svg>
-</button>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-
+  <div class="container">
+    <div class="progress-indicator">
+      <div class="progress-line"></div>
+      <div class="progress-step">
+        <div class="step-icon active"><i class="fas fa-shopping-cart"></i></div>
+        <div class="step-label active">cart</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-icon"><i class="fas fa-clipboard-check"></i></div>
+        <div class="step-label">Checkout</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-icon"><i class="fas fa-credit-card"></i></div>
+        <div class="step-label">Payment</div>
+      </div>
     </div>
 
-    <div class="totals col-lg-4" id="totals-box">
-      <h2>Summary</h2>
-      <div class="totals-row">
-        <span>Subtotal</span>
-        <span id="subtotal">₹0.00</span>
+    <div class="cart-content">
+      <% if(cartItems && cartItems.length>0){ %>
+      <div class="cart-items">
+        <% cartItems.forEach(item=>{ const itemId=`${item.product}-${item.variant.size}-${item.variant.color}`; %>
+          <div class="cart-item" id="row-<%= itemId %>" data-active="<%= item.isActive?'1':'0' %>">
+            <img src="<%= item.image %>" alt="<%= item.name %>" class="item-image">
+            <div class="item-details">
+              <h3><%= item.name %></h3>
+              <div class="item-meta"><span><%= item.variant.size.toUpperCase() %></span><span><%= item.variant.color.toUpperCase() %></span></div>
+              <% if(!item.isActive){ %><small style="color:var(--danger)">Item unavailable</small><% } %>
+            </div>
+            <div class="item-price">₹<%= item.salePrice.toFixed(2) %></div>
+            <div class="item-quantity">
+              <div class="quantity-controls">
+                <button class="qty-btn" onclick='changeQty("<%= itemId %>", `<%- JSON.stringify(item.variant) %>`, -1)'
+                  <%= (item.quantity===1||!item.isActive)?'disabled':'' %> >–</button>
+                <span id="qty-<%= itemId %>"><%= item.isActive?item.quantity:0 %></span>
+                <button class="qty-btn" onclick='changeQty("<%= itemId %>", `<%- JSON.stringify(item.variant) %>`, 1)'
+                  <%= (item.quantity>=item.stock||!item.isActive)?'disabled':'' %> >+</button>
+              </div>
+              <div class="stock-info"><span id="item-stock-<%= itemId %>"><%= item.stock %></span> in stock</div>
+            </div>
+            <div class="item-total" id="row-total-<%= itemId %>">₹<%= item.isActive?(item.salePrice*item.quantity).toFixed(2):'0.00' %></div>
+            <button class="remove-btn" onclick='removeItem("<%= itemId %>", `<%- JSON.stringify(item.variant) %>` )'><i class="fas fa-trash"></i></button>
+          </div>
+        <% }) %>
       </div>
-      <div class="totals-row">
-        <span>Estimated Shipping</span>
-        <span id="shipping">₹0.00</span>
-      </div>
-      <div class="totals-row">
-        <span>Grand Total</span>
-        <span id="grand-total">₹0.00</span>
-      </div>
-      <div style="margin-top:1rem;display:flex;gap:.75rem;flex-wrap:wrap;">
-        <a href="/user/products/shop" class="btn">Continue Shopping</a>
-        <button id="checkout-btn" class="btn">Checkout</button>
+      <% }else{ %><p>No Items Found</p><% } %>
+
+      <div class="payment-details" id="totals-box">
+        <h2>Payment Details</h2>
+        <div class="payment-row"><span>Subtotal</span><span id="subtotal">₹0.00</span></div>
+        <div class="payment-row"><span>Discount</span><span id="discount">₹0.00</span></div>
+        <div class="payment-row"><span>Shipment Cost</span><span id="shipping">₹0.00</span></div>
+        <div class="payment-row"><span>Grand Total</span><span id="grand-total">₹0.00</span></div>
+        <button id="checkout-btn" class="checkout-btn">Proceed to checkout</button>
+        <small id="inactive-msg" style="color:var(--danger);display:none;margin-top:.5rem;text-align:center">Remove unavailable items to checkout</small>
       </div>
     </div>
   </div>
 
-  <script>
-    const BASE_URL = window.location.origin;
-    const money = n => '₹' + (+n).toFixed(2);
+<script>
+const money=n=>'₹'+(+n).toFixed(2);
+const hasInactive=()=>document.querySelectorAll('.cart-item[data-active="0"]').length>0;
 
-    function recalc(isRemoved) {
-      let subtotal = 0;
-      document.querySelectorAll('[id^="row-total-"]').forEach(td => {
-        subtotal += parseFloat(td.textContent.replace('₹', ''));
-      });
+function recalc(){
+  let sub=0;
+  document.querySelectorAll('[id^="row-total-"]').forEach(td=>{
+    sub+=parseFloat(td.textContent.replace(/[₹,]/g,''))||0;
+  });
+  const shipping=sub===0?0:100;
+  const grand=sub+shipping;
+  document.getElementById('subtotal').textContent=money(sub);
+  document.getElementById('shipping').textContent=money(shipping);
+  document.getElementById('grand-total').textContent=money(grand);
+  const inactive=hasInactive();
+  const checkoutBtn=document.getElementById('checkout-btn');
+  checkoutBtn.disabled=sub===0||inactive;
+  document.getElementById('inactive-msg').style.display=inactive?'block':'none';
+}
 
-      const shipping = subtotal === 0 ? 0 : 100;
-      const grand = subtotal + shipping;
-
-      document.getElementById('subtotal').textContent = money(subtotal);
-      document.getElementById('shipping').textContent = money(shipping);
-      document.getElementById('grand-total').textContent = money(grand);
-      document.getElementById('item-count').textContent =
-        document.querySelectorAll('#cart-body tr').length;
-      document.getElementById('checkout-btn').disabled = subtotal === 0;
-
-      if (isRemoved) {
-        document.getElementById('HeadercartCount').textContent = (parseInt(`<%= cartItems.length %>`, 10) - 1);
-      }
-    }
-
-    async function changeQty(id, delta) {
-      const qtySpan = document.getElementById('qty-' + id);
-      const current = +qtySpan.textContent;
-      const newQty = current + delta;
-      if (newQty < 1) return;
-
-      try {
-        const response = await fetch(`${BASE_URL}/user/cart/api/update/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quantity: newQty })
-        });
-
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message);
-
-        const { stock, isActive } = result;
-
-        qtySpan.textContent = newQty;
-        document.getElementById('row-total-' + id).textContent =
-          money(parseFloat(document.querySelector('#row-' + id + ' td:nth-child(3)').textContent.replace('₹', '')) * newQty);
-
-        const plusBtn = qtySpan.nextElementSibling;
-        document.getElementById(`item-stock-${id}`).textContent = stock;
-        plusBtn.disabled = newQty >= stock || !isActive;
-
-        const minusBtn = qtySpan.previousElementSibling;
-        minusBtn.disabled = newQty === 1;
-
-        recalc();
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-
-    async function removeItem(id) {
-      if (!confirm('Remove this item?')) return;
-      try {
-        const response = await fetch(`${BASE_URL}/user/cart/api/update/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quantity: 0 })
-        });
-
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message);
-        document.getElementById('row-' + id).remove();
-        recalc(true);
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-
-    document.getElementById('checkout-btn').addEventListener('click', async () => {
-      try {
-        const res = await fetch('/api/checkout', { method: 'POST' });
-        if (!res.ok) throw new Error('Checkout failed');
-        const { redirectUrl } = await res.json();
-        window.location.href = redirectUrl;
-      } catch (err) {
-        alert(err.message);
-      }
+async function changeQty(itemId,variantStr,type){
+  const variant=JSON.parse(variantStr);
+  const qtySpan=document.getElementById('qty-'+itemId);
+  const newQty=+qtySpan.textContent+type;
+  if(newQty<1)return;
+  const productId=itemId.split('-')[0];
+  try{
+    const response=await fetch(`/user/cart/api/update/${productId}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({quantity:newQty,variant})
     });
-
+    const result=await response.json();
+    if(!response.ok)throw new Error(result.message);
+    qtySpan.textContent=newQty;
+    const price=parseFloat(document.querySelector('#row-'+itemId+' .item-price').textContent.replace(/[₹,]/g,''))||0;
+    document.getElementById('row-total-'+itemId).textContent=money(price*newQty);
+    qtySpan.previousElementSibling.disabled=newQty===1;
+    qtySpan.nextElementSibling.disabled=newQty>=result.stock;
     recalc();
-  </script>
+  }catch(err){alert(err.message);window.location.reload();}
+}
+
+async function removeItem(itemId,variantStr){
+  if(!confirm('Remove this item?'))return;
+  const variant=JSON.parse(variantStr);
+  const productId=itemId.split('-')[0];
+  try{
+    const response=await fetch(`/user/cart/api/update/${productId}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({quantity:0,variant})
+    });
+    const result=await response.json();
+    if(!response.ok)throw new Error(result.message);
+    document.getElementById('row-'+itemId).remove();
+    recalc();
+  }catch(err){alert(err.message);window.location.reload();}
+}
+
+document.getElementById('checkout-btn').onclick=async()=>{
+  try{
+    const response=await fetch('/user/cart/api/verify/checkout',{method:'POST'});
+    const result=await response.json();
+    if(!response.ok)throw new Error(result.message);
+    location.href=result.redirectUrl;
+  }catch(err){alert(err);window.location.reload();}
+};
+
+recalc();
+</script>
 </body>
 </html>

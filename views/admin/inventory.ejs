@@ -1,0 +1,1452 @@
+<section class="table-components">
+  <div class="container-fluid">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="tables-wrapper">
+      <div class="card-style mb-30">
+        <div class="page-header">
+          <h6 class="page-title">Inventory Management</h6>
+          <div class="header-stats">
+            <span class="stat-item">
+              Showing: <span id="result-count"><%= inventory.length %></span> / <span id="total-count"><%= totalItems %></span>
+            </span>
+          </div>
+        </div>
+        
+        <p class="error-msg" id="error-msg"></p>
+        <p class="success-msg" id="success-msg"></p>
+        
+        <div class="table-controls">
+          <div class="controls-row">
+
+            <div class="filters-section">
+              <div class="filter-group">
+                <label class="filter-label">Stock Status:</label>
+                <select class="filter form-select" id="status-filter">
+                  <option value="all" <%= status==='all' ? 'selected' : '' %>>All Items</option>
+                  <option value="in_stock" <%= status==='in_stock' ? 'selected' : '' %>>In Stock</option>
+                  <option value="low_stock" <%= status==='low_stock' ? 'selected' : '' %>>Low Stock</option>
+                  <option value="out_of_stock" <%= status==='out_of_stock' ? 'selected' : '' %>>Out of Stock</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label">Category:</label>
+                <select class="filter form-select" id="category-filter">
+                  <option value="all" <%= categoryFilter==='all' ? 'selected' : '' %>>All Categories</option>
+                  <% categories.forEach(category => { %>
+                    <option value="<%= category %>" <%= categoryFilter===category ? 'selected' : '' %>><%= category %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+            
+            <div class="toggle-group">
+              <label class="toggle-switch">
+                <input type="checkbox" id="show-low-stock" <%= showLowStock == 'true' ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label"> Show Low Stock Only </span>
+              </label>
+            </div>
+
+            <div class="search-section">
+              <form class="search-form" id="search-form">
+                <div class="search-input-group">
+                  <input type="text"
+                         id="search-input"
+                         name="search"
+                         class="form-control search-input"
+                         placeholder="Search products, size, color..."
+                         value="<%= search || '' %>">
+                  <button type="submit" class="btn btn-primary search-btn">
+                    <i class="lni lni-search"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="sort-section">
+              <div class="sort-group">
+                <label class="sort-label">Sort by:</label>
+                <select class="sort-field form-select" id="sort-field">
+                  <option value="name" <%= sortField==='name' ? 'selected' : '' %>>Product Name</option>
+                  <option value="size" <%= sortField==='size' ? 'selected' : '' %>>Size</option>
+                  <option value="color" <%= sortField==='color' ? 'selected' : '' %>>Color</option>
+                  <option value="currentStock" <%= sortField==='currentStock' ? 'selected' : '' %>>Current Stock</option>
+                  <option value="price" <%= sortField==='price' ? 'selected' : '' %>>Price</option>
+                  <option value="lastUpdated" <%= sortField==='lastUpdated' ? 'selected' : '' %>>Last Updated</option>
+                  <option value="category" <%= sortField==='category' ? 'selected' : '' %>>Category</option>
+                </select>
+                
+                <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
+                  <span class="sort-icon"><%= sortOrder==='asc' ? '↑' : '↓' %></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions-section">
+              <button class="btn btn-secondary reset-btn" id="reset-filters" type="button">
+                <i class="lni lni-reload"></i>
+                <span class="btn-text">Reset</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Navigator -->
+        <div class="table-navigator">
+          <div class="nav-left">
+            <button class="btn btn-info" onclick="toggleStockRegistry()" id="registry-toggle">
+              <i class="lni lni-list"></i>
+              <span class="btn-text">Stock Registry</span>
+            </button>
+          </div>
+          
+          <div class="pagination-controls">
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="prev-btn"
+                    <%= currentPage<=1 ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage-1 %>)">
+              <i class="lni lni-chevron-left"></i>
+              <span class="btn-text">Prev</span>
+            </button>
+            
+            <div class="page-info">
+              <span class="page-label">Page</span>
+              <input type="number" 
+                     min="1" 
+                     max="<%= totalPages %>"
+                     id="page-number"
+                     class="page-input" 
+                     value="<%= currentPage %>"
+                     onchange="goToPage(this.value)" />
+              <span class="page-total">of <%= totalPages %></span>
+            </div>
+            
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="next-btn"
+                    <%= currentPage>=totalPages ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage+1 %>)">
+              <span class="btn-text">Next</span>
+              <i class="lni lni-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stock Registry Section -->
+        <div class="stock-registry-section" id="stock-registry" style="display: none;">
+          <div class="registry-header">
+            <h6 class="registry-title">
+              <i class="lni lni-list"></i>
+              Stock Movement Registry
+            </h6>
+            <button class="btn btn-sm btn-outline-secondary" onclick="toggleStockRegistry()">
+              <i class="lni lni-close"></i>
+            </button>
+          </div>
+          
+          <div class="registry-table-wrapper">
+            <table class="table registry-table">
+              <thead>
+                <tr>
+                  <th>Date & Time</th>
+                  <th>Product</th>
+                  <th>Variant</th>
+                  <th>Action</th>
+                  <th>Quantity</th>
+                  <th>Previous Stock</th>
+                  <th>New Stock</th>
+                  <th>Reason</th>
+                  <th>Updated By</th>
+                </tr>
+              </thead>
+              <tbody id="registry-tbody">
+                <% if (stockHistory && stockHistory.length > 0) { %>
+                  <% stockHistory.forEach(entry => { %>
+                    <tr>
+                      <td class="registry-date">
+                        <%= new Date(entry.timestamp).toLocaleDateString() %><br>
+                        <small><%= new Date(entry.timestamp).toLocaleTimeString() %></small>
+                      </td>
+                      <td class="product-name"><%= entry.productName %></td>
+                      <td class="variant-info">
+                        <% if (entry.size || entry.color) { %>
+                          <div class="variant-details">
+                            <% if (entry.size) { %>
+                              <span class="variant-badge size-badge"><%= entry.size %></span>
+                            <% } %>
+                            <% if (entry.color) { %>
+                              <span class="variant-badge color-badge"><%= entry.color %></span>
+                            <% } %>
+                          </div>
+                        <% } else { %>
+                          <span class="text-muted">-</span>
+                        <% } %>
+                      </td>
+                      <td class="action-type">
+                        <span class="action-badge <%= entry.action %>">
+                          <% if (entry.action === 'stock_in') { %>
+                            <i class="lni lni-arrow-up"></i> Stock In
+                          <% } else { %>
+                            <i class="lni lni-arrow-down"></i> Stock Out
+                          <% } %>
+                        </span>
+                      </td>
+                      <td class="quantity-change <%= entry.quantity > 0 ? 'positive' : 'negative' %>">
+                        <%= entry.quantity > 0 ? '+' : '' %><%= entry.quantity %>
+                      </td>
+                      <td class="previous-stock"><%= entry.previousStock %></td>
+                      <td class="new-stock"><%= entry.newStock %></td>
+                      <td class="update-reason"><%= entry.reason %></td>
+                      <td class="updated-by"><%= entry.updatedBy %></td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="9" class="no-data-cell">
+                      <div class="no-data-content">
+                        <i class="lni lni-list"></i>
+                        <p>No stock movements recorded yet</p>
+                      </div>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="table-wrapper">
+          <div class="table-container">
+            <table class="table" id="inventory-table">
+              <% if (inventory && inventory.length > 0) { %>
+              <thead>
+                <tr>
+                  <th class="sortable-header" onclick="setSortField('name')">
+                    <div class="header-content">
+                      <span>Product Name</span>
+                      <% if (sortField === 'name') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th>Variant</th>
+                  <th>Category</th>
+                  <th class="sortable-header" onclick="setSortField('currentStock')">
+                    <div class="header-content">
+                      <span>Current Stock</span>
+                      <% if (sortField === 'currentStock') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th class="sortable-header" onclick="setSortField('price')">
+                    <div class="header-content">
+                      <span>Price</span>
+                      <% if (sortField === 'price') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th>Sale Price</th>
+                  <th>Status</th>
+                  <th class="sortable-header" onclick="setSortField('lastUpdated')">
+                    <div class="header-content">
+                      <span>Last Updated</span>
+                      <% if (sortField === 'lastUpdated') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th class="actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% inventory.forEach((item) => { 
+                  const isOutOfStock = item.currentStock === 0;
+                  const isLowStock = item.currentStock > 0 && item.currentStock <= 5;
+                  const stockStatus = isOutOfStock ? 'out_of_stock' : isLowStock ? 'low_stock' : 'in_stock';
+                %>
+                <tr class="inventory-row <%= stockStatus %>" data-product-id="<%= item.productId %>" data-variant-id="<%= item.variantId %>">
+                  <td class="product-name">
+                    <div class="product-info">
+                      <span class="product-title"><%= item.name %></span>
+                      <% if (isLowStock || isOutOfStock) { %>
+                        <span class="stock-warning">
+                          <i class="lni lni-warning"></i>
+                        </span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="variant-info">
+                    <div class="variant-details">
+                      <% if (item.size) { %>
+                        <span class="variant-badge size-badge"><%= item.size %></span>
+                      <% } %>
+                      <% if (item.color) { %>
+                        <span class="variant-badge color-badge"><%= item.color %></span>
+                      <% } %>
+                      <% if (!item.size && !item.color) { %>
+                        <span class="text-muted">Standard</span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="product-category">
+                    <span class="category-badge"><%= item.category %></span>
+                  </td>
+                  <td class="current-stock">
+                    <div class="stock-info">
+                      <span class="stock-number <%= stockStatus %>"><%= item.currentStock %></span>
+                      <% if (item.currentStock > 0) { %>
+                        <div class="stock-bar">
+                          <div class="stock-progress" style="width: '<%= Math.min((item.currentStock / 50) * 100, 100) %>%'"></div>
+                        </div>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="product-price">
+                    <span class="price-value">$<%= item.price.toFixed(2) %></span>
+                  </td>
+                  <td class="sale-price">
+                    <% if (item.salePrice && item.salePrice < item.price) { %>
+                      <span class="sale-price-value">$<%= item.salePrice.toFixed(2) %></span>
+                    <% } else { %>
+                      <span class="text-muted">-</span>
+                    <% } %>
+                  </td>
+                  <td class="stock-status">
+                    <div class="status-badges">
+                      <span class="status-badge <%= stockStatus %>">
+                        <% if (stockStatus === 'in_stock') { %>
+                          <i class="lni lni-checkmark"></i> In Stock
+                        <% } else if (stockStatus === 'low_stock') { %>
+                          <i class="lni lni-warning"></i> Low Stock
+                        <% } else { %>
+                          <i class="lni lni-close"></i> Out of Stock
+                        <% } %>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="last-updated">
+                    <span class="update-date"><%= new Date(item.lastUpdated).toLocaleDateString() %></span>
+                  </td>
+                  <td class="inventory-actions">
+                    <div class="action-buttons">
+                      <button class="btn btn-sm btn-outline-primary stock-btn" 
+                              onclick="openStockModal('<%= item.productId %>', '<%= item.variantId %>', '<%= item.name %>', '<%= item.size %>', '<%= item.color %>', '<%= item.currentStock %>')"
+                              title="Update Stock">
+                        <i class="lni lni-package"></i>
+                        <span class="btn-text">Update Stock</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+              <% } else { %>
+              <tbody>
+                <tr class="no-data-row">
+                  <td colspan="9" class="no-data-cell">
+                    <div class="no-data-content">
+                      <div class="no-data-icon">
+                        <i class="lni lni-package"></i>
+                      </div>
+                      <p>No inventory items found</p>
+                      <% if (search || status !== 'all' || categoryFilter !== 'all') { %>
+                        <button class="btn btn-link" onclick="resetFilters()">Clear filters</button>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+              <% } %>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stock Update Modal -->
+<div class="modal-overlay" id="stock-modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="stock-modal-title">Update Stock</h5>
+      <button class="modal-close" onclick="closeStockModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="stock-form">
+      <div class="modal-body">
+        <div id="stock-modal-messages"></div>
+        
+        <div class="product-details" id="product-details">
+          <div class="product-name-display">
+            <span class="label">Product:</span>
+            <span class="value" id="product-name-value"></span>
+          </div>
+          <div class="variant-display" id="variant-display">
+            <span class="label">Variant:</span>
+            <span class="value" id="variant-value"></span>
+          </div>
+          <div class="current-stock-display">
+            <span class="label">Current Stock:</span>
+            <span class="value" id="current-stock-value">0</span>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="stock-action" class="form-label">Action <span class="required">*</span></label>
+            <select id="stock-action" name="action" class="form-control" onchange="updateStockPreview()">
+              <option value="stock_in">Stock In (+)</option>
+              <option value="stock_out">Stock Out (-)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="stock-quantity" class="form-label">Quantity <span class="required">*</span></label>
+            <input type="number" 
+                   id="stock-quantity" 
+                   name="quantity" 
+                   class="form-control" 
+                   placeholder="Enter quantity"
+                   min="1"
+                   oninput="updateStockPreview()"
+                   required>
+            <div class="form-error" id="quantity-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="stock-reason" class="form-label">Reason <span class="required">*</span></label>
+            <input type="text" 
+                   id="stock-reason" 
+                   name="reason" 
+                   class="form-control" 
+                   placeholder="Enter reason for stock update"
+                   required>
+            <div class="form-error" id="reason-error"></div>
+          </div>
+        </div>
+
+        <div class="stock-preview" id="stock-preview" style="display: none;">
+          <div class="preview-content">
+            <span class="preview-label">New Stock:</span>
+            <span class="preview-value" id="preview-stock">0</span>
+          </div>
+        </div>
+
+        <input type="hidden" id="stock-product-id" name="productId">
+        <input type="hidden" id="stock-variant-id" name="variantId">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeStockModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="stock-submit-btn">
+          <span class="btn-spinner" id="stock-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="stock-submit-text">Update Stock</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+/* Base Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+  transform: scale(1);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6c757d;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.modal-body {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #f8f9fa;
+}
+
+/* Variant-specific styles */
+.variant-details {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.variant-badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.size-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #bbdefb;
+}
+
+.color-badge {
+  background: #f3e5f5;
+  color: #7b1fa2;
+  border: 1px solid #ce93d8;
+}
+
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.product-title {
+  font-weight: 600;
+  color: #212529;
+}
+
+.stock-warning {
+  color: #dc3545;
+}
+
+.category-badge {
+  background: #e8f5e8;
+  color: #2e7d32;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stock-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock-number {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.stock-number.in_stock {
+  color: #28a745;
+}
+
+.stock-number.low_stock {
+  color: #ffc107;
+}
+
+.stock-number.out_of_stock {
+  color: #dc3545;
+}
+
+.stock-bar {
+  width: 60px;
+  height: 4px;
+  background: #e9ecef;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stock-progress {
+  height: 100%;
+  background: #28a745;
+  transition: width 0.3s ease;
+}
+
+.price-value {
+  font-weight: bold;
+  color: #28a745;
+  font-size: 14px;
+}
+
+.sale-price-value {
+  font-weight: bold;
+  color: #dc3545;
+  font-size: 14px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-badge.in_stock {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.low_stock {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.out_of_stock {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.update-date {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.stock-btn {
+  min-width: 120px;
+}
+
+/* Stock Registry Styles */
+.stock-registry-section {
+  margin-bottom: 24px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.registry-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.registry-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #212529;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.registry-table-wrapper {
+  padding: 20px;
+  background: white;
+  border-radius: 0 0 8px 8px;
+}
+
+.registry-table {
+  margin: 0;
+}
+
+.registry-date {
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.action-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.action-badge.stock_in {
+  background: #d4edda;
+  color: #155724;
+}
+
+.action-badge.stock_out {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.quantity-change.positive {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.quantity-change.negative {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.previous-stock, .new-stock {
+  font-weight: 500;
+}
+
+.update-reason {
+  max-width: 200px;
+  word-wrap: break-word;
+}
+
+.updated-by {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Stock Modal Specific Styles */
+.product-details {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  border: 1px solid #dee2e6;
+}
+
+.product-name-display,
+.variant-display,
+.current-stock-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.product-name-display:last-child,
+.variant-display:last-child,
+.current-stock-display:last-child {
+  margin-bottom: 0;
+}
+
+.product-details .label {
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.product-details .value {
+  font-weight: bold;
+  color: #212529;
+}
+
+.stock-preview {
+  background: #e3f2fd;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 16px;
+  border: 1px solid #bbdefb;
+}
+
+.preview-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-label {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+.preview-value {
+  font-weight: bold;
+  font-size: 18px;
+  color: #1976d2;
+}
+
+/* Navigation Styles */
+.nav-left {
+  display: flex;
+  gap: 12px;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.loading-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error and success messages */
+.error-msg, .success-msg {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  transform: translateY(-10px);
+}
+
+.error-msg.show, .success-msg.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.error-msg {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.success-msg {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+/* Form error styles */
+.form-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.form-error.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.form-control.error {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+  
+  .modal-header, .modal-footer {
+    padding: 16px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .btn-text {
+    display: none;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .controls-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .nav-left {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .stock-registry-section {
+    margin: 0 -10px 24px;
+  }
+  
+  .registry-table-wrapper {
+    padding: 10px;
+    overflow-x: auto;
+  }
+  
+  .variant-details {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .table-navigator {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .pagination-controls {
+    justify-content: center;
+  }
+  
+  .registry-header {
+    padding: 12px 16px;
+  }
+  
+  .registry-title {
+    font-size: 14px;
+  }
+}
+</style>
+
+<script>
+  const BASE_URL = window.location.origin;
+  
+  const STATE = {
+    page: parseInt('<%= currentPage %>') || 1,
+    status: '<%= status %>' || 'all',
+    categoryFilter: '<%= categoryFilter %>' || 'all',
+    sortField: '<%= sortField %>' || 'name',
+    sortOrder: '<%= sortOrder %>' || 'asc',
+    search: '<%= search %>' || '',
+    showLowStock: '<%= showLowStock %>' == 'true',
+    isLoading: false,
+    currentStockItem: null,
+    showRegistry: false
+  };
+
+  function showLoading() {
+    STATE.isLoading = true;
+    document.getElementById('loading-overlay').classList.add('active');
+  }
+
+  function hideLoading() {
+    STATE.isLoading = false;
+    document.getElementById('loading-overlay').classList.remove('active');
+  }
+
+  function showError(message) {
+    const errorMsg = document.getElementById('error-msg');
+    errorMsg.textContent = message;
+    errorMsg.classList.add('show');
+    setTimeout(() => {
+      errorMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function showSuccess(message) {
+    const successMsg = document.getElementById('success-msg');
+    successMsg.textContent = message;
+    successMsg.classList.add('show');
+    setTimeout(() => {
+      successMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function showModalError(message, modalType = 'stock') {
+    const modalMessages = document.getElementById(`${modalType}-modal-messages`);
+    modalMessages.innerHTML = `<div class="error-msg show">${message}</div>`;
+    setTimeout(() => {
+      modalMessages.innerHTML = '';
+    }, 5000);
+  }
+
+  function showModalSuccess(message, modalType = 'stock') {
+    const modalMessages = document.getElementById(`${modalType}-modal-messages`);
+    modalMessages.innerHTML = `<div class="success-msg show">${message}</div>`;
+    setTimeout(() => {
+      modalMessages.innerHTML = '';
+    }, 3000);
+  }
+
+  function buildUrl(overrides = {}) {
+    const params = {
+      page: overrides.page || STATE.page,
+      status: overrides.status || STATE.status,
+      categoryFilter: overrides.categoryFilter || STATE.categoryFilter,
+      sortField: overrides.sortField || STATE.sortField,
+      sortOrder: overrides.sortOrder || STATE.sortOrder,
+      search: overrides.search !== undefined ? overrides.search : STATE.search,
+      showLowStock: overrides.showLowStock !== undefined ? overrides.showLowStock : STATE.showLowStock
+    };
+
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === null || params[key] === undefined || 
+          (key === 'showLowStock' && !params[key])) {
+        delete params[key];
+      }
+    });
+
+    const url = new URL(window.location.pathname, window.location.origin);
+    Object.keys(params).forEach(key => {
+      url.searchParams.set(key, params[key]);
+    });
+
+    return url.toString();
+  }
+
+  function navigateToUrl(url) {
+    showLoading();
+    window.location.href = url;
+  }
+
+  function goToPage(page) {
+    const pageNum = parseInt(page);
+    const maxPages = parseInt('<%= totalPages %>');
+    if (pageNum < 1 || pageNum > maxPages) return;
+    
+    STATE.page = pageNum;
+    navigateToUrl(buildUrl({ page: pageNum }));
+  }
+
+  function setSortField(field) {
+    const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+    STATE.sortField = field;
+    STATE.sortOrder = newOrder;
+    STATE.page = 1;
+    navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
+  }
+
+  function resetFilters() {
+    STATE.page = 1;
+    STATE.status = 'all';
+    STATE.categoryFilter = 'all';
+    STATE.sortField = 'name';
+    STATE.sortOrder = 'asc';
+    STATE.search = '';
+    STATE.showLowStock = false;
+    
+    navigateToUrl(buildUrl({
+      page: 1,
+      status: 'all',
+      categoryFilter: 'all',
+      sortField: 'name',
+      sortOrder: 'asc',
+      search: '',
+      showLowStock: false
+    }));
+  }
+
+  function toggleStockRegistry() {
+    const registry = document.getElementById('stock-registry');
+    const toggleBtn = document.getElementById('registry-toggle');
+    
+    if (registry.style.display === 'none') {
+      registry.style.display = 'block';
+      toggleBtn.innerHTML = '<i class="lni lni-list"></i><span class="btn-text">Hide Registry</span>';
+      STATE.showRegistry = true;
+    } else {
+      registry.style.display = 'none';
+      toggleBtn.innerHTML = '<i class="lni lni-list"></i><span class="btn-text">Stock Registry</span>';
+      STATE.showRegistry = false;
+    }
+  }
+
+  function openStockModal(productId, variantId, productName, size, color, currentStock) {
+    const modal = document.getElementById('stock-modal-overlay');
+    const form = document.getElementById('stock-form');
+
+
+    console.log(productId, variantId, productName, size, color, currentStock);
+    
+    // alert(currentStock)
+    
+    STATE.currentStockItem = {
+      productId: productId,
+      variantId: variantId,
+      name: productName,
+      size: size,
+      color: color,
+      currentStock: currentStock
+    };
+    
+    form.reset();
+    clearFormErrors();
+    document.getElementById('stock-modal-messages').innerHTML = '';
+    
+
+    document.getElementById('stock-modal-title').textContent = `Update Stock`;
+    document.getElementById('product-name-value').textContent = productName;
+    
+    const variantDisplay = document.getElementById('variant-display');
+    const variantValue = document.getElementById('variant-value');
+    if (size || color) {
+      let variantText = [];
+      if (size) variantText.push(`Size: ${size}`);
+      if (color) variantText.push(`Color: ${color}`);
+      variantValue.textContent = variantText.join(', ');
+      variantDisplay.style.display = 'flex';
+    } else {
+      variantValue.textContent = 'Standard';
+      variantDisplay.style.display = 'flex';
+    }
+    
+    document.getElementById('current-stock-value').textContent = currentStock;
+    document.getElementById('stock-product-id').value = productId;
+    document.getElementById('stock-variant-id').value = variantId;
+    document.getElementById('stock-preview').style.display = 'none';
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+      document.getElementById('stock-quantity').focus();
+    }, 300);
+  }
+
+  function closeStockModal() {
+    const modal = document.getElementById('stock-modal-overlay');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    STATE.currentStockItem = null;
+    clearFormErrors();
+    document.getElementById('stock-modal-messages').innerHTML = '';
+  }
+
+  function updateStockPreview() {
+    const quantity = parseInt(document.getElementById('stock-quantity').value) || 0;
+    const action = document.getElementById('stock-action').value;
+    const preview = document.getElementById('stock-preview');
+    const previewValue = document.getElementById('preview-stock');
+    
+    if (quantity > 0 && STATE.currentStockItem) {
+      const newStock = action === 'stock_in' 
+        ? STATE.currentStockItem.currentStock + quantity
+        : Math.max(0, STATE.currentStockItem.currentStock - quantity);
+      
+      previewValue.textContent = newStock;
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+
+  function showFormLoading(show, modalType = 'stock') {
+    const spinner = document.getElementById(`${modalType}-spinner`);
+    const submitBtn = document.getElementById(`${modalType}-submit-btn`);
+    
+    if (show) {
+      spinner.style.display = 'inline-block';
+      submitBtn.disabled = true;
+    } else {
+      spinner.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+  }
+
+  function clearFormErrors() {
+    const errors = document.querySelectorAll('.form-error');
+    errors.forEach(error => {
+      error.classList.remove('show');
+      error.textContent = '';
+    });
+    
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+      input.classList.remove('error');
+    });
+  }
+
+  function showFormError(fieldName, message) {
+    const field = document.querySelector(`[name="${fieldName}"]`);
+    const error = document.getElementById(`${fieldName}-error`);
+    
+    if (field) field.classList.add('error');
+    if (error) {
+      error.textContent = message;
+      error.classList.add('show');
+    }
+  }
+
+  function validateStockForm() {
+    clearFormErrors();
+    let isValid = true;
+    
+    const quantity = document.getElementById('stock-quantity').value;
+    const reason = document.getElementById('stock-reason').value.trim();
+    const action = document.getElementById('stock-action').value;
+    
+    if (!quantity || quantity < 1) {
+      showFormError('quantity', 'Quantity must be at least 1');
+      isValid = false;
+    }
+    
+    if (!reason) {
+      showFormError('reason', 'Reason is required');
+      isValid = false;
+    }
+    
+    if (action === 'stock_out' && STATE.currentStockItem) {
+      const newStock = STATE.currentStockItem.currentStock - parseInt(quantity);
+      if (newStock < 0) {
+        showFormError('quantity', 'Cannot remove more stock than available');
+        isValid = false;
+      }
+    }
+    
+    return isValid;
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    document.getElementById('stock-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!validateStockForm()) {
+        return;
+      }
+      
+      showFormLoading(true, 'stock');
+      
+      try {
+        const formData = new FormData(this);
+        const data = {
+          productId: formData.get('productId'),
+          variantId: formData.get('variantId'),
+          action: formData.get('action'),
+          quantity: parseInt(formData.get('quantity')),
+          reason: formData.get('reason').trim()
+        };
+        
+        const response = await fetch(`${BASE_URL}/admin/inventory/update-stock`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showModalSuccess('Stock updated successfully', 'stock');
+          setTimeout(() => {
+            closeStockModal();
+            window.location.reload();
+          }, 1500);
+        } else {
+          if (result.errors) {
+            Object.keys(result.errors).forEach(field => {
+              showFormError(field, result.errors[field]);
+            });
+          } else {
+            showModalError(result.message || 'Failed to update stock', 'stock');
+          }
+        }
+      } catch (error) {
+        showModalError('An error occurred while updating stock', 'stock');
+        console.error('Error:', error);
+      } finally {
+        showFormLoading(false, 'stock');
+      }
+    });
+
+    // Filter event listeners
+    document.getElementById('status-filter').addEventListener('change', function(e) {
+      STATE.status = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('category-filter').addEventListener('change', function(e) {
+      STATE.categoryFilter = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ categoryFilter: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('show-low-stock').addEventListener('change', function(e) {
+      STATE.showLowStock = e.target.checked;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ showLowStock: e.target.checked, page: 1 }));
+    });
+
+    document.getElementById('sort-field').addEventListener('change', function(e) {
+      STATE.sortField = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('sort-order').addEventListener('click', function() {
+      const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
+      STATE.sortOrder = newOrder;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
+    });
+
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const searchValue = document.getElementById('search-input').value.trim();
+      STATE.search = searchValue;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
+    });
+
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+    // Stock quantity input listener
+    document.getElementById('stock-quantity').addEventListener('input', updateStockPreview);
+    document.getElementById('stock-action').addEventListener('change', updateStockPreview);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (document.getElementById('stock-modal-overlay').classList.contains('active')) {
+          closeStockModal();
+        }
+      }
+    });
+
+    // Modal click outside to close
+    document.getElementById('stock-modal-overlay').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeStockModal();
+      }
+    });
+  });
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function() {
+    if (!STATE.isLoading) {
+      window.location.reload();
+    }
+  });
+
+  // Hide loading on page load
+  window.addEventListener('load', function() {
+    hideLoading();
+  });
+</script>

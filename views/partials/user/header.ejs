@@ -80,7 +80,7 @@
                                     <a href="#"> <i class="fa fa-location"></i> Current Location</a>
                                 </div>
 
-                                    <div class="icon-group">
+                                    <div style="cursor: pointer;" class="icon-group">
                                         <i class="fa-regular fa-heart"></i>
                                     <div class="icon-group-inline">
                                         <span>Wishlist</span>
@@ -89,13 +89,15 @@
                                     </div>
 
 
-                                    <div class="icon-group">
+                                    <div style="cursor: pointer;" class="icon-group">
                                     <i class="fa-solid fa-cart-shopping"></i>
                                     <div onclick="gotoCartPage(`<%= user?._id %>`)" class="icon-group-inline">
                                         <span>Cart</span>
                                         <span class="count"><span id="HeadercartCount"><%= cartCount %></span> items</span>
                                     </div>
                                 </div>
+
+
                             </div> 
                     </div> <% }else{ %>  <div class="header__bottom__right">
                             <div class="header__bottom_links">

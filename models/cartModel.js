@@ -23,10 +23,6 @@ const cartItemSchema = new Schema({
     required: true,
     min: 1
   },
-  total: {
-    type: Number,
-    min: 0
-  },
   image: String,
   name: String
 }, { _id: false });

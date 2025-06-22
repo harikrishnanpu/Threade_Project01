@@ -33,7 +33,7 @@ const AddressSchema = new Schema(
       required: true,
       trim: true,
     },
-    zip: {
+    pincode: {
       type: String,
       required: true,
       trim: true,

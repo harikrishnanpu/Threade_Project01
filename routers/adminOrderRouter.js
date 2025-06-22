@@ -1,0 +1,22 @@
+const express = require('express');
+const adminOrderRouter = express.Router();
+const orderController = require('../controllers/adminOrderController');
+
+adminOrderRouter.get('/', orderController.getAllOrders);
+adminOrderRouter.get('/:orderId', orderController.renderOrderDetail);
+adminOrderRouter.get('/:orderId/invoice', orderController.renderInvoice);
+
+adminOrderRouter.get('/api/order/:orderId', orderController.getOneOrder);
+adminOrderRouter.get('/:orderId/export', orderController.exportSingleOrder);
+
+adminOrderRouter.post('/update-status', orderController.updateOrderStatus);
+adminOrderRouter.post('/bulk-update', orderController.bulkUpdateOrders);
+adminOrderRouter.post('/:orderId/status', orderController.orderDetailsStatusUpdate);
+adminOrderRouter.put('/:orderId/update', orderController.updateFullOrder);
+adminOrderRouter.post('/:id/return-request-action', orderController.returnRequestAction);
+
+
+
+
+
+module.exports = adminOrderRouter;

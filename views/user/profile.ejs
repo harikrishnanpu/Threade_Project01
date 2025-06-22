@@ -1,155 +1,171 @@
-<<<<<<< HEAD
+<!-- views/user/profile/index.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>My Account – <%= user.name %></title>
-
-  <!-- libs -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Personal data – <%= user.name %></title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 
-  <!-- page-specific style -->
   <style>
-    :root{
-      --up-primary:#000;
-      --up-light:#f9f9f9;
-      --up-medium:#e5e5e5;
-      --up-dark:#555;
-      --up-round:8px;
-      --up-trans:.3s;
-    }
-    body{font-family:'Nunito Sans',sans-serif;background:#fff;color:#333;}
+  :root{
+    --bg:#f7f9fc;--white:#fff;--primary:#0d6efd;--primary-light:#e8f0ff;
+    --text:#374151;--muted:#6b7280;--radius:12px;--tr:.25s;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",sans-serif}
+  body{background:var(--bg);color:var(--text);line-height:1.5}
 
-    /* wrapper */
-    #up-page{padding:2rem 0;}
+  /* wrapper layout */
+  .wrapper{display:flex;min-height:100dvh;max-width:1300px;margin:auto}
 
-    /* avatar card */
-    .up-avatar{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid var(--up-medium);}
-    .up-card{border:1px solid var(--up-medium);border-radius:var(--up-round);background:#fff;}
-    .up-card-header{background:var(--up-light);padding:.75rem 1.25rem;border-bottom:1px solid var(--up-medium);font-weight:600;}
+  /* sidebar */
+  .sidebar{width:250px;background:var(--white);border-right:1px solid #e5e7eb;
+           display:flex;flex-direction:column;padding:1.5rem 0;transition:transform var(--tr)}
+  .avatar-box{display:flex;align-items:center;gap:.9rem;padding-inline:1.5rem;margin-bottom:1.6rem}
+  .avatar{width:54px;height:54px;border-radius:50%;background:var(--primary-light);
+          display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:var(--primary);font-weight:600}
+  nav ul{list-style:none}
+  nav li a{display:flex;align-items:center;gap:.75rem;padding:.85rem 1.5rem;
+           text-decoration:none;color:inherit;border-left:3px solid transparent;transition:background var(--tr)}
+  nav li a:hover{background:#f1f5f9}
+  nav li a.active{border-color:var(--primary);background:#eef4ff}
+  nav li i{width:18px;text-align:center}
+  .logout{margin-top:auto;padding:.9rem 1.5rem;background:none;border:none;color:#ef4444;
+          display:flex;gap:.6rem;cursor:pointer}
 
-    /* action links */
-    .up-action a{display:inline-block;margin:0 .25rem .5rem 0;}
+  /* mobile header */
+  .mobile-top{display:none;background:var(--white);border-bottom:1px solid #e5e7eb;
+              padding:1rem 1.25rem;align-items:center;justify-content:space-between;position:sticky;top:0;}
+  .mobile-btn{background:none;border:none;font-size:1.3rem}
+  .overlay{display:none;position:fixed;inset:0;background:#0005;z-index:800}
 
-    /* address chips */
-    .up-address{border:1px solid var(--up-medium);border-radius:var(--up-round);padding:1rem;margin-bottom:1rem;position:relative;}
-    .up-address-default{position:absolute;top:8px;right:8px;background:#28a745;color:#fff;font-size:12px;padding:2px 6px;border-radius:var(--up-round);}
+  /* main */
+  main{flex:1;padding:2rem 2.5rem}
+  h1{font-size:1.4rem;margin-bottom:1.4rem}
+  .crumb{font-size:.85rem;color:var(--muted);margin-bottom:1.2rem}
+  .crumb i{margin-inline:.25rem}
 
-    /* orders table */
-    .up-orders th, .up-orders td{vertical-align:middle;}
-    .up-status{font-size:.875rem;padding:.25rem .5rem;border-radius:var(--up-round);}
-    .up-pending{background:#ffecb3;}
-    .up-shipped{background:#c8e6c9;}
-    .up-cancelled{background:#ffcdd2;}
+  /* profile image + grid */
+  .profile-top{display:flex;align-items:center;gap:1.2rem;margin-bottom:1.8rem}
+  .big-avatar{width:90px;height:90px;border-radius:50%;background:var(--primary-light);
+              display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--primary);font-weight:600}
+  .id-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .label{font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:.35rem}
+  .field-box{background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);
+             padding:1rem;display:flex;align-items:center;gap:.7rem}
+  .field-box input{flex:1;border:none;background:none;font-size:.95rem;color:var(--text)}
 
-    /* responsive tweaks */
-    @media(max-width:767px){
-      .up-avatar{width:80px;height:80px;}
-      .up-orders th:nth-child(4),.up-orders td:nth-child(4){display:none;}/* hide date on xs */
-    }
+  /* responsive tweaks */
+  @media(max-width:768px){
+    .sidebar{position:fixed;inset:0 50% 0 0;transform:translateX(-100%);z-index:850}
+    .sidebar.open{transform:none}
+    .mobile-top{display:flex}
+    .wrapper{flex-direction:column}
+    main{padding:1.25rem;margin-top:64px}
+    .overlay.show{display:block}
+  }
+
+    .edit-wrapper{margin-top:2.5rem;text-align:left}
+  .edit-btn{
+    display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;
+    background:var(--primary);color:var(--white) !important;border:none;border-radius:var(--radius);
+    text-decoration:none;font-size:.95rem;transition: background var(--tr),transform var(--tr);
+  }
+  .edit-btn:hover{background:#0b5be0;transform:translateY(-2px)}
   </style>
 </head>
 <body>
 
-  <main id="up-page" class="container">
+<!-- mobile header -->
+<div class="mobile-top">
+  <button class="mobile-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+  <span>Personal data</span>
+  <span></span>
+</div>
+<div class="overlay" onclick="toggleMenu()"></div>
 
-    <!-- PROFILE HEADER -->
-    <div class="d-flex align-items-center mb-4 flex-wrap">
-      <img class="up-avatar mr-3 mb-2" src="<%= user.profileImage||'/img/no-avatar.png' %>" alt="Avatar"/>
+<div class="wrapper">
+  <!-- sidebar -->
+  <aside class="sidebar" id="side">
+    <div class="avatar-box">
+      <div class="avatar"><%= user.name[0].toUpperCase() %></div>
       <div>
-        <h2 class="mb-1"><%= user.name %></h2>
-        <p class="text-muted mb-0"><%= user.email %></p>
+        <strong><%= user.name %></strong><br>
+        <span style="font-size:.8rem;color:var(--muted)"><%= user.email %></span>
       </div>
-      <div class="ml-auto up-action">
-        <a href="/profile/edit" class="btn btn-sm btn-outline-primary"><i class="fas fa-user-edit"></i> Edit Profile</a>
-        <a href="/profile/password" class="btn btn-sm btn-outline-secondary"><i class="fas fa-key"></i> Change Password</a>
-        <a href="/logout" class="btn btn-sm btn-outline-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+    <nav>
+      <ul>
+        <li><a class="active" href="/user/profile"><i class="fas fa-user"></i>Personal data</a></li>
+        <li><a href="/user/profile/address"><i class="fas fa-map-marker-alt"></i>Addresses</a></li>
+        <li><a href="/user/profile/payments"><i class="fas fa-credit-card"></i>Payment & instalments</a></li>
+        <li><a href="/user/profile/orders"><i class="fas fa-box"></i>Orders</a></li>
+        <li><a href="/user/profile/wishlist"><i class="fas fa-heart"></i>Wish list</a></li>
+        <li><a href="/user/profile/discounts"><i class="fas fa-gift"></i>Discounts</a></li>
+        <li><a href="/user/profile/security"><i class="fas fa-shield-halved"></i>Security & access</a></li>
+        <li><a href="/user/profile/notifications"><i class="fas fa-bell"></i>Notification</a></li>
+        <li><a href="/contact-us"><i class="fas fa-phone"></i>Contact us</a></li>
+      </ul>
+    </nav>
+    <button class="logout" onclick="location.href='/logout'"><i class="fas fa-right-from-bracket"></i> Log out</button>
+  </aside>
+
+  <!-- main -->
+  <main>
+    <div class="crumb"><i class="fas fa-house"></i> Home › Account › Personal</div>
+    <h1>Profile details</h1>
+
+    <!-- profile image -->
+    <div class="profile-top">
+      <% if(user.profileImage){ %>
+        <img src="<%= user.profileImage %>" alt="profile" class="big-avatar" style="object-fit:cover"/>
+      <% }else{ %>
+        <div class="big-avatar"><%= user.name[0].toUpperCase() %></div>
+      <% } %>
+      <div>
+        <strong style="font-size:1.2rem"><%= user.name %></strong><br>
+        <span style="color:var(--muted)"><%= user.email %></span>
       </div>
     </div>
 
-    <!-- GRID -->
-    <div class="row">
-
-      <!-- LEFT: Addresses -->
-      <div class="col-lg-4 mb-4">
-        <div class="up-card h-100">
-          <div class="up-card-header d-flex justify-content-between align-items-center">
-            Addresses
-            <a href="#" data-toggle="modal" data-target="#addAddr" class="btn btn-sm btn-primary">Add</a>
-          </div>
-          <div class="p-3">
-            <% if(addresses.length){ addresses.forEach(addr=>{ %>
-              <div class="up-address">
-                <% if(addr.isDefault){ %><span class="up-address-default">Default</span><% } %>
-                <p class="mb-1 font-weight-bold"><%= addr.fullName %> </p>
-                <p class="mb-1"><%= addr.street %>, <%= addr.city %>, <%= addr.state %> – <%= addr.zip %></p>
-                <p class="mb-1"><%= addr.phone %></p>
-                <div>
-                  <a href="/address/<%= addr._id %>/edit" class="text-primary mr-2"><i class="fas fa-edit"></i></a>
-                  <a href="/address/<%= addr._id %>/delete" class="text-danger"><i class="fas fa-trash"></i></a>
-                </div>
-              </div>
-            <% }) } else { %>
-              <p class="text-muted">No addresses yet.</p>
-            <% } %>
-          </div>
+    <!-- read-only fields -->
+    <div class="id-grid">
+      <div>
+        <p class="label">Full name</p>
+        <div class="field-box"><i class="fas fa-user"></i><input value="<%= user.name %>" readonly></div>
+      </div>
+      <div>
+        <p class="label">E-mail</p>
+        <div class="field-box"><i class="fas fa-envelope"></i><input value="<%= user.email %>" readonly></div>
+      </div>
+      <div>
+        <p class="label">Phone</p>
+        <div class="field-box"><i class="fas fa-phone"></i><input value="<%= user.phone||'' %>" readonly></div>
+      </div>
+      <div>
+        <p class="label">Date of birth</p>
+        <div class="field-box"><i class="fas fa-calendar"></i>
+          <input value="<%= user.dateOfBirth?user.dateOfBirth.toISOString().slice(0,10):'' %>" readonly>
         </div>
       </div>
-
-      <!-- RIGHT: Orders -->
-      <div class="col-lg-8 mb-4">
-        <div class="up-card">
-          <div class="up-card-header">Recent Orders</div>
-          <div class="table-responsive">
-            <table class="table up-orders mb-0">
-              <thead>
-                <tr>
-                  <th>Order&nbsp;ID</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                  <th>Date</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <% if(orders.length){ orders.forEach(o=>{ %>
-                  <tr>
-                    <td><%= o.orderId %></td>
-                    <td>
-                      <span class="up-status up-<%= o.status %>"><%= o.status %></span>
-                    </td>
-                    <td>$<%= o.total.toFixed(2) %></td>
-                    <td><%= new Date(o.createdAt).toLocaleDateString() %></td>
-                    <td><a href="/orders/<%= o._id %>" class="btn btn-sm btn-outline-info">View</a></td>
-                  </tr>
-                <% }) } else { %>
-                  <tr><td colspan="5" class="text-center text-muted">No orders found.</td></tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
+      <div>
+        <p class="label">Status</p>
+        <div class="field-box"><i class="fas fa-circle-check"></i>
+          <input value="<%= user.isVerified?'Verified':'Unverified' %>" readonly>
         </div>
       </div>
-
     </div>
+  <div class="edit-wrapper">
+<a class="edit-btn" href="/user/profile/edit"><i class="fas fa-pen"></i>Edit profile</a>
+</div>
   </main>
+</div>
 
-
-  <!-- libs -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleMenu(){
+  document.getElementById('side').classList.toggle('open');
+  document.querySelector('.overlay').classList.toggle('show');
+}
+</script>
 </body>
 </html>
-=======
-<h2>My Profile</h2>
-<p>Name: <%= user.name %></p>
-<p>Email: <%= user.email %></p>
-<p>Phone: <%= user.phone %></p>
-<% if(user.dateOfBirth){ %>
-<p>Date of Birth: <%= user.dateOfBirth.toDateString() %></p>
-<% } %>
-<a href="/user/profile/edit">Edit Profile</a>
-
->>>>>>> 051ea41f5b7798e69c70c04f4ab40ebb6cb27ad4

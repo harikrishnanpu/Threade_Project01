@@ -1,16 +1,69 @@
+const express = require("express")
+const multer = require("multer")
+const path = require("path")
+const {
+  renderProfilePage,
+  renderAddressBookPage,
+  addAddress,
+  editAddress,
+  deleteAddress,
+  renderEditProfilePage,
+  updateProfile,
+  renderChangePasswordPage,
+  changePassword,
+  uploadProfileImage,
+  verifyUserProfileEmail,
+  renderOrdersPage,
+  renderOrderDetailsPage,
+} = require("../controllers/userProfileController")
 
 
-const express = require('express');
-const { renderProfilePage, renderAdderssBookPage } = require('../controllers/userProfileController');
+const userProfileRouter = express.Router()
 
-const userProfileRouter = express.Router();
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/profiles/")
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
+    cb(null, "profile-" + uniqueSuffix + path.extname(file.originalname))
+  },
+})
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif/
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase())
+    const mimetype = allowedTypes.test(file.mimetype)
+
+    if (mimetype && extname) {
+      return cb(null, true)
+    } else {
+      cb(new Error("Only image files are allowed!"))
+    }
+  },
+})
+
+userProfileRouter.get("/", renderProfilePage)
+userProfileRouter.get("/edit", renderEditProfilePage)
+userProfileRouter.get("/password", renderChangePasswordPage);
+userProfileRouter.get('/orders', renderOrdersPage);
+userProfileRouter.get('/orders/:id', renderOrderDetailsPage);
 
 
+userProfileRouter.put("/api/edit", updateProfile);
+userProfileRouter.post('/api/verify/email/otp', verifyUserProfileEmail);
+userProfileRouter.post('/api/change-password', changePassword)
+userProfileRouter.post("/upload-image", upload.single("profileImage"), uploadProfileImage);
+userProfileRouter.post("/password", changePassword)
 
-userProfileRouter.get('/', renderProfilePage);
-userProfileRouter.get('/address', renderAdderssBookPage);
+userProfileRouter.get("/address", renderAddressBookPage)
+userProfileRouter.post("/address/add", addAddress)
+userProfileRouter.put("/address/:id/edit", editAddress)
+userProfileRouter.delete("/address/:id/delete", deleteAddress)
 
-userProfileRouter.post('/add', )
-
-
-module.exports = userProfileRouter;
+module.exports = userProfileRouter
