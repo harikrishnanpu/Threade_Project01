@@ -75,11 +75,8 @@ const getAllProducts = async (req, res) => {
       category,
       brand,
       priceRange,
-      size,
-      color,
       tag,
       rating,
-      isNew,
       isSale,
       isFeatured,
       inStock,
@@ -90,71 +87,41 @@ const getAllProducts = async (req, res) => {
 
     const filters = {};
     
-    // Only show active products
     filters.isActive = true;
     
-    // Text search
     if (search) {
-      filters.name = { $regex: search, $options: 'i' };
+      const regSearch = new RegExp(search, 'i');
+      filters.name = regSearch ;
     }
     
-    // Category filter
     if (category) {
       filters.category = category;
     }
     
-    // Brand filter
     if (brand) {
       filters.brand = brand;
     }
     
-    // Price range filter
-    if (priceRange) {
-      if (priceRange === '0-50') {
-        filters.regularPrice = { $gte: 0, $lte: 50 };
-      } else if (priceRange === '50-100') {
-        filters.regularPrice = { $gte: 50, $lte: 100 };
-      } else if (priceRange === '100-150') {
-        filters.regularPrice = { $gte: 100, $lte: 150 };
-      } else if (priceRange === '150-200') {
-        filters.regularPrice = { $gte: 150, $lte: 200 };
-      } else if (priceRange === '200-plus') {
-        filters.regularPrice = { $gte: 200 };
-      } else if (priceRange.includes('-')) {
-        const [min, max] = priceRange.split('-').map(Number);
-        if (!isNaN(min) && !isNaN(max)) {
-          filters.regularPrice = { $gte: min, $lte: max };
-        }
-      }
+if (priceRange) {
+  if (priceRange === '200-plus') {
+    filters.regularPrice = { $gte: 200 };
+  } else if (priceRange.includes('-')) {
+    const [min, max] = priceRange.split('-').map(Number);
+    if (!isNaN(min)) {
+      filters.regularPrice = { $gte: min };
+      if (!isNaN(max)) filters.regularPrice.$lte = max;
     }
+  }
+}
+
     
-    // Size filter
-    if (size) {
-      filters.sizes = { $in: [size] };
-    }
     
-    // Color filter
-    if (color) {
-      filters.colors = { $in: [color] };
-    }
-    
-    // Tag filter
     if (tag) {
       filters.tags = { $in: [tag] };
     }
     
-    // Rating filter
     if (rating) {
       filters.rating = { $gte: parseInt(rating) };
-    }
-    
-    // Status filters
-    if (isNew === 'true') {
-      filters.isNew = true;
-    }
-    
-    if (isSale === 'true') {
-      filters.isSale = true;
     }
     
     if (isFeatured === 'true') {
@@ -165,7 +132,6 @@ const getAllProducts = async (req, res) => {
       filters.stock = { $gt: 0 };
     }
     
-    // Determine sort order
     let sortOptions = {};
     switch (sortBy) {
       case 'newest':
@@ -193,14 +159,11 @@ const getAllProducts = async (req, res) => {
         sortOptions = { createdAt: -1 };
     }
     
-    // Convert page and limit to numbers
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     
-    // Get products from service
     const result = await productService.getProducts(filters, sortOptions, pageNum, limitNum);
     
-    // Return response
     res.status(200).json({
       success: true,
       products: result.products,

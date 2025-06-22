@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Payment | Checkout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <style>
+    /* Base styles */
+    :root {
+      --primary: #4285f4;
+      --primary-dark: #3367d6;
+      --text-dark: #333333;
+      --text-light: #666666;
+      --text-muted: #999999;
+      --border-color: #e5e5e5;
+      --bg-light: #f8f9fa;
+      --bg-white: #ffffff;
+      --danger: #dc3545;
+      --success: #28a745;
+      --warning: #ffc107;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    
+    body {
+      color: var(--text-dark);
+      line-height: 1.5;
+      background-color: var(--bg-light);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    /* Header */
+    .header {
+      background-color: var(--bg-white);
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    /* Progress indicator */
+    .progress-section {
+      background-color: var(--bg-white);
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+    }
+    
+    .progress-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3rem;
+      position: relative;
+    }
+    
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .step-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .step-icon.completed {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .step-icon.active {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .step-icon.inactive {
+      background-color: #e0e0e0;
+      color: var(--text-muted);
+    }
+    
+    .step-label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      text-transform: capitalize;
+    }
+    
+    .step-label.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    
+    .step-label.completed {
+      color: var(--primary);
+      font-weight: 500;
+    }
+    
+    .progress-line {
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 100px);
+      height: 2px;
+      background-color: #e0e0e0;
+      z-index: 1;
+    }
+    
+    .progress-line.completed {
+      background: var(--primary);
+    }
+    
+    /* Main content */
+    .payment-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    @media (min-width: 992px) {
+      .payment-content {
+        grid-template-columns: 1fr 400px;
+      }
+    }
+    
+    /* Left column - Payment methods */
+    .payment-section {
+      background-color: var(--bg-white);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 2rem;
+    }
+    
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: var(--text-dark);
+    }
+    
+    .payment-methods {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .payment-method {
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .payment-method:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.15);
+    }
+    
+    .payment-method.selected {
+      border-color: var(--primary);
+      background-color: rgba(66, 133, 244, 0.05);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.15);
+    }
+    
+    .payment-method input[type="radio"] {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+    
+    .payment-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .payment-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg-light);
+      border-radius: 8px;
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+    
+    .payment-details h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--text-dark);
+    }
+    
+    .payment-details p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+    
+    /* Card form */
+    .card-form {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: none;
+    }
+    
+    .card-form.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-dark);
+      font-size: 0.9rem;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+    }
+    
+    .form-group input.error {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .form-error {
+      color: var(--danger);
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    
+    .form-error.show {
+      display: block;
+    }
+    
+    /* Return link */
+    .return-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+    }
+    
+    .return-link:hover {
+      text-decoration: underline;
+    }
+    
+    /* Right column - Order summary */
+    .order-summary {
+      background-color: var(--bg-white);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      height: fit-content;
+    }
+    
+    .summary-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .summary-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    /* Order items */
+    .order-items {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      max-height: 350px;
+      overflow-y: auto;
+    }
+    
+    .order-item {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .order-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    
+    .item-image {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      flex-shrink: 0;
+    }
+    
+    .item-details {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .item-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      font-size: 0.95rem;
+      line-height: 1.3;
+    }
+    
+    .item-variant {
+      color: var(--text-light);
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .item-quantity {
+      color: var(--text-light);
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .item-price {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    
+    /* Order totals */
+    .order-totals {
+      padding: 1.5rem;
+    }
+    
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+    }
+    
+    .total-row.grand-total {
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding-top: 0.75rem;
+      margin-top: 0.75rem;
+      border-top: 2px solid var(--border-color);
+    }
+    
+    .discount-amount {
+      color: var(--success);
+    }
+    
+    /* Place order button */
+    .place-order-btn {
+      width: 100%;
+      padding: 1rem;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      transition: all 0.3s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .place-order-btn:hover:not(:disabled) {
+      background-color: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    }
+    
+    .place-order-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .place-order-btn.loading {
+      color: transparent;
+    }
+    
+    .loading-spinner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+    
+    .place-order-btn.loading .loading-spinner {
+      display: block;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Error messages */
+    .error-message {
+      background-color: #fef2f2;
+      color: var(--danger);
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .error-message.show {
+      display: flex;
+    }
+    
+    .success-message {
+      background-color: #f0fdf4;
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .success-message.show {
+      display: flex;
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 0.75rem;
+      }
+      
+      .progress-section {
+        padding: 1.5rem 0;
+        margin-bottom: 1.5rem;
+      }
+      
+      .progress-container {
+        gap: 1.5rem;
+      }
+      
+      .step-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+      }
+      
+      .step-label {
+        font-size: 0.8rem;
+      }
+      
+      .progress-line {
+        top: 20px;
+        width: calc(100% - 80px);
+      }
+      
+      .payment-content {
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      
+      .payment-section {
+        padding: 1.5rem;
+      }
+      
+      .section-title {
+        font-size: 1.2rem;
+        margin-bottom: 1.25rem;
+      }
+      
+      .payment-method {
+        padding: 1rem;
+      }
+      
+      .payment-method input[type="radio"] {
+        top: 1rem;
+        right: 1rem;
+      }
+      
+      .payment-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 1.1rem;
+      }
+      
+      .payment-details h4 {
+        font-size: 1rem;
+      }
+      
+      .payment-details p {
+        font-size: 0.85rem;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .order-items {
+        padding: 1.25rem;
+        max-height: 300px;
+      }
+      
+      .order-item {
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+      }
+      
+      .item-image {
+        width: 70px;
+        height: 70px;
+      }
+      
+      .item-name {
+        font-size: 0.9rem;
+      }
+      
+      .item-variant,
+      .item-quantity {
+        font-size: 0.8rem;
+      }
+      
+      .summary-header,
+      .order-totals {
+        padding: 1.25rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 0.5rem;
+      }
+      
+      .progress-container {
+        gap: 1rem;
+      }
+      
+      .step-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+      }
+      
+      .step-label {
+        font-size: 0.75rem;
+      }
+      
+      .progress-line {
+        top: 17px;
+        width: calc(100% - 70px);
+      }
+      
+      .payment-section {
+        padding: 1.25rem;
+      }
+      
+      .payment-method {
+        padding: 0.75rem;
+      }
+      
+      .payment-method input[type="radio"] {
+        top: 0.75rem;
+        right: 0.75rem;
+      }
+      
+      .order-item {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .item-image {
+        width: 80px;
+        height: 80px;
+        align-self: center;
+      }
+      
+      .summary-header,
+      .order-totals {
+        padding: 1rem;
+      }
+    }
+
+    /* Applied Coupon Section */
+    .applied-coupon-section {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      background-color: #f8fffe;
+    }
+
+    .coupon-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .coupon-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .coupon-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .coupon-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--success);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .coupon-code {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+
+    .coupon-savings {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .savings-text {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    .savings-amount {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .coupon-description {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Progress indicator -->
+  <div class="progress-section">
+    <div class="container">
+      <div class="progress-container">
+        <div class="progress-line completed"></div>
+        <div class="progress-step">
+          <div class="step-icon completed">
+            <i class="fas fa-check"></i>
+          </div>
+          <div class="step-label completed">cart</div>
+        </div>
+        <div class="progress-step">
+          <div class="step-icon completed">
+            <i class="fas fa-check"></i>
+          </div>
+          <div class="step-label completed">Checkout</div>
+        </div>
+        <div class="progress-step">
+          <div class="step-icon active">
+            <i class="fas fa-credit-card"></i>
+          </div>
+          <div class="step-label active">Payment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="payment-content">
+      <!-- Left Column - Payment Methods -->
+      <div class="payment-section">
+        <h2 class="section-title">Payment</h2>
+        
+        <!-- Error Messages -->
+        <div class="error-message" id="error-message">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="error-text"></span>
+        </div>
+        
+        <div class="success-message" id="success-message">
+          <i class="fas fa-check-circle"></i>
+          <span id="success-text"></span>
+        </div>
+
+        <div class="payment-methods">
+          <!-- Cash on Delivery - Only Option -->
+          <div class="payment-method selected" onclick="selectPaymentMethod('cod', this)">
+            <input type="radio" name="paymentMethod" value="cod" id="cod-payment" checked>
+            <div class="payment-info">
+              <div class="payment-icon">
+                <i class="fas fa-money-bill-wave"></i>
+              </div>
+              <div class="payment-details">
+                <h4>Cash on Delivery</h4>
+                <p>Pay when your order is delivered to your doorstep. No advance payment required.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <a href="/user/cart/checkout" class="return-link">
+          <i class="fas fa-arrow-left"></i>
+          Return to checkout
+        </a>
+      </div>
+
+      <!-- Right Column - Order Summary -->
+      <div class="order-summary">
+        <div class="summary-header">
+          <h2 class="summary-title">Your Order</h2>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-items">
+          <% if (orderItems && orderItems.length > 0) { %>
+            <% orderItems.forEach(item => { %>
+              <div class="order-item">
+                <img src="<%= item.image %>" alt="<%= item.name %>" class="item-image">
+                <div class="item-details">
+                  <div class="item-name"><%= item.name %></div>
+                  <div class="item-variant"><%= item.variant.color %> • <%= item.variant.size %></div>
+                  <div class="item-quantity">Qty: <%= item.quantity %></div>
+                  <div class="item-price">₹<%= (item.price * item.quantity).toFixed(2) %></div>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="order-item">
+              <img src="/placeholder.svg?height=80&width=80" alt="Sample Product" class="item-image">
+              <div class="item-details">
+                <div class="item-name">MacBook Pro M3 SME 13 2TB 1.4 13 Inch</div>
+                <div class="item-variant">Space Gray • 13 inch</div>
+                <div class="item-quantity">Qty: 1</div>
+                <div class="item-price">₹1,299.00</div>
+              </div>
+            </div>
+            <div class="order-item">
+              <img src="/placeholder.svg?height=80&width=80" alt="Sample Product" class="item-image">
+              <div class="item-details">
+                <div class="item-name">Lenovo ThinkPad Screen for 15 inch MacBook</div>
+                <div class="item-variant">Black • 15 inch</div>
+                <div class="item-quantity">Qty: 2</div>
+                <div class="item-price">₹63.98</div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Applied Coupon Section -->
+        <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon) { %>
+          <div class="applied-coupon-section">
+            <div class="coupon-header">
+              <h3>Applied Coupon</h3>
+            </div>
+            <div class="coupon-details">
+              <div class="coupon-info">
+                <div class="coupon-badge">
+                  <i class="fas fa-tag"></i>
+                  <span class="coupon-code"><%= appliedCoupon.code %></span>
+                </div>
+                <div class="coupon-savings">
+                  <span class="savings-text">You saved</span>
+                  <span class="savings-amount">₹<%= appliedCoupon.discount.toFixed(2) %></span>
+                </div>
+              </div>
+              <div class="coupon-description">
+                <%= appliedCoupon.description || appliedCoupon.discount + '% off on your order' %>
+              </div>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Order Totals -->
+        <div class="order-totals">
+          <div class="total-row">
+            <span>Subtotal</span>
+            <span id="subtotal">₹<%= typeof subtotal !== 'undefined' ? subtotal.toFixed(2) : '1,362.98' %></span>
+          </div>
+          <div class="total-row">
+            <span>Coupon Discount</span>
+            <span class="discount-amount" id="discount">-₹<%= typeof discount !== 'undefined' ? discount.toFixed(2) : '0.00' %></span>
+          </div>
+          <div class="total-row">
+            <span>Shipment cost</span>
+            <span id="shipping">₹<%= typeof shippingCost !== 'undefined' ? shippingCost.toFixed(2) : '22.50' %></span>
+          </div>
+          <div class="total-row grand-total">
+            <span>Grand Total</span>
+            <span id="grand-total">₹<%= typeof grandTotal !== 'undefined' ? grandTotal.toFixed(2) : '1,385.48' %></span>
+          </div>
+
+          <button class="place-order-btn" id="place-order-btn" onclick="placeOrder()">
+            <span class="btn-text">Place Order</span>
+            <div class="loading-spinner"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let isProcessing = false;
+
+    // Place order function (simplified)
+    async function placeOrder() {
+      if (isProcessing) return;
+
+      hideErrorMessage();
+      showLoading();
+
+      try {
+
+        const orderData = {
+          paymentMethod: 'cod'
+          };
+
+        const response = await fetch('/user/orders/placeorder', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showSuccessMessage('Order placed successfully! Redirecting...');
+          setTimeout(() => {
+            window.location.href = result.redirectUrl || '/user/order/success';
+          }, 2000);
+        } else {
+          showErrorMessage(result.message || 'Failed to place order. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error placing order:', error);
+        showErrorMessage('An error occurred while placing your order. Please try again.');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Remove all card-related functions and keep only the essential ones
+    
+    function showErrorMessage(message) {
+      const errorDiv = document.getElementById('error-message');
+      const errorText = document.getElementById('error-text');
+      
+      errorText.textContent = message;
+      errorDiv.classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hideErrorMessage() {
+      document.getElementById('error-message').classList.remove('show');
+    }
+
+    function showSuccessMessage(message) {
+      const successDiv = document.getElementById('success-message');
+      const successText = document.getElementById('success-text');
+      
+      successText.textContent = message;
+      successDiv.classList.add('show');
+    }
+
+    function showLoading() {
+      const btn = document.getElementById('place-order-btn');
+      btn.classList.add('loading');
+      btn.disabled = true;
+      isProcessing = true;
+    }
+
+    function hideLoading() {
+      const btn = document.getElementById('place-order-btn');
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      isProcessing = false;
+    }
+
+    // Handle browser back button
+    window.addEventListener('beforeunload', function(e) {
+      if (isProcessing) {
+        e.preventDefault();
+        e.returnValue = 'Your order is being processed. Are you sure you want to leave?';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -45,6 +45,9 @@ const getUserHomePage = async (req, res) => {
   getHotProductsByMainCategory(6),
   getAllProductsByCategory(6)
 ]);
+
+
+
     
     res.render('user/home', {
       data,

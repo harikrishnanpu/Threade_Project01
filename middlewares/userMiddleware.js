@@ -47,7 +47,7 @@ const checkIsUserAuthenticatedAndRedirect = async (req, res, next) => {
       return res.redirect('/user/login?error=deleted')
     }
 
-    return res.redirect('/user/login');
+    return res.redirect(`/user/login?error=${err.message}`);
   }
 };
 
@@ -77,14 +77,13 @@ const checkIsUserAuthenticated = async (req, res, next) => {
       return next();
     }
 
+    const cartCount = await getCartCount(user._id);
+
     res.locals.user = user;
+    res.locals.cartCount = cartCount;
     req.user = user;
     return next(); 
   } catch (err) {
-    if(err.message == "deleted"){
-      return next()
-    }
-
     return next();
   }
 };
@@ -165,7 +164,7 @@ const checkAndRedirect = async (req, res) => {
 
 
 }catch(err){
-  return res.status(500).json({message: 'internal server error'})
+  return res.status(500).json({message: err.message})
 }
 
 };

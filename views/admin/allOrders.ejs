@@ -1,0 +1,1467 @@
+<section class="table-components">
+  <div class="container-fluid">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="tables-wrapper">
+      <div class="card-style mb-30">
+        <div class="page-header">
+          <h6 class="page-title">Order Management</h6>
+          <div class="header-stats">
+            <span class="stat-item">
+              <i class="lni lni-package"></i>
+              Total: <span id="total-count"><%= totalOrders %></span>
+            </span>
+            <span class="stat-item">
+              <i class="lni lni-eye"></i>
+              Showing: <span id="result-count"><%= orders.length %></span>
+            </span>
+            <span class="stat-item">
+              <i class="lni lni-revenue"></i>
+              Revenue: ₹<span id="revenue-count"><%= totalRevenue.toFixed(2) %></span>
+            </span>
+          </div>
+        </div>
+        
+        <p class="error-msg" id="error-msg"></p>
+        <p class="success-msg" id="success-msg"></p>
+        
+        <div class="table-controls">
+          <div class="controls-row">
+            <div class="filters-section">
+              <div class="filter-group">
+                <label class="filter-label">Status:</label>
+                <select class="filter form-select" id="status-filter">
+                  <option value="all" <%= status==='all' ? 'selected' : '' %>>All Orders</option>
+                  <option value="pending" <%= status==='pending' ? 'selected' : '' %>>Pending</option>
+                  <option value="confirmed" <%= status==='confirmed' ? 'selected' : '' %>>Confirmed</option>
+                  <option value="shipped" <%= status==='shipped' ? 'selected' : '' %>>Shipped</option>
+                  <option value="delivered" <%= status==='delivered' ? 'selected' : '' %>>Delivered</option>
+                  <option value="cancelled" <%= status==='cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  <option value="returned" <%= status==='returned' ? 'selected' : '' %>>Returned</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label">Payment:</label>
+                <select class="filter form-select" id="payment-filter">
+                  <option value="all" <%= paymentFilter==='all' ? 'selected' : '' %>>All Methods</option>
+                  <option value="cod" <%= paymentFilter==='cod' ? 'selected' : '' %>>Cash on Delivery</option>
+                  <option value="online" <%= paymentFilter==='online' ? 'selected' : '' %>>Online Payment</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label">Date Range:</label>
+                <select class="filter form-select" id="date-filter">
+                  <option value="all" <%= dateRange==='all' ? 'selected' : '' %>>All Time</option>
+                  <option value="today" <%= dateRange==='today' ? 'selected' : '' %>>Today</option>
+                  <option value="week" <%= dateRange==='week' ? 'selected' : '' %>>This Week</option>
+                  <option value="month" <%= dateRange==='month' ? 'selected' : '' %>>This Month</option>
+                  <option value="quarter" <%= dateRange==='quarter' ? 'selected' : '' %>>This Quarter</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label">Amount Range:</label>
+                <select class="filter form-select" id="amount-filter">
+                  <option value="all" <%= amountRange==='all' ? 'selected' : '' %>>All Amounts</option>
+                  <option value="0-500" <%= amountRange==='0-500' ? 'selected' : '' %>>₹0 - ₹500</option>
+                  <option value="500-1000" <%= amountRange==='500-1000' ? 'selected' : '' %>>₹500 - ₹1,000</option>
+                  <option value="1000-5000" <%= amountRange==='1000-5000' ? 'selected' : '' %>>₹1,000 - ₹5,000</option>
+                  <option value="5000+" <%= amountRange==='5000+' ? 'selected' : '' %>>₹5,000+</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="search-section">
+              <form class="search-form" id="search-form">
+                <div class="search-input-group">
+                  <input type="text"
+                         id="search-input"
+                         name="search"
+                         class="form-control search-input"
+                         placeholder="Search orders, customers..."
+                         value="<%= search || '' %>">
+                  <button type="submit" class="btn btn-primary search-btn">
+                    <i class="lni lni-search"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="sort-section">
+              <div class="sort-group">
+                <label class="sort-label">Sort by:</label>
+                <select class="sort-field form-select" id="sort-field">
+                  <option value="createdAt" <%= sortField==='createdAt' ? 'selected' : '' %>>Order Date</option>
+                  <option value="totalAmount" <%= sortField==='totalAmount' ? 'selected' : '' %>>Amount</option>
+                  <option value="customerName" <%= sortField==='customerName' ? 'selected' : '' %>>Customer</option>
+                  <option value="orderStatus" <%= sortField==='orderStatus' ? 'selected' : '' %>>Status</option>
+                  <option value="updatedAt" <%= sortField==='updatedAt' ? 'selected' : '' %>>Last Updated</option>
+                </select>
+                
+                <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
+                  <span class="sort-icon"><%= sortOrder==='asc' ? '↑' : '↓' %></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions-section">
+              <button class="btn btn-secondary reset-btn" id="reset-filters" type="button">
+                <i class="lni lni-reload"></i>
+                <span class="btn-text">Reset</span>
+              </button>
+              
+              <button class="btn btn-success export-btn" id="export-orders" type="button">
+                <i class="lni lni-download"></i>
+                <span class="btn-text">Export</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Navigator -->
+        <div class="table-navigator">
+          <div class="bulk-actions">
+            <label class="bulk-checkbox">
+              <input type="checkbox" id="select-all">
+              <span class="checkmark"></span>
+            </label>
+            <select class="bulk-action-select" id="bulk-action" disabled>
+              <option value="">Bulk Actions</option>
+              <option value="confirm">Confirm Selected</option>
+              <option value="ship">Mark as Shipped</option>
+              <option value="deliver">Mark as Delivered</option>
+              <option value="cancel">Cancel Selected</option>
+            </select>
+            <button class="btn btn-outline-primary apply-bulk-btn" id="apply-bulk" disabled>
+              Apply
+            </button>
+          </div>
+          
+          <div class="pagination-controls">
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="prev-btn"
+                    <%= currentPage<=1 ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage-1 %>)">
+              <i class="lni lni-chevron-left"></i>
+              <span class="btn-text">Prev</span>
+            </button>
+            
+            <div class="page-info">
+              <span class="page-label">Page</span>
+              <input type="number" 
+                     min="1" 
+                     max="<%= totalPages %>"
+                     id="page-number"
+                     class="page-input" 
+                     value="<%= currentPage %>"
+                     onchange="goToPage(this.value)" />
+              <span class="page-total">of <%= totalPages %></span>
+            </div>
+            
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="next-btn"
+                    <%= currentPage>=totalPages ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage+1 %>)">
+              <span class="btn-text">Next</span>
+              <i class="lni lni-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <div class="table-container">
+            <table class="table" id="orders-table">
+              <% if (orders && orders.length > 0) { %>
+              <thead>
+                <tr>
+                  <th class="checkbox-column">
+                    <label class="bulk-checkbox">
+                      <input type="checkbox" class="select-all-header">
+                      <span class="checkmark"></span>
+                    </label>
+                  </th>
+                  <th class="sortable-header" onclick="setSortField('orderNumber')">
+                    <div class="header-content">
+                      <span>Order ID</span>
+                      <% if (sortField === 'orderNumber') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th class="sortable-header" onclick="setSortField('customerName')">
+                    <div class="header-content">
+                      <span>Customer</span>
+                      <% if (sortField === 'customerName') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th>Items</th>
+                  <th class="sortable-header" onclick="setSortField('totalAmount')">
+                    <div class="header-content">
+                      <span>Amount</span>
+                      <% if (sortField === 'totalAmount') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th>Payment</th>
+                  <th class="sortable-header" onclick="setSortField('orderStatus')">
+                    <div class="header-content">
+                      <span>Status</span>
+                      <% if (sortField === 'orderStatus') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th class="sortable-header" onclick="setSortField('createdAt')">
+                    <div class="header-content">
+                      <span>Date</span>
+                      <% if (sortField === 'createdAt') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th class="actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% orders.forEach((order) => { %>
+                <tr class="order-row" data-order-id="<%= order._id %>">
+                  <td class="checkbox-column">
+                    <label class="bulk-checkbox">
+                      <input type="checkbox" class="order-checkbox" value="<%= order._id %>">
+                      <span class="checkmark"></span>
+                    </label>
+                  </td>
+                  <td class="order-id">
+                    <div class="id-info">
+                      <span class="order-number">#<%= order.orderNumber %></span>
+                      <% if (order.isUrgent) { %>
+                        <span class="urgent-badge">URGENT</span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="customer-info">
+                    <div class="customer-details">
+                      <span class="customer-name"><%= order.user.name %></span>
+                      <span class="customer-email"><%= order.user.email %></span>
+                      <% if (order.shippingAddress) { %>
+                        <span class="customer-location">
+                          <i class="lni lni-map-marker"></i>
+                          <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="order-items">
+                    <div class="items-info">
+                      <span class="items-count"><%= order.items.length %> item<%= order.items.length > 1 ? 's' : '' %></span>
+                      <div class="items-preview">
+                        <% order.items.slice(0, 2).forEach(item => { %>
+                          <div class="item-preview">
+                            <img src="<%= item.productImage %>" alt="<%= item.productName %>" class="item-thumb">
+                            <span class="item-name"><%= item.productName.substring(0, 20) %>...</span>
+                          </div>
+                        <% }) %>
+                        <% if (order.items.length > 2) { %>
+                          <span class="more-items">+<%= order.items.length - 2 %> more</span>
+                        <% } %>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="order-amount">
+                    <div class="amount-info">
+                      <span class="total-amount">₹<%= order.totalAmount.toFixed(2) %></span>
+                      <% if (order.coupon && order.coupon.discountAmount > 0) { %>
+                        <span class="discount-info">
+                          <i class="lni lni-tag"></i>
+                          -₹<%= order.coupon.discountAmount.toFixed(2) %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="payment-info">
+                    <div class="payment-details">
+                      <span class="payment-method <%= order.paymentMethod %>">
+                        <i class="lni lni-<%= order.paymentMethod === 'cod' ? 'money-protection' : 'credit-cards' %>"></i>
+                        <%= order.paymentMethod.toUpperCase() %>
+                      </span>
+                      <span class="payment-status payment-<%= order.paymentStatus %>">
+                        <%= order.paymentStatus %>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="order-status">
+                    <div class="status-container">
+                      <span class="status-badge status-<%= order.orderStatus %>">
+                        <i class="lni lni-<%= 
+                          order.orderStatus === 'pending' ? 'timer' :
+                          order.orderStatus === 'confirmed' ? 'checkmark' :
+                          order.orderStatus === 'shipped' ? 'delivery' :
+                          order.orderStatus === 'delivered' ? 'package' :
+                          order.orderStatus === 'cancelled' ? 'close' : 'reload'
+                        %>"></i>
+                        <%= order.orderStatus %>
+                      </span>
+                      <% if (order.orderStatus === 'shipped' && order.trackingNumber) { %>
+                        <span class="tracking-info">
+                          Track: <%= order.trackingNumber %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="order-date">
+                    <div class="date-info">
+                      <span class="date-text"><%= new Date(order.createdAt).toLocaleDateString() %></span>
+                      <span class="time-text"><%= new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></span>
+                      <% if (order.updatedAt && order.updatedAt !== order.createdAt) { %>
+                        <span class="updated-text">
+                          Updated: <%= new Date(order.updatedAt).toLocaleDateString() %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="order-actions">
+                    <div class="action-buttons">
+                      <button class="btn btn-sm btn-outline-primary view-btn" 
+                              onclick="viewOrderDetails('<%= order._id %>')"
+                              title="View Order Details">
+                        <i class="lni lni-eye"></i>
+                        <span class="btn-text">View</span>
+                      </button>
+
+                      <!-- Quick Action Buttons -->
+                      <% if (order.orderStatus === 'pending') { %>
+                        <button class="btn btn-sm btn-success confirm-btn" 
+                                onclick="confirmOrder('<%= order._id %>')"
+                                title="Confirm Order">
+                          <i class="lni lni-checkmark"></i>
+                          <span class="btn-text">Confirm</span>
+                        </button>
+                        <button class="btn btn-sm btn-danger cancel-btn" 
+                                onclick="cancelOrder('<%= order._id %>')"
+                                title="Cancel Order">
+                          <i class="lni lni-close"></i>
+                          <span class="btn-text">Cancel</span>
+                        </button>
+                      <% } else if (order.orderStatus === 'confirmed') { %>
+                        <button class="btn btn-sm btn-info ship-btn" 
+                                onclick="shipOrder('<%= order._id %>')"
+                                title="Mark as Shipped">
+                          <i class="lni lni-delivery"></i>
+                          <span class="btn-text">Ship</span>
+                        </button>
+                        <button class="btn btn-sm btn-danger cancel-btn" 
+                                onclick="cancelOrder('<%= order._id %>')"
+                                title="Cancel Order">
+                          <i class="lni lni-close"></i>
+                          <span class="btn-text">Cancel</span>
+                        </button>
+                      <% } else if (order.orderStatus === 'shipped') { %>
+                        <button class="btn btn-sm btn-success deliver-btn" 
+                                onclick="deliverOrder('<%= order._id %>')"
+                                title="Mark as Delivered">
+                          <i class="lni lni-package"></i>
+                          <span class="btn-text">Deliver</span>
+                        </button>
+                      <% } %>
+
+                      <button class="btn btn-sm btn-outline-info print-btn" 
+                              onclick="printInvoice('<%= order._id %>')"
+                              title="Print Invoice">
+                        <i class="lni lni-printer"></i>
+                        <span class="btn-text">Print</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+              <% } else { %>
+              <tbody>
+                <tr class="no-data-row">
+                  <td colspan="9" class="no-data-cell">
+                    <div class="no-data-content">
+                      <div class="no-data-icon">
+                        <i class="lni lni-package"></i>
+                      </div>
+                      <p>No orders found</p>
+                      <% if (search || status !== 'all' || paymentFilter !== 'all' || dateRange !== 'all') { %>
+                        <button class="btn btn-link" onclick="resetFilters()">Clear filters</button>
+                      <% } else { %>
+                        <p class="text-muted">Orders will appear here when customers place them</p>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+              <% } %>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Order Details Modal -->
+<div class="modal-overlay" id="order-modal-overlay">
+  <div class="modal-content modal-xl">
+    <div class="modal-header">
+      <h5 class="modal-title" id="order-modal-title">Order Details</h5>
+      <button class="modal-close" onclick="closeOrderModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="order-modal-body">
+      <!-- Order details will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<!-- Quick Action Modals -->
+<div class="modal-overlay" id="confirm-modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Confirm Order</h5>
+      <button class="modal-close" onclick="closeConfirmModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="confirm-form">
+      <div class="modal-body">
+        <p>Are you sure you want to confirm this order?</p>
+        <div class="form-group">
+          <label for="confirm-notes" class="form-label">Notes (Optional)</label>
+          <textarea id="confirm-notes" name="notes" class="form-control" rows="3"
+                    placeholder="Add any notes about this confirmation..."></textarea>
+        </div>
+        <input type="hidden" id="confirm-order-id" name="orderId">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+        <button type="submit" class="btn btn-success" id="confirm-submit-btn">
+          <span class="btn-spinner" id="confirm-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="confirm-submit-text">Confirm Order</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cancel-modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Cancel Order</h5>
+      <button class="modal-close" onclick="closeCancelModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="cancel-form">
+      <div class="modal-body">
+        <div id="cancel-modal-messages"></div>
+        <p>Are you sure you want to cancel this order?</p>
+        <div class="form-group">
+          <label for="cancel-reason" class="form-label">Cancellation Reason *</label>
+          <textarea id="cancel-reason" name="reason" class="form-control" rows="3"
+                    placeholder="Please provide a reason for cancellation..." required></textarea>
+        </div>
+        <input type="hidden" id="cancel-order-id" name="orderId">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeCancelModal()">Cancel</button>
+        <button type="submit" class="btn btn-danger" id="cancel-submit-btn">
+          <span class="btn-spinner" id="cancel-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="cancel-submit-text">Cancel Order</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ship-modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Ship Order</h5>
+      <button class="modal-close" onclick="closeShipModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="ship-form">
+      <div class="modal-body">
+        <div id="ship-modal-messages"></div>
+        
+        <div class="form-group">
+          <label for="tracking-number" class="form-label">Tracking Number</label>
+          <input type="text" id="tracking-number" name="trackingNumber" class="form-control" 
+                 placeholder="Enter tracking number">
+        </div>
+        
+        <div class="form-group">
+          <label for="ship-notes" class="form-label">Notes (Optional)</label>
+          <textarea id="ship-notes" name="notes" class="form-control" rows="3"
+                    placeholder="Add any shipping notes..."></textarea>
+        </div>
+
+        <input type="hidden" id="ship-order-id" name="orderId">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeShipModal()">Cancel</button>
+        <button type="submit" class="btn btn-info" id="ship-submit-btn">
+          <span class="btn-spinner" id="ship-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="ship-submit-text">Mark as Shipped</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+/* Additional styles specific to orders table */
+.order-id .order-number {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 14px;
+  color: #0d6efd;
+}
+
+.urgent-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+  background: #dc3545;
+  color: white;
+  margin-left: 8px;
+}
+
+.customer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.customer-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.customer-email {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.customer-location {
+  font-size: 11px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.items-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.items-count {
+  font-weight: 600;
+  font-size: 12px;
+  color: #495057;
+}
+
+.items-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-preview {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.item-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.item-name {
+  font-size: 10px;
+  color: #6c757d;
+}
+
+.more-items {
+  font-size: 10px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.amount-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.total-amount {
+  font-weight: bold;
+  font-size: 14px;
+  color: #28a745;
+}
+
+.discount-info {
+  font-size: 11px;
+  color: #28a745;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.payment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.payment-method {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.payment-method.cod {
+  color: #fd7e14;
+}
+
+.payment-method.online {
+  color: #0d6efd;
+}
+
+.payment-status {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.payment-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.payment-paid {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.payment-failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-confirmed {
+  background: #cff4fc;
+  color: #055160;
+}
+
+.status-shipped {
+  background: #e2e3ff;
+  color: #383d41;
+}
+
+.status-delivered {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-returned {
+  background: #e2e3ff;
+  color: #383d41;
+}
+
+.tracking-info {
+  font-size: 10px;
+  color: #6c757d;
+  font-family: 'Courier New', monospace;
+}
+
+.date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.date-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.time-text {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+.updated-text {
+  font-size: 10px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bulk-checkbox {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.bulk-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkmark {
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 18px;
+  width: 18px;
+  background-color: #fff;
+  border: 2px solid #ddd;
+  border-radius: 3px;
+  transition: all 0.3s;
+}
+
+.bulk-checkbox:hover input ~ .checkmark {
+  border-color: #007bff;
+}
+
+.bulk-checkbox input:checked ~ .checkmark {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.bulk-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.bulk-checkbox .checkmark:after {
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.bulk-action-select {
+  min-width: 150px;
+}
+
+.checkbox-column {
+  width: 40px;
+  text-align: center;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: white;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  padding: 4px 0;
+  top: 100%;
+  right: 0;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  color: black;
+  padding: 8px 16px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+.modal-xl {
+  max-width: 1200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .controls-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .btn-text {
+    display: none;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .bulk-actions {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .header-stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .table-navigator {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .pagination-controls {
+    justify-content: center;
+  }
+}
+</style>
+
+<style>
+/* Additional styles for updated orders page */
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.action-buttons .btn {
+  min-width: auto;
+  padding: 4px 8px;
+}
+
+.confirm-btn {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.cancel-btn {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+.ship-btn {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: white;
+}
+
+.ship-btn:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+}
+
+.deliver-btn {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.deliver-btn:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+  }
+  
+  .action-buttons .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-text {
+    display: inline;
+  }
+}
+
+@media (max-width: 576px) {
+  .action-buttons .btn-text {
+    display: none;
+  }
+  
+  .action-buttons .btn {
+    width: auto;
+    min-width: 32px;
+    padding: 6px;
+  }
+}
+
+/* Modal improvements */
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-xl {
+  max-width: 1200px;
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  margin-left: auto;
+}
+</style>
+
+<script>
+  const BASE_URL = window.location.origin;
+  
+  const STATE = {
+    page: parseInt('<%= currentPage %>') || 1,
+    status: '<%= status %>' || 'all',
+    paymentFilter: '<%= paymentFilter %>' || 'all',
+    dateRange: '<%= dateRange %>' || 'all',
+    amountRange: '<%= amountRange %>' || 'all',
+    sortField: '<%= sortField %>' || 'createdAt',
+    sortOrder: '<%= sortOrder %>' || 'desc',
+    search: '<%= search %>' || '',
+    isLoading: false,
+    selectedOrders: new Set()
+  };
+
+  function showLoading() {
+    STATE.isLoading = true;
+    document.getElementById('loading-overlay').classList.add('active');
+  }
+
+  function hideLoading() {
+    STATE.isLoading = false;
+    document.getElementById('loading-overlay').classList.remove('active');
+  }
+
+  function showError(message) {
+    const errorMsg = document.getElementById('error-msg');
+    errorMsg.textContent = message;
+    errorMsg.classList.add('show');
+    setTimeout(() => {
+      errorMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function showSuccess(message) {
+    const successMsg = document.getElementById('success-msg');
+    successMsg.textContent = message;
+    successMsg.classList.add('show');
+    setTimeout(() => {
+      successMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function buildUrl(overrides = {}) {
+    const params = {
+      page: overrides.page || STATE.page,
+      status: overrides.status || STATE.status,
+      paymentFilter: overrides.paymentFilter || STATE.paymentFilter,
+      dateRange: overrides.dateRange || STATE.dateRange,
+      amountRange: overrides.amountRange || STATE.amountRange,
+      sortField: overrides.sortField || STATE.sortField,
+      sortOrder: overrides.sortOrder || STATE.sortOrder,
+      search: overrides.search !== undefined ? overrides.search : STATE.search
+    };
+
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === null || params[key] === undefined || params[key] === 'all') {
+        delete params[key];
+      }
+    });
+
+    const url = new URL(window.location.pathname, window.location.origin);
+    Object.keys(params).forEach(key => {
+      url.searchParams.set(key, params[key]);
+    });
+
+    return url.toString();
+  }
+
+  function navigateToUrl(url) {
+    showLoading();
+    window.location.href = url;
+  }
+
+  function goToPage(page) {
+    const pageNum = parseInt(page);
+    const maxPages = parseInt('<%= totalPages %>');
+    if (pageNum < 1 || pageNum > maxPages) return;
+    
+    STATE.page = pageNum;
+    navigateToUrl(buildUrl({ page: pageNum }));
+  }
+
+  function setSortField(field) {
+    const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+    STATE.sortField = field;
+    STATE.sortOrder = newOrder;
+    STATE.page = 1;
+    navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
+  }
+
+  function resetFilters() {
+    STATE.page = 1;
+    STATE.status = 'all';
+    STATE.paymentFilter = 'all';
+    STATE.dateRange = 'all';
+    STATE.amountRange = 'all';
+    STATE.sortField = 'createdAt';
+    STATE.sortOrder = 'desc';
+    STATE.search = '';
+    
+    navigateToUrl(buildUrl({
+      page: 1,
+      status: 'all',
+      paymentFilter: 'all',
+      dateRange: 'all',
+      amountRange: 'all',
+      sortField: 'createdAt',
+      sortOrder: 'desc',
+      search: ''
+    }));
+  }
+
+  function viewOrderDetails(orderId) {
+    window.location.href = `${BASE_URL}/admin/orders/${orderId}`;
+  }
+
+  function closeOrderModal() {
+    document.getElementById('order-modal-overlay').classList.remove('active');
+  }
+
+  function confirmOrder(orderId) {
+    document.getElementById('confirm-order-id').value = orderId;
+    document.getElementById('confirm-modal-overlay').classList.add('active');
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirm-modal-overlay').classList.remove('active');
+    document.getElementById('confirm-form').reset();
+  }
+
+  function cancelOrder(orderId) {
+    document.getElementById('cancel-order-id').value = orderId;
+    document.getElementById('cancel-modal-overlay').classList.add('active');
+  }
+
+  function closeCancelModal() {
+    document.getElementById('cancel-modal-overlay').classList.remove('active');
+    document.getElementById('cancel-form').reset();
+  }
+
+  function shipOrder(orderId) {
+    document.getElementById('ship-order-id').value = orderId;
+    document.getElementById('ship-modal-overlay').classList.add('active');
+  }
+
+  function closeShipModal() {
+    document.getElementById('ship-modal-overlay').classList.remove('active');
+    document.getElementById('ship-form').reset();
+  }
+
+  function deliverOrder(orderId) {
+    if (confirm('Mark this order as delivered?')) {
+      updateOrderStatus(orderId, 'delivered');
+    }
+  }
+
+  function updateOrderStatus(orderId, newStatus, additionalData = {}) {
+    showLoading();
+    
+    const data = {
+      orderId: orderId,
+      status: newStatus,
+      ...additionalData
+    };
+
+    fetch(`${BASE_URL}/admin/orders/update-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        showSuccess(`Order ${newStatus} successfully`);
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        showError(result.message || `Failed to ${newStatus} order`);
+      }
+    })
+    .catch(error => {
+      showError(`Error updating order status`);
+      console.error('Error:', error);
+    })
+    .finally(() => {
+      hideLoading();
+    });
+  }
+
+  function printInvoice(orderId) {
+    window.open(`${BASE_URL}/admin/orders/${orderId}/invoice`, '_blank');
+  }
+
+  function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+    const bulkAction = document.getElementById('bulk-action');
+    const applyBulk = document.getElementById('apply-bulk');
+    
+    if (checkboxes.length > 0) {
+      bulkAction.disabled = false;
+      applyBulk.disabled = false;
+      STATE.selectedOrders = new Set(Array.from(checkboxes).map(cb => cb.value));
+    } else {
+      bulkAction.disabled = true;
+      applyBulk.disabled = true;
+      STATE.selectedOrders.clear();
+    }
+  }
+
+  function exportOrders() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'true');
+    window.open(`${window.location.pathname}?${params.toString()}`, '_blank');
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('status-filter').addEventListener('change', function(e) {
+      STATE.status = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('payment-filter').addEventListener('change', function(e) {
+      STATE.paymentFilter = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ paymentFilter: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('date-filter').addEventListener('change', function(e) {
+      STATE.dateRange = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ dateRange: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('amount-filter').addEventListener('change', function(e) {
+      STATE.amountRange = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ amountRange: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('sort-field').addEventListener('change', function(e) {
+      STATE.sortField = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('sort-order').addEventListener('click', function() {
+      const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
+      STATE.sortOrder = newOrder;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
+    });
+
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const searchValue = document.getElementById('search-input').value.trim();
+      STATE.search = searchValue;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
+    });
+
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+    document.getElementById('export-orders').addEventListener('click', exportOrders);
+
+    document.getElementById('select-all').addEventListener('change', function(e) {
+      const checkboxes = document.querySelectorAll('.order-checkbox');
+      checkboxes.forEach(cb => cb.checked = e.target.checked);
+      updateBulkActions();
+    });
+
+    document.querySelectorAll('.order-checkbox').forEach(cb => {
+      cb.addEventListener('change', updateBulkActions);
+    });
+    
+
+  document.getElementById('apply-bulk').addEventListener('click', async function () {
+  const action = document.getElementById('bulk-action').value;
+  const orderIds = Array.from(STATE.selectedOrders);
+
+  if (action && orderIds.length > 0) {
+    if (confirm(`Apply "${action}" to ${orderIds.length} orders?`)) {
+      try {
+        showLoading();
+
+        const res = await fetch(`${BASE_URL}/admin/orders/bulk-update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderIds, action })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          showSuccess(result.message);
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showError(result.message || 'Bulk update failed');
+        }
+      } catch (error) {
+        showError('Error processing bulk update');
+      } finally {
+        hideLoading();
+      }
+    }
+  }
+});
+
+    document.getElementById('confirm-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      
+      updateOrderStatus(data.orderId, 'confirmed', { notes: data.notes });
+      closeConfirmModal();
+    });
+
+    document.getElementById('cancel-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      
+      updateOrderStatus(data.orderId, 'cancelled', { reason: data.reason });
+      closeCancelModal();
+    });
+
+    document.getElementById('ship-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      
+      updateOrderStatus(data.orderId, 'shipped', { 
+        trackingNumber: data.trackingNumber,
+        notes: data.notes 
+      });
+      closeShipModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (document.getElementById('order-modal-overlay').classList.contains('active')) {
+          closeOrderModal();
+        }
+        if (document.getElementById('confirm-modal-overlay').classList.contains('active')) {
+          closeConfirmModal();
+        }
+        if (document.getElementById('cancel-modal-overlay').classList.contains('active')) {
+          closeCancelModal();
+        }
+        if (document.getElementById('ship-modal-overlay').classList.contains('active')) {
+          closeShipModal();
+        }
+      }
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('active');
+        }
+      });
+    });
+  });
+
+
+
+
+
+
+
+  window.addEventListener('popstate', function() {
+    if (!STATE.isLoading) {
+      window.location.reload();
+    }
+  });
+
+  window.addEventListener('load', function() {
+    hideLoading();
+  });
+</script>

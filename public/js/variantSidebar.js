@@ -29,12 +29,10 @@
     highlightActive(containerId, active);
   }
 
-  // main image
   function updateMain(src) {
     document.getElementById('vsMainImg').src = src;
   }
 
-  // thumbnails list
   function renderThumbnails(imgs) {
     var thumbs = document.getElementById('vsThumbs');
     thumbs.innerHTML = '';
@@ -46,15 +44,12 @@
         updateMain(src);
         highlightActive('vsThumbs', i.toString());
       });
-      // store index so highlightActive can match
       img.dataset.val = i;
       thumbs.appendChild(img);
     });
-    // highlight first thumb
     highlightActive('vsThumbs', '0');
   }
 
-  // when size clicked
   function onSize(size) {
     var vs = product.variants.filter(function(v) { return v.size === size; });
     selectedVariant = vs[0];              
@@ -145,13 +140,13 @@
         const result = await response.json();
 
         if(response.ok){
-            alert('added successfully')
+            
             updateCartCount(result.userId)
         }else{
             alert(result.message)
         }
     }catch(err){
-        alert(err)
+       window.location.href = '/user/login'
     }
   }
 
@@ -159,7 +154,7 @@
   async function updateCartCount(userId) {
     const BASE_URL = window.location.origin;
   try {
-    const res = await fetch(`${BASE_URL}/user/cart/api/count/${userId}`);
+    const res = await fetch(`${BASE_URL}/user/cart/api/count`);
     const result = await res.json();
     if(res.ok){
         const el = document.getElementById('HeadercartCount');

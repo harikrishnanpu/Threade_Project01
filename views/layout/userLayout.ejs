@@ -66,6 +66,8 @@
     <script src="/js/form-helper.js"></script>
 </head>
 <body>
+
+
     <div class="page-container">
         <% if(!noHeader) { %>
             <%- include('../partials/user/header') %> 
@@ -78,27 +80,23 @@
 
 
 
-
-<!-- Dark overlay -->
+<!-- Overlay -->
 <div id="sidebarOverlay" onclick="closeVariantSidebar()"></div>
 
 <!-- Variant Sidebar -->
 <aside id="variantSidebar" class="shadow">
   <div class="vs-header">
-    <button class="vs-close" onclick="closeVariantSidebar()">✕</button>
     <h5 id="vsTitle" class="vs-title">Loading…</h5>
+    <button class="vs-close" onclick="closeVariantSidebar()">✕</button>
   </div>
 
   <div class="vs-content">
-    <!-- Main image -->
     <div class="vs-main-image">
       <img id="vsMainImg" src="" alt="Variant" />
     </div>
 
-    <!-- Thumbnails -->
-    <div id="vsThumbs" class="vs-thumbs"></div>
+    <div id="vsThumbs"></div>
 
-    <!-- Selectors -->
     <div class="vs-selectors">
       <div class="vs-group">
         <label>Size</label>
@@ -108,7 +106,7 @@
         <label>Colour</label>
         <div id="vsColours" class="vs-options"></div>
       </div>
-      <div class="vs-group vs-qty">
+      <div class="vs-group">
         <label>Quantity</label>
         <div class="vs-qty-controls">
           <button id="vsQtyMinus">−</button>
@@ -121,6 +119,7 @@
 
   <button id="vsAddBtn" class="vs-add-btn">Add to cart</button>
 </aside>
+
 
 
     <script src="/js/jquery-3.3.1.min.js"></script>

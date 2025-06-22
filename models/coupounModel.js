@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-const { Schema, Types } = mongoose;
 
-const couponSchema = new Schema({
+
+const couponSchema = new mongoose.Schema({
   code: {
     type: String,
     required: true,
@@ -22,12 +22,11 @@ const couponSchema = new Schema({
   expiresAt: Date,
   onlyFor: {
     type: String,
-    enum: ['all', 'newUsers', 'vipUsers'],
+    enum: ['all', 'newUsers', 'premiumUsers'],
     default: 'all'
   },
-
   allowedUsers: [{
-    type: Types.ObjectId,
+    type: mongoose.Types.ObjectId,
     ref: 'User'
   }],
   maxUsage: {
@@ -39,9 +38,15 @@ const couponSchema = new Schema({
     default: 0
   },
   usedBy: [{
-    type: Types.ObjectId,
+    type: mongoose.Types.ObjectId,
     ref: 'User'
-  }]
+  }],
+  minOrderAmount: {
+    type: Number,
+    default: 0, 
+    min: 0
+  }
+
 }, {
   timestamps: true
 });
