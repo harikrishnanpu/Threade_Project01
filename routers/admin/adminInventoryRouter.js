@@ -3,7 +3,7 @@ const {
   getInventoryPage,
   updateStock,
   getVariantProduct
-} = require('../controllers/adminInventoryController');
+} = require('../../controllers/admin/adminInventoryController');
 
 const adminInventoryRouter = express.Router();
 

@@ -7,11 +7,11 @@ const {
   updateCategoryById,
   getCategoryById,
   toggleCategoryStatus
-} = require('../controllers/categoryController');
-const { handleValidationErrors } = require('../validators/validator');
-const { validateListCategoryQuery } = require('../validators/QueryValidator');
-const { validateCategoryIdParam } = require('../validators/ParamValidator');
-const { validateCategoryBody } = require('../validators/bodyValidator');
+} = require('../../controllers/admin/categoryController');
+const { handleValidationErrors } = require('../../validators/validator');
+const { validateListCategoryQuery } = require('../../validators/QueryValidator');
+const { validateCategoryIdParam } = require('../../validators/ParamValidator');
+const { validateCategoryBody } = require('../../validators/bodyValidator');
 
 
 categoryRouter.get('/all', validateListCategoryQuery, handleValidationErrors, listCategories);

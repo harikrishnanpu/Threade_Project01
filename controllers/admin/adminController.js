@@ -1,7 +1,7 @@
-const { loginAdmin, getAllUsers, changeUserStatusById, unlistUserById, updateUser } = require("../services/adminServices");
-const { findOneUserById, insertOneUser } = require("../services/userServices");
-const { hashPassword } = require("../utils/bcrypt");
-const { generateAdminToken } = require("../utils/jwt");
+const { loginAdmin, getAllUsers, changeUserStatusById, unlistUserById, updateUser } = require("../../services/adminServices");
+const { findOneUserById, insertOneUser } = require("../../services/userServices");
+const { hashPassword } = require("../../utils/bcrypt");
+const { generateAdminToken } = require("../../utils/jwt");
 
 
 const getAdminDashboardPage = async(req,res) =>{

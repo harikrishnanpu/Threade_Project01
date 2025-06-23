@@ -1,12 +1,12 @@
 const express = require('express');
-const { getLoginPage, getSignUpPage, getForgottenPasswordPage, getChangePasswordPage, registerNewUser, getUserHomePage, getGoogleAuth, getGoogleAuthCallback, loginUserAccount, getVerifyEmailPage, verifyUserEmail, getVerifyEmailOtpPage, verifyUserEmailOtp, resendUserEmailOtp, forgottenUserPassword, changeUserPassword, logoutUser, getUserProfilePage, getEditProfilePage, updateProfile } = require('../controllers/userController');
-const { checkIsUserAuthenticatedAndRedirect, checkIsUserExists, checkResetPasswordTokenValid, checkIsResetPasswordLinkValid, checkIsUserAuthenticated } = require('../middlewares/userMiddleware');
+const { getLoginPage, getSignUpPage, getForgottenPasswordPage, getChangePasswordPage, registerNewUser, getUserHomePage, getGoogleAuth, getGoogleAuthCallback, loginUserAccount, getVerifyEmailPage, verifyUserEmail, getVerifyEmailOtpPage, verifyUserEmailOtp, resendUserEmailOtp, forgottenUserPassword, changeUserPassword, logoutUser, getUserProfilePage, getEditProfilePage, updateProfile } = require('../../controllers/user/userController');
+const { checkIsUserAuthenticatedAndRedirect, checkIsUserExists, checkResetPasswordTokenValid, checkIsResetPasswordLinkValid, checkIsUserAuthenticated } = require('../../middlewares/userMiddleware');
 const productRouter = require('./userProductRouter');
-const { handleValidationErrors } = require('../validators/validator');
-const { validateRegisterUser, validateLogin, validateOtp } = require('../validators/authValidator');
-const { validateUserIdParam } = require('../validators/ParamValidator');
-const { validateQueryEmail } = require('../validators/QueryValidator');
-const { validateBodyEmail } = require('../validators/bodyValidator');
+const { handleValidationErrors } = require('../../validators/validator');
+const { validateRegisterUser, validateLogin, validateOtp } = require('../../validators/authValidator');
+const { validateUserIdParam } = require('../../validators/ParamValidator');
+const { validateQueryEmail } = require('../../validators/QueryValidator');
+const { validateBodyEmail } = require('../../validators/bodyValidator');
 const cartRouter = require('./userCartRouter');
 const userProfileRouter = require('./userProfileRouter');
 const orderRouter = require('./userOrderRouter');
@@ -52,7 +52,7 @@ userRouter.post('/register',validateRegisterUser ,handleValidationErrors,  check
 userRouter.post('/login',validateLogin, handleValidationErrors, loginUserAccount);
 userRouter.post('/verify/email',validateBodyEmail,handleValidationErrors, checkIsUserExists, verifyUserEmail);
 userRouter.post('/verify/email/otp',validateOtp,validateBodyEmail,handleValidationErrors, checkIsUserExists, verifyUserEmailOtp);
-userRouter.post('/reset/email/password',validateBodyEmail, handleValidationErrors, checkIsUserExists, forgottenUserPassword);
+userRouter.post('/reset/email/password', checkIsUserExists, forgottenUserPassword);
 userRouter.post('/reset/user/password', checkResetPasswordTokenValid, changeUserPassword);
 
 

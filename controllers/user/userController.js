@@ -1,16 +1,16 @@
 const passport = require("passport")
-const { insertOneUser, loginUser, findOneUserByEmail, findOneUserById, getUserResetPasswordLink, changePassword, getHomePageData, updateUserProfile } = require("../services/userServices")
-const { generateToken } = require("../utils/jwt");
-const { sendOtpToEmail, verifyEmailOtp, findAndDeletePreviousOtp, sendResetPasswordLinkToEmail } = require("../services/emailVerificationService.js");
-const otpModel = require("../models/otpModel.js");
-const { generateOtp } = require("../utils/otp");
-const { getFeaturedProducts, getNewProducts, getSaleProducts, getDealOfTheDay, getAllFeaturedBrands, getProducts, getHotProducts, getAllProductsByCategory, getHotProductsByMainCategory } = require("../services/userproductServices.js");
-const Product = require("../models/productModel.js");
-const bannerModel = require("../models/bannerModel.js");
-const Category = require("../models/categoryModel.js");
-const { getPageWiseBanner } = require("../services/bannerService.js");
-const { getAllBrands } = require("../services/brandServices.js");
-require('../utils/passport');
+const { insertOneUser, loginUser, findOneUserByEmail, findOneUserById, getUserResetPasswordLink, changePassword, getHomePageData, updateUserProfile } = require("../../services/userServices.js")
+const { generateToken } = require("../../utils/jwt.js");
+const { sendOtpToEmail, verifyEmailOtp, findAndDeletePreviousOtp, sendResetPasswordLinkToEmail } = require("../../services/emailVerificationService.js");
+const otpModel = require("../../models/otpModel.js");
+const { generateOtp } = require("../../utils/otp.js");
+const { getFeaturedProducts, getNewProducts, getSaleProducts, getDealOfTheDay, getAllFeaturedBrands, getProducts, getHotProducts, getAllProductsByCategory, getHotProductsByMainCategory } = require("../../services/userproductServices.js");
+const Product = require("../../models/productModel.js");
+const bannerModel = require("../../models/bannerModel.js");
+const Category = require("../../models/categoryModel.js");
+const { getPageWiseBanner } = require("../../services/bannerService.js");
+const { getAllBrands } = require("../../services/brandServices.js");
+require('../../utils/passport.js');
 
 
 const getLoginPage = async (req,res)=>{

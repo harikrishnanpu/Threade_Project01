@@ -1,4 +1,3 @@
-// variantSidebar.js
 (function() {
   var product, selectedVariant;
 
@@ -78,7 +77,8 @@
       .then(function(data) {
         product = data;
         if (!product.variants || !product.variants.length) {
-          alert('No variants.');
+          showGlobalToast('No Varinats found for this product','error')
+
           return;
         }
 
@@ -140,10 +140,10 @@
         const result = await response.json();
 
         if(response.ok){
-            
+            showGlobalToast('item added to cart successfully')
             updateCartCount(result.userId)
         }else{
-            alert(result.message)
+           showGlobalToast(result.message, 'error')
         }
     }catch(err){
        window.location.href = '/user/login'
@@ -160,13 +160,40 @@
         const el = document.getElementById('HeadercartCount');
         el.innerText = result.count;
     }else{
-        alert(result.message)
+        showGlobalToast(result.message, 'error')
     }
     if (el) el.innerText = count;
   } catch (err) {
     console.error('Error fetching cart count:', err);
   }
 }
+
+
+
+ window.showGlobalToast = (message, type = 'success') => {
+    const toast = document.getElementById('toast-global');
+    const toastMessage = document.getElementById('toastMessage-global');
+    
+    if (!toast || !toastMessage) {
+      console.error('Toast elements not found');
+      return;
+    }
+    
+    // Remove existing classes
+    toast.classList.remove('success', 'error', 'warning');
+    
+    // Add new class and message
+    toast.classList.add(type);
+    toastMessage.textContent = message;
+    
+    // Show toast
+    toast.classList.add('show');
+    
+    // Hide after duration
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
 
 
 })();

@@ -11,7 +11,7 @@ const {
   updateBannerById, 
   toggleBannerStatusById, 
   uploadBannerImage 
-} = require('../controllers/bannerController');
+} = require('../../controllers/admin/bannerController');
 
 
 const uploadDir = 'uploads/banners/';

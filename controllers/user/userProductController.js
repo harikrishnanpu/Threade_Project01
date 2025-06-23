@@ -1,8 +1,8 @@
-const Brand = require('../models/brandModel');
-const Category = require('../models/categoryModel');
-const Product = require('../models/productModel');
-const productService = require('../services/userproductServices');
-const { getUserProductFiltersAndSort } = require('../utils/queries/getAllProductsQuery');
+const Brand = require('../../models/brandModel');
+const Category = require('../../models/categoryModel');
+const Product = require('../../models/productModel');
+const productService = require('../../services/userproductServices');
+const { getUserProductFiltersAndSort } = require('../../utils/queries/getAllProductsQuery');
 
 
 
@@ -12,16 +12,12 @@ const renderShopPage = async (req, res) => {
       await getUserProductFiltersAndSort(req.query);      
 
     const allVariants = await productService.getAllVariants(queryOptions.mainCat);
-    const result      = await productService.getProducts(filters, sortOptions, pageNum, limitNum);
-    
-
-    
-    
+    const result      = await productService.getProducts(filters, sortOptions, pageNum, limitNum);  
 
     const [mainCategories,subCategories, brands, tags] = await Promise.all([
-      Category.find({ parentCategory: null }).sort({ name: 1 }).lean(),
-      Category.find({ parentCategory: queryOptions.mainCat  }).sort({ name: 1 }).lean(),
-      Brand.find({ category: queryOptions.mainCat }).sort({ name: 1 }).lean(),
+      Category.find({ parentCategory: null, isActive: true  }).sort({ name: 1 }).lean(),
+      Category.find({ parentCategory: queryOptions.mainCat, isActive: true  }).sort({ name: 1 }).lean(),
+      Brand.find({ category: queryOptions.mainCat, isActive: true  }).sort({ name: 1 }).lean(),
       productService.getAllTags()               
     ]);
 
@@ -58,12 +54,15 @@ const renderProductById = async (req,res) =>{
   try{
 
     const product = await productService.getProductById(id);
+    const activeVariants = product.variants.map(v => v.isActive)
+    
+    if(activeVariants.length == 0) throw new Error('no active variants for this product') 
     const relatedProducts = await productService.getRelatedProducts(id,product.category._id,4)
     res.render('user/productDetail',{product, error: null, relatedProducts})
 
   }catch(err){
 
-    res.render('user/productDetail',{error: err.message,product: null,relatedProducts: null})
+    res.render('user/productDetail',{error: err.message, product: null,relatedProducts: null})
 
   }
 }

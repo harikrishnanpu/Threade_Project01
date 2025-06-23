@@ -1,4 +1,4 @@
-const orderService = require('../services/userOrderServices');
+const orderService = require('../../services/userOrderServices');
 
 const placeOrder = async (req, res) => {
   try {
@@ -10,7 +10,7 @@ const placeOrder = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: 'Order placed successfully',
-            redirectUrl: `/user/order/success/${order._id}`
+            redirectUrl: `/user/orders/success/${order._id}`
         });
     }
             
@@ -20,6 +20,25 @@ const placeOrder = async (req, res) => {
     return res.status(400).json({ success: false, message: err.message });
   }
 };
+
+
+const renderOrderSuccessPage = async (req,res) => {
+  try{
+    // console.log(req.params.id);
+    
+    const order = await orderService.getUserOrderById(req.user._id,req.params.id);
+
+    console.log(order);
+    
+    if(!order){
+      throw new Error('order not found')
+    }
+
+    res.render('user/order-success',{ order })
+  }catch(err){
+    res.status(500).json({message: err.message})
+  }
+}
 
 
 
@@ -41,43 +60,27 @@ const cancelFullOrder = async (req, res) => {
   }
 }
 
-const cancelMultipleItems = async (req, res) => {
-  try {
-    const { itemIds = [], cancellationReason, additionalComments = '' } = req.body
-    if (!itemIds.length) return res.status(400).json({ message: 'itemIds required' })
-    if (!cancellationReason) return res.status(400).json({ message: 'cancellationReason required' })
-
-    const data = await orderService.cancelMultipleItems({
-      orderId: req.params.orderId,
-      userId: req.user._id,
-      itemIds,
-      reason: cancellationReason,
-      note: additionalComments
-    })
-    res.json({ success: true, data })
-  } catch (e) {
-    res.status(400).json({ message: e.message })
-  }
-}
 
 const cancelSingleItem = async (req, res) => {
   try {
-    const { itemId, cancellationReason, additionalComments = '' } = req.body
+
+    const { itemId, cancellationReason, notes = '' } = req.body
+
+
     if (!itemId) return res.status(400).json({ message: 'itemId required' })
     if (!cancellationReason) return res.status(400).json({ message: 'cancellationReason required' })
 
-    const data = await orderService.cancelSingleItem({
-      orderId: req.params.orderId,
-      userId: req.user._id,
+    const data = await orderService.cancelSingleItem({orderId: req.params.orderId, userId: req.user._id,
       itemId,
       reason: cancellationReason,
-      note: additionalComments
+      note: notes
     })
-    res.json({ success: true, data })
+
+    res.status(200).json({ success: true, data })
   } catch (err) {
     console.log(err);
-    
-    res.status(400).json({ message: err.message })
+
+    res.status(500).json({ message: err.message, success: false })
   }
 }
 
@@ -100,28 +103,16 @@ const returnFullOrder = async (req, res) => {
   }
 }
 
-const returnMultipleItems = async (req, res) => {
-  try {
-    const { itemIds = [], returnReason, returnNote } = req.body
-    if (!itemIds.length) return res.status(400).json({ message: 'itemIds required' })
-    if (!returnReason || !returnNote) return res.status(400).json({ message: 'returnReason and returnNote required' })
-
-    const data = await orderService.returnMultipleItems({
-      orderId: req.params.orderId,
-      userId: req.user._id,
-      itemIds,
-      reason: returnReason,
-      note: returnNote
-    })
-    res.json({ success: true, data })
-  } catch (e) {
-    res.status(400).json({ message: e.message })
-  }
-}
 
 const returnSingleItem = async (req, res) => {
+
+
   try {
+
+
     const { itemId, returnReason, returnNote } = req.body
+    console.log(itemId);
+    
     if (!itemId) return res.status(400).json({ message: 'itemId required' })
     if (!returnReason || !returnNote) return res.status(400).json({ message: 'returnReason and returnNote required' })
 
@@ -134,16 +125,18 @@ const returnSingleItem = async (req, res) => {
     })
     res.json({ success: true, data })
   } catch (err) {
+    console.log(err);
+    
     res.status(400).json({ message: err.message })
   }
+
+
 }
 
 
 
 
-module.exports = { placeOrder ,   cancelFullOrder,
-  cancelMultipleItems,
-  cancelSingleItem,
+module.exports = { placeOrder ,   renderOrderSuccessPage, cancelFullOrder, cancelSingleItem,
   returnFullOrder,
-  returnMultipleItems,
-  returnSingleItem};
+  returnSingleItem
+};

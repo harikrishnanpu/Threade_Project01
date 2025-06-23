@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const couponController = require('../controllers/adminCopounController');
+const couponController = require('../../controllers/admin/adminCopounController');
 
 
 router.get('/', couponController.renderAllCoupons);

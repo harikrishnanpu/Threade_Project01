@@ -101,9 +101,9 @@ const getUserProductFiltersAndSort = async (query) => {
       filters.category = new mongoose.Types.ObjectId(mainCatfromUser);
     }
   }else{
-    const catId = await Category.findOne({}).sort({createdAt: 1}).select('_id').lean();  
-    mainCatfromUser = String(catId._id);  
-    filters.category =  String(catId._id);
+    const catId = await Category.findOne({isActive: true}).sort({createdAt: 1}).lean();  
+    mainCatfromUser = catId._id.toString();  
+    filters.category =  catId._id.toString();
   }
 
   
@@ -144,6 +144,9 @@ const getUserProductFiltersAndSort = async (query) => {
     'rating-high':{ rating: -1 },
     popular:     { rating: -1, createdAt: -1 }
   };
+
+
+  
   const sortOptions = sortMap[sortBy] || sortMap.newest;
 
   const pageNum  = parseInt(page,  10);

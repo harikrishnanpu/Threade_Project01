@@ -1,12 +1,13 @@
-const userProfileService = require("../services/userProfileServices")
-const { findOneUserById, findOneUserByEmail } = require("../services/userServices")
+const userProfileService = require("../../services/userProfileServices")
+const { findOneUserById, findOneUserByEmail } = require("../../services/userServices")
 const bcrypt = require("bcrypt")
-const { generateOtp } = require("../utils/otp")
-const otpModel = require("../models/otpModel")
-const { sendOtpToEmail, verifyEmailOtp } = require("../services/emailVerificationService")
-const Users = require("../models/userModel")
-const { hashPassword, comparePassword } = require("../utils/bcrypt")
-const { getUserOrders, getUserOrderById } = require("../services/userOrderServices")
+const { generateOtp } = require("../../utils/otp")
+const otpModel = require("../../models/otpModel")
+const { sendOtpToEmail, verifyEmailOtp } = require("../../services/emailVerificationService")
+const Users = require("../../models/userModel")
+const { hashPassword, comparePassword } = require("../../utils/bcrypt")
+const { getUserOrders, getUserOrderById } = require("../../services/userOrderServices")
+const walletService = require('../../services/userWalletServices');
 
 const renderProfilePage = async (req, res) => {
   const userId = req.user._id
@@ -34,7 +35,7 @@ const renderEditProfilePage = async (req, res) => {
   try {
     const user = await findOneUserById(userId)
     res.render("user/profile-edit", { user ,
-            currentPage: 'edit',
+      currentPage: 'edit',
       pageTitle: 'ff',
       orders: [],
       coupons: [],
@@ -134,18 +135,56 @@ const renderOrderDetailsPage = async (req, res) => {
   }
 };
 
+
+const renderWalletPage = async (req, res) => {
+  try {
+
+    const wallet = await walletService.getWallet(req.user._id)
+
+    res.render('user/wallet', {
+      wallet,
+      transactions: wallet.transactions
+    })
+
+  } catch (err) {
+    // console.error(err.message)
+    res.status(500).render('error', { message: err.message })
+  }
+}
+
 const updateProfile = async (req, res) => {
   const userId = req.user._id;
   const { name, email, phone, dateOfBirth } = req.body;
 
   console.log(req.body);
+
+  const nameRE   = /^[A-Za-z\s]{2,}$/;                      
+const emailRE  = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;         
+const phoneRE  = /^[6-9]\d{9}$/;                           
+const dobRE    = /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
   
+
+  if (!name.trim() || !email.trim() || !phone.trim()) {
+  return res.status(400).json({ message: 'Name, email, phone are required.' });
+}
 
   try {
 
-    if (!name || !email) {
-      return res.status(400).json({ message: "Name and email are required." });
-    }
+if (!nameRE.test(name.trim())) {
+  return res.status(400).json({ message: 'Name must contain only letters & spaces (min 2 characters).' });
+}
+
+if (!emailRE.test(email.trim())) {
+  return res.status(400).json({ message: 'Invalid email address.' });
+}
+
+if (!phoneRE.test(phone.trim())) {
+  return res.status(400).json({ message: 'Phone must be a 10-digit Indian mobile number (starts 6-9).' });
+}
+
+if (dateOfBirth && !dobRE.test(dateOfBirth.trim())) {
+  return res.status(400).json({ message: 'Date of birth must be in YYYY-MM-DD format.' });
+}
 
     const existingUser = await userProfileService.findUserByEmail(email.trim(), userId);
     if (existingUser) {
@@ -155,7 +194,6 @@ const updateProfile = async (req, res) => {
     const currentUser = await findOneUserById(userId);
 
     if (currentUser.email !== email.trim()) {
-
       const updatedData = {
       name: name.trim(),
     };
@@ -312,26 +350,7 @@ const changePassword = async (req, res) => {
 
 
 
-const uploadProfileImage = async (req, res) => {
-  const userId = req.user._id
 
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No image file provided" })
-    }
-
-    const profileImagePath = `/uploads/profiles/${req.file.filename}`
-    await updateUserById(userId, { profileImage: profileImagePath })
-
-    res.json({
-      message: "Profile image updated successfully",
-      profileImage: profileImagePath,
-    })
-  } catch (err) {
-    console.error("Upload profile image error:", err)
-    res.status(400).json({ message: err.message })
-  }
-}
 
 
 
@@ -403,9 +422,9 @@ module.exports = {
   renderChangePasswordPage,
   updateProfile,
   verifyUserProfileEmail,
-  uploadProfileImage,
   changePassword,
   renderAddressBookPage,
+  renderWalletPage,
   addAddress,
   editAddress,
   deleteAddress,

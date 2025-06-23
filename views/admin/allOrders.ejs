@@ -118,11 +118,6 @@
                 <i class="lni lni-reload"></i>
                 <span class="btn-text">Reset</span>
               </button>
-              
-              <button class="btn btn-success export-btn" id="export-orders" type="button">
-                <i class="lni lni-download"></i>
-                <span class="btn-text">Export</span>
-              </button>
             </div>
           </div>
         </div>
@@ -311,6 +306,7 @@
                       </span>
                     </div>
                   </td>
+
                   <td class="order-status">
                     <div class="status-container">
                       <span class="status-badge status-<%= order.orderStatus %>">
@@ -330,6 +326,8 @@
                       <% } %>
                     </div>
                   </td>
+
+
                   <td class="order-date">
                     <div class="date-info">
                       <span class="date-text"><%= new Date(order.createdAt).toLocaleDateString() %></span>
@@ -341,6 +339,8 @@
                       <% } %>
                     </div>
                   </td>
+
+
                   <td class="order-actions">
                     <div class="action-buttons">
                       <button class="btn btn-sm btn-outline-primary view-btn" 
@@ -1266,7 +1266,7 @@
     })
     .catch(error => {
       showError(`Error updating order status`);
-      console.error('Error:', error);
+      console.log('Error:', error);
     })
     .finally(() => {
       hideLoading();

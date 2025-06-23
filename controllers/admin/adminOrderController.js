@@ -1,5 +1,5 @@
-const Orders = require('../models/orderModel');
-const orderService = require('../services/adminOrderServices');
+const Orders = require('../../models/orderModel');
+const orderService = require('../../services/adminOrderServices');
 
 const getAllOrders = async (req, res) => {
   try {
@@ -162,19 +162,6 @@ const returnRequestAction = async (req, res) => {
 
 
 
-const exportSingleOrder = async (req, res) => {
-  try {
-    const { csv, json } = await orderService.exportSingleOrder(req.params.orderId);
-    res.header('Content-Type', 'text/csv');
-    res.attachment(`order-${req.params.orderId}.csv`);
-    return res.send(csv || '');
-  } catch (err) {
-    console.error('exportSingleOrder →', err);
-    return res.status(500).send('Export failed');
-  }
-};
-
-
 const renderInvoice = async (req, res) => {
   try {
     const order = await orderService.getOrderDetail(req.params.orderId);
@@ -196,5 +183,4 @@ module.exports = {
   bulkUpdateOrders,
   returnRequestAction,
   renderInvoice,
-  exportSingleOrder
 };

@@ -5,7 +5,7 @@ const {
   updateBanner, 
   deleteBanner, 
   toggleBannerStatus 
-} = require("../services/bannerService");
+} = require("../../services/bannerService");
 const fs = require('fs').promises;
 const path = require('path');
 

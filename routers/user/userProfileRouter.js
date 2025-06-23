@@ -15,7 +15,8 @@ const {
   verifyUserProfileEmail,
   renderOrdersPage,
   renderOrderDetailsPage,
-} = require("../controllers/userProfileController")
+  renderWalletPage,
+} = require("../../controllers/user/userProfileController")
 
 
 const userProfileRouter = express.Router()
@@ -53,12 +54,12 @@ userProfileRouter.get("/edit", renderEditProfilePage)
 userProfileRouter.get("/password", renderChangePasswordPage);
 userProfileRouter.get('/orders', renderOrdersPage);
 userProfileRouter.get('/orders/:id', renderOrderDetailsPage);
+userProfileRouter.get('/wallet', renderWalletPage)
 
 
 userProfileRouter.put("/api/edit", updateProfile);
 userProfileRouter.post('/api/verify/email/otp', verifyUserProfileEmail);
 userProfileRouter.post('/api/change-password', changePassword)
-userProfileRouter.post("/upload-image", upload.single("profileImage"), uploadProfileImage);
 userProfileRouter.post("/password", changePassword)
 
 userProfileRouter.get("/address", renderAddressBookPage)

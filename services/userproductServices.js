@@ -49,6 +49,8 @@ if (!product.isActive) {
 
 product.variants = product.variants.filter(v => v.isActive);
 
+if(product.variants.length == 0) throw new Error('no variants available for this product')
+
 return product;
   } catch (err) {
     throw new Error(err.message);

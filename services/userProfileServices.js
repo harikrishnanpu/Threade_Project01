@@ -68,20 +68,17 @@ const updateUserAddressById = async (userId, addressId, reqBody) => {
   const { fullName, phone, street, city, state, pincode, isHomeAddress, isWorkAddress, isDefault } = reqBody
 
   try {
-    // Validate required fields
     if (!fullName || !phone || !street || !city || !state || !pincode) {
       throw new Error("All address fields are required")
     }
 
-    // Determine address type
-    let type = "home" // default
+    let type = "home"
     if (isWorkAddress === "on" || isWorkAddress === true) {
       type = "work"
     } else if (isHomeAddress === "on" || isHomeAddress === true) {
       type = "home"
     }
 
-    // If this is set as default, unset other default addresses
     if (isDefault === "on" || isDefault === true) {
       await Address.updateMany({ user: userId, _id: { $ne: addressId } }, { isDefault: false })
     }
@@ -97,9 +94,7 @@ const updateUserAddressById = async (userId, addressId, reqBody) => {
         pincode: pincode.trim(),
         type,
         isDefault: isDefault === "on" || isDefault === true,
-      },
-      { new: true },
-    )
+      })
 
     return updatedAddress
   } catch (err) {
@@ -109,13 +104,11 @@ const updateUserAddressById = async (userId, addressId, reqBody) => {
 
 const deleteUserAddressById = async (userId, addressId) => {
   try {
-    // Soft delete by setting isActive to false
+
     const deletedAddress = await Address.findOneAndUpdate(
       { _id: addressId, user: userId },
-      { isActive: false },
-      { new: true },
-    )
-
+      { isActive: false })
+      
     return deletedAddress
   } catch (err) {
     throw new Error(err.message)

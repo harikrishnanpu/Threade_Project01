@@ -1,10 +1,10 @@
-const Addresses = require('../models/addressModel');
-const cartModel = require('../models/cartModel');
-const CheckoutSession = require('../models/checkoutSessionModel');
-const coupounModel = require('../models/coupounModel');
-const cartService = require('../services/userCartService');
-const userProductService = require('../services/userproductServices');
-const { findOneUserById } = require('../services/userServices');
+const Addresses = require('../../models/addressModel');
+const cartModel = require('../../models/cartModel');
+const CheckoutSession = require('../../models/checkoutSessionModel');
+const coupounModel = require('../../models/coupounModel');
+const cartService = require('../../services/userCartService');
+const userProductService = require('../../services/userproductServices');
+const { findOneUserById } = require('../../services/userServices');
 
 
 
@@ -129,7 +129,7 @@ const renderCheckout = async (req, res) => {
     const shippingCost = subtotal === 0 ? 0 : 100;
     const grandTotal = subtotal + shippingCost;
 
-    const addresses = await Addresses.find({ user: userId }).lean();
+    const addresses = await Addresses.find({ user: userId , isActive: true }).lean();
 
     res.render('user/checkout', {
       user: req.user,

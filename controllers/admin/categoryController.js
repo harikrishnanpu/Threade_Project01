@@ -4,7 +4,7 @@ const {
   findOneCategoryById, 
   editCategoryById,
   toggleCategoryStatusById,
-} = require("../services/categoryService");
+} = require("../../services/categoryService");
 
 const listCategories = async (req, res) => {
   try {
@@ -105,6 +105,7 @@ const updateCategoryById = async (req, res) => {
   const { id } = req.params;
   try {
     const errors = validateCategoryInput(req.body);
+    
     if (Object.keys(errors).length > 0) {
       return res.status(400).json({ 
         success: false, 

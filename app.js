@@ -1,13 +1,13 @@
 const express = require('express');
 const nocache = require('nocache');
 const path = require('node:path');
-const userRouter = require('./routers/usersRouter.js');
+const userRouter = require('./routers/user/usersRouter.js');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const { checkAndRedirect } = require('./middlewares/userMiddleware.js');
 const expressEjsLayouts = require('express-ejs-layouts');
-const adminRouter = require('./routers/adminRouter.js');
+const adminRouter = require('./routers/admin/adminRouter.js');
 const { connectDb } = require('./config/db.js');
 
 const MONGODB_URI = process.env.MONGODB_URI;

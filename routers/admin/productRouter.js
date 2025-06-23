@@ -13,10 +13,10 @@ const {
   uploadProductImage,
   showCreateProductPage,
   showEditProductPage
-} = require('../controllers/productController');
-const { createProductValidator } = require('../validators/bodyValidator');
-const { handleValidationErrors } = require('../validators/validator');
-const { validateProductId } = require('../validators/ParamValidator');
+} = require('../../controllers/admin/productController');
+const { createProductValidator } = require('../../validators/bodyValidator');
+const { handleValidationErrors } = require('../../validators/validator');
+const { validateProductId } = require('../../validators/ParamValidator');
 
 
 const uploadDir = 'uploads/products/';

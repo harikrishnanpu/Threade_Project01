@@ -68,23 +68,21 @@
               <div class="card-body mt-3">
                 <div class="status-section">
                   <div class="current-status">
-                    <div class="status-badge status-<%= order.orderStatus %>">
-                      <i class="lni lni-<%= 
-                        order.orderStatus === 'pending' ? 'timer' :
-                        order.orderStatus === 'confirmed' ? 'checkmark' :
-                        order.orderStatus === 'shipped' ? 'delivery' :
-                        order.orderStatus === 'delivered' ? 'package' :
-                        order.orderStatus === 'cancelled' ? 'close' :
-                        order.orderStatus === 'return-requested' ? 'warning' :
-                        order.orderStatus === 'return-processing' ? 'reload' :
-                        order.orderStatus === 'return-pickup' ? 'calendar' :
-                        order.orderStatus === 'return-complete' ? 'checkmark' :
-                        order.orderStatus === 'return-rejected' ? 'close' :
-                        order.orderStatus === 'returned' ? 'reload' :
-                        order.orderStatus === 'partial-return' ? 'reload' : 'timer'
-                      %>"></i>
-                      <span class="status-text"><%= order.orderStatus.replace('-', ' ').toUpperCase() %></span>
-                    </div>
+<!-- ORDER STATUS SELECT (replace the whole <select> tag) -->
+<select id="status-select" class="form-select status-select" disabled>
+  <option value="pending"           <%= order.orderStatus==='pending'           ?'selected':'' %>>Pending</option>
+  <option value="confirmed"         <%= order.orderStatus==='confirmed'         ?'selected':'' %>>Confirmed</option>
+  <option value="shipped"           <%= order.orderStatus==='shipped'           ?'selected':'' %>>Shipped</option>
+  <option value="delivered"         <%= order.orderStatus==='delivered'         ?'selected':'' %>>Delivered</option>
+  <option value="cancelled"         <%= order.orderStatus==='cancelled'         ?'selected':'' %>>Cancelled</option>
+  <option value="return-requested"  <%= order.orderStatus==='return-requested'  ?'selected':'' %>>Return Requested</option>
+  <option value="return-processing" <%= order.orderStatus==='return-processing' ?'selected':'' %>>Return Processing</option>
+  <option value="return-pickup"     <%= order.orderStatus==='return-pickup'     ?'selected':'' %>>Return Pickup</option>
+  <option value="return-complete"   <%= order.orderStatus==='return-complete'   ?'selected':'' %>>Return Complete</option>
+  <option value="return-rejected"   <%= order.orderStatus==='return-rejected'   ?'selected':'' %>>Return Rejected</option>
+  <option value="partial-return"    <%= order.orderStatus==='partial-return'    ?'selected':'' %>>Partial Return</option>
+</select>
+
                     <div class="status-actions" id="status-actions">
                       <select class="form-select status-select" id="status-select" disabled>
                         <option value="pending" <%= order.orderStatus === 'pending' ? 'selected' : '' %>>Pending</option>
@@ -390,20 +388,20 @@
                         <!-- Individual Item Status -->
                         <div class="item-status-section">
                           <label class="control-label">Item Status:</label>
-                          <select class="form-select item-status-select" 
-                                  data-item-index="<%= index %>"
-                                  disabled>
-                            <option value="pending" <%= item.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                            <option value="confirmed" <%= item.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
-                            <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                            <option value="delivered" <%= item.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
-                            <option value="cancelled" <%= item.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
-                            <option value="return-requested" <%= item.status === 'return-requested' ? 'selected' : '' %>>Return Requested</option>
-                            <option value="return-pickup" <%= item.status === 'return-pickup' ? 'selected' : '' %>>Return Pickup</option>
-                            <option value="return-processing" <%= item.status === 'return-processing' ? 'selected' : '' %>>Return Processing</option>
-                            <option value="return-complete" <%= item.status === 'return-complete' ? 'selected' : '' %>>Return Complete</option>
-                            <option value="return-rejected" <%= item.status === 'return-rejected' ? 'selected' : '' %>>Return Rejected</option>
-                          </select>
+<!-- ITEM STATUS SELECT (replace just the <select> tag) -->
+<select class="form-select item-status-select" data-item-index="<%= index %>" disabled>
+  <option value="pending"           <%= item.status==='pending'           ?'selected':'' %>>Pending</option>
+  <option value="confirmed"         <%= item.status==='confirmed'         ?'selected':'' %>>Confirmed</option>
+  <option value="shipped"           <%= item.status==='shipped'           ?'selected':'' %>>Shipped</option>
+  <option value="delivered"         <%= item.status==='delivered'         ?'selected':'' %>>Delivered</option>
+  <option value="cancelled"         <%= item.status==='cancelled'         ?'selected':'' %>>Cancelled</option>
+  <option value="return-requested"  <%= item.status==='return-requested'  ?'selected':'' %>>Return Requested</option>
+  <option value="return-pickup"     <%= item.status==='return-pickup'     ?'selected':'' %>>Return Pickup</option>
+  <option value="return-processing" <%= item.status==='return-processing' ?'selected':'' %>>Return Processing</option>
+  <option value="return-complete"   <%= item.status==='return-complete'   ?'selected':'' %>>Return Complete</option>
+  <option value="return-rejected"   <%= item.status==='return-rejected'   ?'selected':'' %>>Return Rejected</option>
+</select>
+
                           <span class="item-status-badge status-<%= item.status %>">
                             <%= item.status.replace('-', ' ').toUpperCase() %>
                           </span>
@@ -953,6 +951,7 @@
                  id="return-pickup-date" 
                  name="pickupDate" 
                  class="form-control" 
+                 value="<%= new Date().toISOString().split('T')[0] %>"
                  min="<%= new Date().toISOString().split('T')[0] %>"
                  required>
           <small class="form-text text-muted">Select the date when the item will be picked up for return.</small>
@@ -2208,46 +2207,49 @@
     updateOrderSummary();
   }
 
-  function updateOrderSummary() {
-    let subtotal = 0;
-    
-    document.querySelectorAll('.item-row').forEach(row => {
-      const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
-      const price = parseFloat(row.querySelector('.price-input').value) || 0;
-      subtotal += quantity * price;
-    });
-    
-    const discountAmount = `<%= (order.coupon && order.coupon.discountAmount) || 0 %>`;
-    const total = subtotal - discountAmount;
-    
-    document.getElementById('subtotal-value').textContent = `₹${subtotal.toFixed(2)}`;
-    document.getElementById('total-value').textContent = `₹${total.toFixed(2)}`;
-  }
+function updateOrderSummary(){
+  let subtotal = 0;
 
-  function quickStatusUpdate(newStatus) {
+  document.querySelectorAll('.item-row').forEach(row=>{
+    const qty   = parseInt(row.querySelector('.quantity-input').value) || 0;
+    const price = parseFloat(row.querySelector('.price-input').value)  || 0;
+    subtotal += qty * price;
+  });
+
+  const discountAmount = parseFloat('<%= (order.coupon && order.coupon.discountAmount) || 0 %>') || 0;
+
+  document.getElementById('subtotal-value').textContent = '₹' + subtotal.toFixed(2);
+  document.getElementById('total-value').textContent    = '₹' + (subtotal - discountAmount).toFixed(2);
+}
+
+  function quickStatusUpdate(newStatus){
     document.getElementById('modal-new-status').value = newStatus;
-    
-    const trackingGroup = document.getElementById('tracking-group');
-    const reasonGroup = document.getElementById('reason-group');
-    
+
+    const trackingGrp = document.getElementById('tracking-group');
+    const reasonGrp   = document.getElementById('reason-group');
+    const reasonLbl   = document.querySelector('#reason-group label');
+
     if (newStatus === 'shipped') {
-      trackingGroup.style.display = 'block';
-      reasonGroup.style.display = 'none';
-    } else if (newStatus === 'cancelled' || newStatus === 'returned') {
-      trackingGroup.style.display = 'none';
-      reasonGroup.style.display = 'block';
-      document.querySelector('#reason-group label').textContent = 
-        newStatus === 'cancelled' ? 'Cancellation Reason' : 'Return Reason';
+      trackingGrp.style.display = 'block';
+      reasonGrp.style.display   = 'none';
+    } else if (['cancelled', 'return-requested'].includes(newStatus)) {
+      trackingGrp.style.display = 'none';
+      reasonGrp.style.display   = 'block';
+      reasonLbl.textContent     = (newStatus === 'cancelled')
+        ? 'Cancellation Reason'
+        : 'Return Reason';
     } else {
-      trackingGroup.style.display = 'none';
-      reasonGroup.style.display = 'none';
+      trackingGrp.style.display = 'none';
+      reasonGrp.style.display   = 'none';
     }
-    
-    document.getElementById('status-modal-title').textContent = 
-      `Update Status to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`;
-    
+
+    document.getElementById('status-modal-title').textContent =
+      'Update Status to ' + newStatus.replace('-',' ')
+                                     .replace(/\b\w/g, l => l.toUpperCase());
+
     document.getElementById('status-update-modal').classList.add('active');
   }
+
 
   function closeStatusModal() {
     document.getElementById('status-update-modal').classList.remove('active');
@@ -2661,6 +2663,7 @@
     document.getElementById('return-request-form').addEventListener('submit', function(e) {
       e.preventDefault();
       
+
       const formData = new FormData(this);
       const data = Object.fromEntries(formData);
       const itemIndex = data.itemIndex;

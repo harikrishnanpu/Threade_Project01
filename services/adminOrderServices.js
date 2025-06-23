@@ -100,6 +100,8 @@ const getOrderById = async (orderId) => {
   }
 };
 
+
+
 const updateOrderStatus = async (data) => {
   try {
     const { orderId, status, trackingNumber, notes } = data;
@@ -186,6 +188,9 @@ const saveOrderEdits = async (payload) => {
       const itm = order.items[index];
       if (!itm) return;
       if (status) itm.status = status;
+      if(status && status == 'pending') itm.isCancelled = false
+      if(status && status == 'return-complete') itm.isCancelled = false
+      if(status && status == 'cancelled') itm.isCancelled = true
     });
 
     order.subtotal = order.items.reduce((sum, i) => (sum + i.quantity * i.price ),0);
@@ -228,8 +233,7 @@ const quickStatusUpdate = async (orderId,{
     const update = {
       $set:{
         orderStatus: newStatus,
-        updatedAt: Date.now(),
-        'items.$[].status' : newStatus
+        'items.$[elem].status' : newStatus,
       },
       $push: {                         
         timeline: {
@@ -253,7 +257,7 @@ const quickStatusUpdate = async (orderId,{
 
     if (notes) update.$set.adminNotes = notes;
 
-    const order = await Order.findByIdAndUpdate(orderId, update, {new: true});
+    const order = await Order.findByIdAndUpdate(orderId, update, {        arrayFilters: [{ 'elem.status': { $nin: ['cancelled', 'pending'] } }]});
 
     if (!order) return { success: false, message: 'Order not found' };
 

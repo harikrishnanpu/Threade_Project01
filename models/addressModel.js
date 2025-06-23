@@ -62,15 +62,30 @@ const AddressSchema = new Schema(
 
 
 
-// AddressSchema.pre('save', async function (next) {
-//   if (this.isDefault) {
-//     await this.constructor.updateMany(
-//       { user: this.user, _id: { $ne: this._id } },
-//       { isDefault: false }
-//     );
-//   }
-//   next();
-// });
+async function assignDefaultAddressIfNeeded(userId) {
+  const Address = mongoose.model('Address');
+
+  const existingDefault = await Address.findOne({ user: userId, isDefault: true, isActive: true });
+
+  if (!existingDefault) {
+    const fallback = await Address.findOne({ user: userId, isActive: true }).sort({ updatedAt: -1 });
+    if (fallback) {
+      fallback.isDefault = true;
+      await fallback.save();
+    }
+  }
+  
+}
+
+AddressSchema.post('save', async function () {
+  await assignDefaultAddressIfNeeded(this.user);
+});
+
+AddressSchema.post('findOneAndUpdate', async function (doc) {
+  if (doc) {
+    await assignDefaultAddressIfNeeded(doc.user);
+  }
+});
 
 const Addresses = mongoose.model('Address', AddressSchema);
 

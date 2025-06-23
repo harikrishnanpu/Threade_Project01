@@ -3,7 +3,21 @@ const Order = require('../models/orderModel');
 const Address = require('../models/addressModel');
 const Coupon = require('../models/coupounModel');
 const CheckoutSession = require('../models/checkoutSessionModel');
-const { default: mongoose } = require('mongoose');
+const mongoose = require('mongoose');
+
+
+const findUserOrder = async (orderId, userId) => {
+  const order = await Order.findOne({ _id: orderId, user: userId })
+  if (!order) throw new Error('order not found')
+  return order
+}
+
+const saveTimeline = (order, status, note) => {
+  return order.timeline.push({ status, date: new Date(), note })
+}
+
+
+
 
 const createCodOrder = async (userId) => {
   try{
@@ -57,6 +71,10 @@ if (inactiveCartItemVariants.length > 0) throw new Error(`cart item: variant is 
 
     if (coupon.usedCount >= coupon.maxUsage)
       throw new Error('coupon usage limit reached');
+
+if (coupon.usedBy?.some(u => u.toString() === userId.toString())) {
+  throw new Error('Coupon already used by you');
+}
 
     discountAmount = Math.round((coupon.discount / 100) * subtotal);
 
@@ -179,104 +197,125 @@ const getUserOrders = async (userId, filters, page = 1, limit = 10) => {
 
 
 const getUserOrderById = async (userId, orderId) => {
-  if (!mongoose.Types.ObjectId.isValid(orderId)) return null;
-
-  const order = await Order.findOne({ _id: orderId, user: userId }).lean();
-
-  return order || null;
+  try{
+    if (!mongoose.Types.ObjectId.isValid(orderId)) return null;
+    const order = await Order.findOne({ _id: orderId, user: userId }).lean();
+    return order || null;
+  }catch(err){
+    throw new Error(err.message);
+  }
 };
 
-const findUserOrder = async (orderId, userId) => {
-  const order = await Order.findOne({ _id: orderId, user: userId })
-  if (!order) throw new Error('order not found')
-  return order
-}
 
-const saveTimeline = (order, status, note) => {
-  order.timeline.push({ status, date: new Date(), note })
-}
+
 
 const cancelFullOrder = async ({ orderId, userId, reason, note }) => {
-  const order = await findUserOrder(orderId, userId)
-  if (!['pending', 'confirmed'].includes(order.orderStatus)) throw new Error('cannot cancel this order')
+  try{
 
-  order.orderStatus = 'cancelled'
-  order.items.forEach(i => {
-    i.isCancelled = true
-    i.cancellationReason = reason
-    i.cancelledBy = 'user'
-    i.cancelledAt = new Date()
-  })
-  saveTimeline(order, 'cancelled', note)
-  return order.save()
+    const order = await findUserOrder(orderId, userId)
+    if (!['pending', 'shipped' ,'confirmed'].includes(order.orderStatus)) throw new Error('cannot cancel this order')
+      
+      order.orderStatus = 'cancelled'
+      order.items.forEach(itm => {
+        itm.isCancelled = true
+        itm.cancellationReason = reason
+        itm.cancelledBy = 'user'
+        itm.cancelledAt = new Date()
+        itm.status = 'cancelled'
+      })
+      
+      saveTimeline(order, 'cancelled', note)
+      return order.save()
+    }catch(err){
+      throw new Error(err.message)
+    }
 }
 
-const cancelMultipleItems = async ({ orderId, userId, itemIds, reason, note }) => {
-  const order = await findUserOrder(orderId, userId)
+
+
+
+
+const cancelSingleItem = async ({orderId, userId, itemId, reason, note}) => {
+  try{
+
+  const order = await findUserOrder(orderId, userId);
   if (!['pending', 'confirmed'].includes(order.orderStatus)) throw new Error('cannot cancel items now')
 
-  let changed = 0
-  order.items.forEach(i => {
-    if (itemIds.includes(i._id.toString()) && !i.isCancelled) {
-      i.isCancelled = true
-      i.cancellationReason = reason
-      i.cancelledBy = 'user'
-      i.cancelledAt = new Date()
+  let changed = 0;
+
+  order.items.forEach(itm => {
+    if (itm._id.toString() == itemId && !itm.isCancelled) {
+      itm.isCancelled = true
+      itm.cancellationReason = reason
+      itm.cancelledBy = 'user'
+      itm.cancelledAt = new Date()
+      itm.status = 'cancelled'
       changed++
     }
   })
-  if (!changed) throw new Error('no valid items to cancel')
-  saveTimeline(order, 'cancelled', `${changed} item(s) cancelled`)
-  return order.save()
-}
 
-const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
-  return cancelMultipleItems({ orderId, userId, itemIds: [itemId], reason, note })
+  if (!changed) throw new Error('no valid items to cancel')
+  saveTimeline(order, 'cancelled', note)
+
+  return order.save()
+
+  }catch(err){
+    throw new Error(err.message)
+  }
 }
 
 const returnFullOrder = async ({ orderId, userId, reason, note }) => {
   const order = await findUserOrder(orderId, userId)
   if (order.orderStatus !== 'delivered') throw new Error('order not delivered yet')
   order.orderStatus = 'return-requested'
-  order.items.forEach(i => {
-    i.status = 'return-requested'
-    i.returnReason = reason
-    i.returnRequestedAt = new Date()
-    i.returnNote = note
+  order.items.forEach(itm => {
+    if(!itm.isCancelled && (!itm.status || !itm.status.includes('return'))) {
+        itm.status = 'return-requested'
+        itm.returnReason = reason
+        itm.returnRequestedAt = new Date()
+        itm.returnNote = note
+    }
   })
   saveTimeline(order, 'return-requested', note)
   return order.save()
 }
 
-const returnMultipleItems = async ({ orderId, userId, itemIds, reason, note }) => {
-  const order = await findUserOrder(orderId, userId)
+
+const returnSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
+
+  try{
+
+
+   const order = await findUserOrder(orderId, userId)
   if (order.orderStatus !== 'delivered') throw new Error('order not delivered yet')
 
-  let changed = 0
-  order.items.forEach(i => {
-    if (itemIds.includes(i._id.toString()) && !i.isCancelled && (!i.status || !i.status.includes('return'))) {
-      i.status = 'return-requested'
-      i.returnReason = reason
-      i.returnRequestedAt = new Date()
-      i.returnNote = note
+  let changed = 0;
+  order.items.forEach(itm => {
+    if (itm._id.toString() == itemId && !itm.isCancelled && (!itm.status || !itm.status.includes('return'))) {
+      itm.status = 'return-requested'
+      itm.returnReason = reason
+      itm.returnRequestedAt = new Date()
+      itm.returnNote = note
       changed++
     }
   })
-  if (!changed) throw new Error('no valid items to return')
-  saveTimeline(order, 'partial-return', `${changed} item(s) return-requested`)
-  return order.save()
-}
 
-const returnSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
-  return returnMultipleItems({ orderId, userId, itemIds: [itemId], reason, note })
+
+  if (!changed) throw new Error('no valid items to return')
+
+  saveTimeline(order, 'return-requested', `${changed} item(s) return-requested`)
+  return order.save()
+
+}catch(err){
+  console.log(err);
+  throw new Error(err.message)
+}
 }
 
 
 
 
 module.exports = { createCodOrder,getUserOrders, getUserOrderById,   cancelFullOrder,
-  cancelMultipleItems,
   cancelSingleItem,
   returnFullOrder,
-  returnMultipleItems,
   returnSingleItem };

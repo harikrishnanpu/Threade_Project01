@@ -14,8 +14,8 @@
   
   <style>
     :root {
-      --primary-color: #2563eb;
-      --primary-hover: #1d4ed8;
+      --primary-color: #000;
+      --primary-hover: #000;
       --secondary-color: #64748b;
       --success-color: #10b981;
       --danger-color: #ef4444;
@@ -96,20 +96,25 @@
       border-radius: 50%;
     }
 
-    .zoom-result {
-      position: absolute;
-      top: 0;
-      left: 105%;
-      width: 400px;
-      height: 400px;
-      border: 1px solid var(--medium-gray);
-      overflow: hidden;
-      background: white;
-      display: none;
-      z-index: 1000;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-lg);
-    }
+.zoom-result {
+  position: absolute;
+  top: 0;
+  left: 105%;
+  width: 400px;
+  height: 400px;
+  border: 1px solid var(--medium-gray);
+  overflow: hidden;
+  background: white;
+  /* ▼ NEW ▼ */
+  background-repeat: no-repeat;
+  background-size: 200% 200%;   /* 2× zoom – adjust to taste */
+  /* ▲ NEW ▲ */
+  display: none;
+  z-index: 1000;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+}
+
 
     .zoom-result img {
       position: absolute;
@@ -715,6 +720,9 @@
 </head>
 
 <body>
+
+
+  <%if(product) { %>
   <main class="product-page">
     <!-- Breadcrumb -->
     <section class="breadcrumb-section">
@@ -753,13 +761,8 @@
                 alt="<%= product.name %>" 
               />
               <div class="zoom-lens" id="zoom-lens"></div>
-              <div class="zoom-result" id="zoom-result">
-                <img 
-                  id="zoom-image" 
-                  src="<%= product.images?.length ? product.images[0] : '/img/product/no-image.jpg' %>" 
-                  alt="Zoom"
-                />
-              </div>
+<div class="zoom-result" id="zoom-result"></div>
+
             </div>
             
             <div class="thumbnail-container">
@@ -1106,67 +1109,118 @@
       <% } %>
     </div>
   </main>
+  <% }else{ %>
+    <div style="text-align: center;">
+      <p style="color: red;text-align: center;width: 100%;"><%= error%></p>
+           <a href="/user/products/shop" class="btn btn-primary mt-2">Return to Shop</a>
+    </div>
+    <% } %>
 
   <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   
+  <% if(product) {%>
   <script>
 
     const BASE_URL = window.location.origin;
     document.addEventListener('DOMContentLoaded', function() {
       // Gallery & Zoom functionality
-      const mainImg = document.getElementById('main-image');
-      const zoomLens = document.getElementById('zoom-lens');
-      const zoomResult = document.getElementById('zoom-result');
-      const zoomImage = document.getElementById('zoom-image');
-      const zoomContainer = document.getElementById('zoom-container');
+  const mainImg       = document.getElementById('main-image');
+  const zoomLens      = document.getElementById('zoom-lens');
+  const zoomResult    = document.getElementById('zoom-result');
+  const zoomContainer = document.getElementById('zoom-container');
 
-      if (zoomContainer && window.innerWidth > 991) {
-        const lensWidth = 100;
-        const lensHeight = 100;
-        const resultWidth = zoomResult.offsetWidth;
-        const resultHeight = zoomResult.offsetHeight;
-        const cx = resultWidth / lensWidth;
-        const cy = resultHeight / lensHeight;
+  /* ---------- Amazon-style magnifier ---------- */
+  let lensSize = 120;       // diameter of the circular lens
+  let cx = 0, cy = 0;       // scale factors – set once the large image is loaded
+function prepareZoom(src) {
+  zoomResult.style.backgroundImage = `url('${src}')`;
 
-        zoomContainer.addEventListener('mousemove', function(e) {
-          const rect = mainImg.getBoundingClientRect();
-          let x = e.clientX - rect.left;
-          let y = e.clientY - rect.top;
-          
-          x = Math.max(lensWidth / 2, Math.min(rect.width - lensWidth / 2, x));
-          y = Math.max(lensHeight / 2, Math.min(rect.height - lensHeight / 2, y));
-          
-          zoomLens.style.left = (x - lensWidth / 2) + 'px';
-          zoomLens.style.top = (y - lensHeight / 2) + 'px';
-          zoomLens.style.display = 'block';
-          zoomResult.style.display = 'block';
-          
-          zoomImage.style.left = (-x * cx + resultWidth / 2) + 'px';
-          zoomImage.style.top = (-y * cy + resultHeight / 2) + 'px';
-        });
+  const img = new Image();
+  img.src = src;
+  img.onload = () => {
+    /* ---------------------------------------------------
+       Choose the greatest of:
+       – natural image scale,
+       – a guaranteed 2× fallback.
+    --------------------------------------------------- */
+    const naturalCx = img.naturalWidth  / mainImg.clientWidth;
+    const naturalCy = img.naturalHeight / mainImg.clientHeight;
+    const zoomFactor = Math.max(2, naturalCx, naturalCy);   // ‼️ new line
 
-        zoomContainer.addEventListener('mouseenter', function() {
-          zoomLens.style.display = 'block';
-          zoomResult.style.display = 'block';
-        });
+    cx = cy = zoomFactor;                                   // use a square factor
+    zoomResult.style.backgroundSize =
+      `${mainImg.clientWidth  * zoomFactor}px
+       ${mainImg.clientHeight * zoomFactor}px`;
+  };
+}
 
-        zoomContainer.addEventListener('mouseleave', function() {
-          zoomLens.style.display = 'none';
-          zoomResult.style.display = 'none';
-        });
-      }
+
+  // initial setup
+  prepareZoom(mainImg.src);
+
+  if (window.innerWidth > 991) {       // desktop only
+    zoomContainer.addEventListener('mouseenter', () => {
+      zoomLens.style.display   = 'block';
+      zoomResult.style.display = 'block';
+    });
+
+    zoomContainer.addEventListener('mouseleave', () => {
+      zoomLens.style.display   = 'none';
+      zoomResult.style.display = 'none';
+    });
+
+    zoomContainer.addEventListener('mousemove', (e) => {
+      const rect = mainImg.getBoundingClientRect();
+
+      // cursor position inside the image
+      let x = e.clientX - rect.left;
+      let y = e.clientY - rect.top;
+
+      // keep the lens fully inside the image
+      x = Math.max(lensSize / 2, Math.min(rect.width  - lensSize / 2, x));
+      y = Math.max(lensSize / 2, Math.min(rect.height - lensSize / 2, y));
+
+      // move the lens
+      zoomLens.style.cssText = `
+        width:${lensSize}px;height:${lensSize}px;
+        left:${x - lensSize / 2}px;top:${y - lensSize / 2}px;`;
+
+      // move the background of the zoom panel
+      zoomResult.style.backgroundPosition =
+        `-${x * cx - zoomResult.clientWidth  / 2}px -${y * cy - zoomResult.clientHeight / 2}px`;
+    });
+  }
+
+  // // refresh zoom when a thumbnail is chosen
+  // document.querySelectorAll('.thumbnail').forEach(th => {
+  //   th.addEventListener('click', function () {
+  //     const src = this.dataset.img;
+  //     mainImg.src = src;
+  //     prepareZoom(src);
+  //   });
+  // });
+  /* ------------------------------------------- */
+
 
       // Thumbnail functionality
-      document.querySelectorAll('.thumbnail').forEach(thumb => {
-        thumb.addEventListener('click', function() {
-          const imgSrc = this.dataset.img;
-          document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-          this.classList.add('active');
-          mainImg.src = imgSrc;
-          zoomImage.src = imgSrc;
-        });
-      });
+// 🔄  REPLACE your old handler with this one
+document.querySelectorAll('.thumbnail').forEach(thumb => {
+  thumb.addEventListener('click', function () {
+    const imgSrc = this.dataset.img;
+
+    // toggle active border
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+
+    // swap the main image …
+    mainImg.src = imgSrc;
+
+    // … and tell the zoom panel to use the same hi-res file
+    prepareZoom(imgSrc);          // <- NEW
+  });
+});
+
 
       // Quantity controls
       const qtyMinus = document.getElementById('qty-minus');
@@ -1295,7 +1349,7 @@
 
     try{
 
-        const response = await fetch(`₹{BASE_URL}/user/cart/api/add/₹{productId}`,{
+        const response = await fetch(`${BASE_URL}/user/cart/api/add/${productId}`,{
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ variant, quantity })
@@ -1304,6 +1358,7 @@
         const result = await response.json();
 
         if(response.ok){
+          showGlobalToast('item added to cart successfully')
             updateCartCount(result.userId)
         }else{
             alert(result.message)
@@ -1319,7 +1374,7 @@
         async function updateCartCount(userId) {
     const BASE_URL = window.location.origin;
   try {
-    const res = await fetch(`₹{BASE_URL}/user/cart/api/count`);
+    const res = await fetch(`${BASE_URL}/user/cart/api/count`);
     const result = await res.json();
     if(res.ok){
         const el = document.getElementById('HeadercartCount');
@@ -1353,5 +1408,7 @@
       }
     });
   </script>
+
+  <%}%>
 </body>
 </html>

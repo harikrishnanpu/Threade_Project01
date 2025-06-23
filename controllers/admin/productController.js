@@ -6,9 +6,9 @@ const {
   deleteProductById,
   toggleProductStatusById,
   toggleProductFeaturedById
-} = require("../services/productServices");
-const { getAllCategories } = require("../services/categoryService");
-const { getAllBrands } = require("../services/brandServices");
+} = require("../../services/productServices");
+const { getAllCategories } = require("../../services/categoryService");
+const { getAllBrands } = require("../../services/brandServices");
 
 
 

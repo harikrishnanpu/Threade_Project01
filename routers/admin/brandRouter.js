@@ -3,11 +3,11 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const brandController = require('../controllers/brandController');
-const { validateBrandListQuery } = require('../validators/QueryValidator');
-const { handleValidationErrors } = require('../validators/validator');
-const { validateBrandIdParam } = require('../validators/ParamValidator');
-const { validateBrandBody } = require('../validators/bodyValidator');
+const brandController = require('../../controllers/admin/brandController');
+const { validateBrandListQuery } = require('../../validators/QueryValidator');
+const { handleValidationErrors } = require('../../validators/validator');
+const { validateBrandIdParam } = require('../../validators/ParamValidator');
+const { validateBrandBody } = require('../../validators/bodyValidator');
 
 const uploadDir = 'uploads/brands';
 if (!fs.existsSync(uploadDir)) {

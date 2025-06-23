@@ -47,6 +47,44 @@
   .crumb a{color:var(--primary);text-decoration:none}
   .crumb a:hover{text-decoration:underline}
 
+  /* admin approval alert */
+  .admin-approval-alert{
+    background:linear-gradient(135deg, #fff3cd 0%, #fef3c7 100%);
+    border:1px solid #fbbf24;
+    border-radius:var(--radius);
+    padding:1rem 1.5rem;
+    margin-bottom:1.5rem;
+    display:flex;
+    align-items:center;
+    gap:1rem;
+    box-shadow:0 2px 4px rgba(251, 191, 36, 0.1);
+  }
+  .admin-approval-alert .icon{
+    background:#f59e0b;
+    color:white;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.1rem;
+    flex-shrink:0;
+  }
+  .admin-approval-alert .content{
+    flex:1;
+  }
+  .admin-approval-alert .title{
+    font-weight:600;
+    color:#92400e;
+    margin-bottom:.25rem;
+  }
+  .admin-approval-alert .message{
+    color:#a16207;
+    font-size:.9rem;
+    line-height:1.4;
+  }
+
   /* order header */
   .order-header{background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);
                 padding:1.5rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-start}
@@ -286,19 +324,6 @@
   .reason-label{font-weight:500;color:var(--text);margin-bottom:.5rem}
   .reason-text{color:var(--muted);font-size:.9rem;line-height:1.4}
 
-  /* item selection */
-  .item-selection{margin-bottom:1rem}
-  .item-checkbox{display:flex;align-items:center;gap:.75rem;padding:.75rem;border:1px solid #e5e7eb;
-                 border-radius:6px;margin-bottom:.5rem;cursor:pointer;transition:background var(--tr)}
-  .item-checkbox:hover{background:#f9fafb}
-  .item-checkbox.selected{background:#f0f9ff;border-color:var(--primary)}
-  .item-checkbox input[type="checkbox"]{margin:0}
-  .item-checkbox-image{width:40px;height:40px;border-radius:4px;object-fit:cover}
-  .item-checkbox-details{flex:1}
-  .item-checkbox-name{font-weight:500;font-size:.9rem}
-  .item-checkbox-variant{color:var(--muted);font-size:.8rem}
-  .item-checkbox-price{font-weight:600;color:var(--text)}
-
   /* alert boxes */
   .alert{padding:1rem;border-radius:6px;margin-bottom:1rem}
   .alert-warning{background:#fff3cd;border:1px solid #ffeaa7;color:#856404}
@@ -415,6 +440,14 @@
   .nice-select.open .list{
     transform: none;
   }
+
+
+  /* item status badges — standard flow */
+.badge-pending      { background:#fef3c7; color:#92400e; }   /* clock */
+.badge-confirmed    { background:#dbeafe; color:#1e40af; }   /* check */
+.badge-shipped      { background:#e0e7ff; color:#3730a3; }   /* truck */
+.badge-delivered    { background:#d1fae5; color:#065f46; }   /* check */
+
   </style>
 </head>
 <body>
@@ -459,6 +492,23 @@
       <i class="fas fa-house"></i> Home › Account › 
       <a href="/user/profile/orders">Orders</a> › Order Details
     </div>
+
+    <!-- Admin Approval Alert for Return Requests -->
+    <% if (order.orderStatus === 'return-requested' || order.items.some(item => item.status === 'return-requested')) { %>
+      <div class="admin-approval-alert">
+        <div class="icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="content">
+          <div class="title">Return Request Pending</div>
+          <div class="message">
+            Your return request is currently being reviewed by our admin team. 
+            You will receive an update within 24-48 hours regarding the approval status. 
+            Once approved, we'll schedule a pickup at your convenience.
+          </div>
+        </div>
+      </div>
+    <% } %>
 
     <!-- order header -->
     <div class="order-header">
@@ -542,11 +592,16 @@
                             <% } %>
                           </div>
                         <% } %>
-                      <% } else { %>
-                        <span class="status-badge badge-active">
-                          <i class="fas fa-check"></i> <%= (item.status || 'Active').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %>
-                        </span>
-                      <% } %>
+          <% } else { %>
+  <span class="status-badge badge-<%= item.status %>">
+    <i class="<%=
+      item.status === 'pending'   ? 'fas fa-clock'  :
+      item.status === 'confirmed' ? 'fas fa-check'  :
+      item.status === 'shipped'   ? 'fas fa-truck'  :  'fas fa-check'
+    %>"></i>
+    <%= item.status.replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase()) %>
+  </span>
+<% } %>
                     </div>
                   </div>
                   
@@ -557,13 +612,13 @@
                   <!-- Item Actions -->
                   <div class="item-actions">
                     <% if (!item.isCancelled && (!item.status || !item.status.includes('return')) && (order.orderStatus === 'pending' || order.orderStatus === 'confirmed')) { %>
-                      <button class="item-action-btn danger" onclick="OrderManager.showItemCancelModal('<%= item._id || index %>', '<%= item.productName %>')">
+                      <button class="item-action-btn danger" onclick="OrderManager.showItemCancelModal('<%= item._id || index %>', `<%= item.productName %>`, '<%= item.variant.color %>', '<%= item.variant.size %>')">
                         <i class="fas fa-times"></i> Cancel Item
                       </button>
                     <% } %>
                     
                     <% if (!item.isCancelled && (!item.status || !item.status.includes('return')) && order.orderStatus === 'delivered') { %>
-                      <button class="item-action-btn warning" onclick="OrderManager.showItemReturnModal('<%= item._id || index %>', `<%= item.productName %>`)">
+                      <button class="item-action-btn warning" onclick="OrderManager.showItemReturnModal('<%= item._id || index %>', `<%= item.productName %>`, '<%= item.variant.color %>', '<%= item.variant.size %>')">
                         <i class="fas fa-undo"></i> Return Item
                       </button>
                     <% } %>
@@ -589,10 +644,10 @@
                   if (timelineItem.status === 'cancelled') {
                     itemClass = 'cancelled';
                     icon = 'fas fa-times';
-                  } else if (timelineItem.status.includes('return-complete')) {
+                  } else if (timelineItem.status.includes('return')) {
                     itemClass = 'return';
                     icon = 'fas fa-undo';
-                  } else if (index === order.timeline.length - 1 && order.orderStatus !== 'delivered' && order.orderStatus !== 'cancelled') {
+                  } else if (index === order.timeline.length - 1 && order.orderStatus !== 'delivered' && order.orderStatus !== 'cancelled' && !order.orderStatus.includes('return-complete')) {
                     itemClass = 'current';
                     icon = 'fas fa-clock';
                   }
@@ -612,6 +667,7 @@
                         <% 
                           let statusTitle = timelineItem.status.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                           if (timelineItem.status === 'placed') statusTitle = 'Order Placed';
+                          if (timelineItem.status === 'pending') statusTitle = 'Order Pending';
                           if (timelineItem.status === 'confirmed') statusTitle = 'Order Confirmed';
                           if (timelineItem.status === 'shipped') statusTitle = 'Order Shipped';
                           if (timelineItem.status === 'delivered') statusTitle = 'Order Delivered';
@@ -628,11 +684,12 @@
                         <% 
                           let statusDesc = '';
                           if (timelineItem.status === 'placed') statusDesc = 'Your order has been placed successfully';
+                          if (timelineItem.status === 'pending') statusDesc = 'Your order is being processed';
                           if (timelineItem.status === 'confirmed') statusDesc = 'Your order has been confirmed and is being prepared';
                           if (timelineItem.status === 'shipped') statusDesc = 'Your order is on the way to your delivery address';
                           if (timelineItem.status === 'delivered') statusDesc = 'Your order has been successfully delivered';
                           if (timelineItem.status === 'cancelled') statusDesc = 'Your order has been cancelled';
-                          if (timelineItem.status === 'return-requested') statusDesc = 'Return request has been submitted';
+                          if (timelineItem.status === 'return-requested') statusDesc = 'Return request has been submitted and is pending admin approval';
                           if (timelineItem.status === 'return-processing') statusDesc = 'Your return request is being processed';
                           if (timelineItem.status === 'return-pickup') statusDesc = 'Pickup has been scheduled for your return';
                           if (timelineItem.status === 'return-complete') statusDesc = 'Your return has been completed successfully';
@@ -666,6 +723,40 @@
                     <div class="timeline-desc">Your order has been placed successfully</div>
                   </div>
                 </div>
+                
+                <% if (order.orderStatus !== 'pending') { %>
+                  <div class="timeline-item <%= order.orderStatus === 'cancelled' ? 'cancelled' : (order.orderStatus.includes('return') ? 'return' : 'completed') %>">
+                    <div class="timeline-marker">
+                      <i class="<%= order.orderStatus === 'cancelled' ? 'fas fa-times' : (order.orderStatus.includes('return') ? 'fas fa-undo' : 'fas fa-check') %>"></i>
+                    </div>
+                    <div class="timeline-content">
+                      <div class="timeline-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        <%= new Date(order.updatedAt).toLocaleDateString('en-US', { 
+                          year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                        }) %>
+                      </div>
+                      <div class="timeline-title">
+                        <%= order.orderStatus.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %>
+                      </div>
+                      <div class="timeline-desc">
+                        <% if (order.orderStatus === 'confirmed') { %>
+                          Your order has been confirmed and is being prepared
+                        <% } else if (order.orderStatus === 'shipped') { %>
+                          Your order is on the way to your delivery address
+                        <% } else if (order.orderStatus === 'delivered') { %>
+                          Your order has been successfully delivered
+                        <% } else if (order.orderStatus === 'cancelled') { %>
+                          Your order has been cancelled
+                        <% } else if (order.orderStatus === 'return-requested') { %>
+                          Return request has been submitted and is pending admin approval
+                        <% } else { %>
+                          Order status updated to <%= order.orderStatus.replace(/-/g, ' ') %>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                <% } %>
               <% } %>
             </div>
           </div>
@@ -789,17 +880,11 @@
                 <button class="action-btn danger" onclick="OrderManager.showFullOrderCancelModal()">
                   <i class="fas fa-times"></i> Cancel Full Order
                 </button>
-                <button class="action-btn danger" onclick="OrderManager.showMultiItemCancelModal()">
-                  <i class="fas fa-list"></i> Cancel Selected Items
-                </button>
               <% } %>
               
               <% if (order.orderStatus === 'delivered') { %>
                 <button class="action-btn warning" onclick="OrderManager.showFullOrderReturnModal()">
                   <i class="fas fa-undo"></i> Return Full Order
-                </button>
-                <button class="action-btn warning" onclick="OrderManager.showMultiItemReturnModal()">
-                  <i class="fas fa-list"></i> Return Selected Items
                 </button>
                 <a href="#" class="action-btn primary">
                   <i class="fas fa-repeat"></i> Reorder
@@ -898,70 +983,6 @@
   </div>
 </div>
 
-<!-- Multi Item Cancel Modal -->
-<div class="modal-overlay" id="multiItemCancelModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 class="modal-title">Cancel Selected Items</h3>
-      <button class="modal-close" onclick="OrderManager.hideMultiItemCancelModal()">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <form id="multiItemCancelForm">
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Select Items to Cancel *</label>
-          <div class="item-selection" id="cancelItemSelection">
-            <% order.items.forEach((item, index) => { %>
-              <% if (!item.isCancelled && (!item.status || !item.status.includes('return'))) { %>
-                <label class="item-checkbox">
-                  <input type="checkbox" name="itemIds" value="<%= item._id || index %>">
-                  <img src="<%= item.productImage %>" alt="<%= item.productName %>" class="item-checkbox-image">
-                  <div class="item-checkbox-details">
-                    <div class="item-checkbox-name"><%= item.productName %></div>
-                    <div class="item-checkbox-variant">
-                      <%= item.variant.color %> • <%= item.variant.size.toUpperCase() %> • Qty: <%= item.quantity %>
-                    </div>
-                  </div>
-                  <div class="item-checkbox-price">₹<%= (item.price * item.quantity).toFixed(2) %></div>
-                </label>
-              <% } %>
-            <% }) %>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Cancellation Reason *</label>
-          <select name="cancellationReason" class="form-control" required>
-            <option value="">Select a reason</option>
-            <option value="Changed my mind">Changed my mind</option>
-            <option value="Found better price elsewhere">Found better price elsewhere</option>
-            <option value="Ordered by mistake">Ordered by mistake</option>
-            <option value="Delivery taking too long">Delivery taking too long</option>
-            <option value="Product no longer needed">Product no longer needed</option>
-            <option value="Size/Color not suitable">Size/Color not suitable</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Additional Comments (Optional)</label>
-          <textarea name="additionalComments" class="form-control textarea" 
-                    placeholder="Please provide any additional details..."></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="action-btn" onclick="OrderManager.hideMultiItemCancelModal()">
-          Cancel
-        </button>
-        <button type="submit" class="action-btn danger" id="multiCancelSubmitBtn">
-          <i class="fas fa-times"></i> Cancel Selected Items
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <!-- Single Item Cancel Modal -->
 <div class="modal-overlay" id="itemCancelModal">
   <div class="modal">
@@ -973,9 +994,15 @@
     </div>
     <form id="itemCancelForm">
       <div class="modal-body">
-        <p style="margin-bottom:1rem;color:var(--muted)">
-          Cancel item: <strong id="cancelItemName"></strong>
-        </p>
+        <div class="alert alert-info">
+          <strong>Item Details:</strong>
+          <div style="margin-top:.5rem">
+            <strong id="cancelItemName"></strong><br>
+            <span style="color:var(--muted);font-size:.9rem">
+              Color: <span id="cancelItemColor"></span> • Size: <span id="cancelItemSize"></span>
+            </span>
+          </div>
+        </div>
         
         <div class="form-group">
           <label class="form-label">Cancellation Reason *</label>
@@ -997,6 +1024,8 @@
         </div>
         
         <input type="hidden" name="itemId" id="cancelItemId">
+        <input type="hidden" name="itemColor" id="cancelItemColorHidden">
+        <input type="hidden" name="itemSize" id="cancelItemSizeHidden">
       </div>
       <div class="modal-footer">
         <button type="button" class="action-btn" onclick="OrderManager.hideItemCancelModal()">
@@ -1052,7 +1081,7 @@
           <i class="fas fa-info-circle"></i>
           <strong>Return Policy:</strong> Items can be returned within 7 days of delivery. 
           Products should be in original condition with tags intact. 
-          Pickup will be scheduled within 2-3 business days.
+          Pickup will be scheduled within 2-3 business days after admin approval.
         </div>
       </div>
       <div class="modal-footer">
@@ -1060,71 +1089,6 @@
           Cancel
         </button>
         <button type="submit" class="action-btn warning" id="fullReturnSubmitBtn">
-          <i class="fas fa-undo"></i> Submit Return Request
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Multi Item Return Modal -->
-<div class="modal-overlay" id="multiItemReturnModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 class="modal-title">Return Selected Items</h3>
-      <button class="modal-close" onclick="OrderManager.hideMultiItemReturnModal()">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <form id="multiItemReturnForm">
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Select Items to Return *</label>
-          <div class="item-selection" id="returnItemSelection">
-            <% order.items.forEach((item, index) => { %>
-              <% if (!item.isCancelled && (!item.status || !item.status.includes('return'))) { %>
-                <label class="item-checkbox">
-                  <input type="checkbox" name="itemIds" value="<%= item._id || index %>">
-                  <img src="<%= item.productImage %>" alt="<%= item.productName %>" class="item-checkbox-image">
-                  <div class="item-checkbox-details">
-                    <div class="item-checkbox-name"><%= item.productName %></div>
-                    <div class="item-checkbox-variant">
-                      <%= item.variant.color %> • <%= item.variant.size.toUpperCase() %> • Qty: <%= item.quantity %>
-                    </div>
-                  </div>
-                  <div class="item-checkbox-price">₹<%= (item.price * item.quantity).toFixed(2) %></div>
-                </label>
-              <% } %>
-            <% }) %>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Return Reason *</label>
-          <select name="returnReason" class="form-control" required>
-            <option value="">Select a reason</option>
-            <option value="Defective/Damaged product">Defective/Damaged product</option>
-            <option value="Wrong item received">Wrong item received</option>
-            <option value="Size/Color not as expected">Size/Color not as expected</option>
-            <option value="Quality not as expected">Quality not as expected</option>
-            <option value="Product not as described">Product not as described</option>
-            <option value="No longer needed">No longer needed</option>
-            <option value="Received duplicate order">Received duplicate order</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Detailed Description *</label>
-          <textarea name="returnNote" class="form-control textarea" required
-                    placeholder="Please describe the issue in detail for the selected items..."></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="action-btn" onclick="OrderManager.hideMultiItemReturnModal()">
-          Cancel
-        </button>
-        <button type="submit" class="action-btn warning" id="multiReturnSubmitBtn">
           <i class="fas fa-undo"></i> Submit Return Request
         </button>
       </div>
@@ -1143,9 +1107,15 @@
     </div>
     <form id="itemReturnForm">
       <div class="modal-body">
-        <p style="margin-bottom:1rem;color:var(--muted)">
-          Return item: <strong id="returnItemName"></strong>
-        </p>
+        <div class="alert alert-info">
+          <strong>Item Details:</strong>
+          <div style="margin-top:.5rem">
+            <strong id="returnItemName"></strong><br>
+            <span style="color:var(--muted);font-size:.9rem">
+              Color: <span id="returnItemColor"></span> • Size: <span id="returnItemSize"></span>
+            </span>
+          </div>
+        </div>
         
         <div class="form-group">
           <label class="form-label">Return Reason *</label>
@@ -1167,7 +1137,15 @@
                     placeholder="Please describe the issue in detail. This will help us process your return faster..."></textarea>
         </div>
         
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle"></i>
+          <strong>Return Policy:</strong> Items can be returned within 7 days of delivery. 
+          Products should be in original condition with tags intact.
+        </div>
+        
         <input type="hidden" name="itemId" id="returnItemId">
+        <input type="hidden" name="itemColor" id="returnItemColorHidden">
+        <input type="hidden" name="itemSize" id="returnItemSizeHidden">
       </div>
       <div class="modal-footer">
         <button type="button" class="action-btn" onclick="OrderManager.hideItemReturnModal()">
@@ -1399,9 +1377,6 @@ const OrderManager = {
         <button class="action-btn warning" onclick="OrderManager.showFullOrderReturnModal()">
           <i class="fas fa-undo"></i> Return Full Order
         </button>
-        <button class="action-btn warning" onclick="OrderManager.showMultiItemReturnModal()">
-          <i class="fas fa-list"></i> Return Selected Items
-        </button>
         <a href="/user/profile/orders/${this.config.orderId}/reorder" class="action-btn primary">
           <i class="fas fa-repeat"></i> Reorder
         </a>
@@ -1452,7 +1427,7 @@ const OrderManager = {
       statusDesc = 'Your order has been cancelled';
     } else if (status === 'return-requested') {
       statusTitle = 'Return Requested';
-      statusDesc = 'Return request has been submitted';
+      statusDesc = 'Return request has been submitted and is pending admin approval';
     }
     
     const timelineItem = document.createElement('div');
@@ -1502,32 +1477,23 @@ const OrderManager = {
     }
   },
 
-  // Multi Item Cancel Modal
-  showMultiItemCancelModal() {
-    const modal = document.getElementById('multiItemCancelModal');
-    if (modal) {
-      modal.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    }
-  },
-
-  hideMultiItemCancelModal() {
-    const modal = document.getElementById('multiItemCancelModal');
-    if (modal) {
-      modal.classList.remove('show');
-      document.body.style.overflow = '';
-    }
-  },
-
   // Single Item Cancel Modal
-  showItemCancelModal(itemId, itemName) {
+  showItemCancelModal(itemId, itemName, itemColor, itemSize) {
     const modal = document.getElementById('itemCancelModal');
     const itemIdInput = document.getElementById('cancelItemId');
     const itemNameSpan = document.getElementById('cancelItemName');
+    const itemColorSpan = document.getElementById('cancelItemColor');
+    const itemSizeSpan = document.getElementById('cancelItemSize');
+    const itemColorHidden = document.getElementById('cancelItemColorHidden');
+    const itemSizeHidden = document.getElementById('cancelItemSizeHidden');
     
     if (modal && itemIdInput && itemNameSpan) {
       itemIdInput.value = itemId;
       itemNameSpan.textContent = itemName;
+      if (itemColorSpan) itemColorSpan.textContent = itemColor;
+      if (itemSizeSpan) itemSizeSpan.textContent = itemSize.toUpperCase();
+      if (itemColorHidden) itemColorHidden.value = itemColor;
+      if (itemSizeHidden) itemSizeHidden.value = itemSize;
       modal.classList.add('show');
       document.body.style.overflow = 'hidden';
     }
@@ -1558,32 +1524,23 @@ const OrderManager = {
     }
   },
 
-  // Multi Item Return Modal
-  showMultiItemReturnModal() {
-    const modal = document.getElementById('multiItemReturnModal');
-    if (modal) {
-      modal.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    }
-  },
-
-  hideMultiItemReturnModal() {
-    const modal = document.getElementById('multiItemReturnModal');
-    if (modal) {
-      modal.classList.remove('show');
-      document.body.style.overflow = '';
-    }
-  },
-
   // Single Item Return Modal
-  showItemReturnModal(itemId, itemName) {
+  showItemReturnModal(itemId, itemName, itemColor, itemSize) {
     const modal = document.getElementById('itemReturnModal');
     const itemIdInput = document.getElementById('returnItemId');
     const itemNameSpan = document.getElementById('returnItemName');
+    const itemColorSpan = document.getElementById('returnItemColor');
+    const itemSizeSpan = document.getElementById('returnItemSize');
+    const itemColorHidden = document.getElementById('returnItemColorHidden');
+    const itemSizeHidden = document.getElementById('returnItemSizeHidden');
     
     if (modal && itemIdInput && itemNameSpan) {
       itemIdInput.value = itemId;
       itemNameSpan.textContent = itemName;
+      if (itemColorSpan) itemColorSpan.textContent = itemColor;
+      if (itemSizeSpan) itemSizeSpan.textContent = itemSize.toUpperCase();
+      if (itemColorHidden) itemColorHidden.value = itemColor;
+      if (itemSizeHidden) itemSizeHidden.value = itemSize;
       modal.classList.add('show');
       document.body.style.overflow = 'hidden';
     }
@@ -1631,45 +1588,6 @@ const OrderManager = {
     }
   },
 
-  // Handle multi item cancellation
-  async handleMultiItemCancel(formData) {
-    try {
-      const selectedItems = Array.from(formData.getAll('itemIds'));
-      
-      if (selectedItems.length === 0) {
-        this.showToast('Please select at least one item to cancel', 'warning');
-        return;
-      }
-      
-      const data = {
-        orderId: this.config.orderId,
-        itemIds: selectedItems,
-        cancellationReason: formData.get('cancellationReason'),
-        additionalComments: formData.get('additionalComments') || ''
-      };
-      
-      const result = await this.makeAPIRequest(`${window.location.origin}/user/orders/${this.config.orderId}/cancel-items`, 'POST', data);
-      
-      if (result.success) {
-        this.showToast(`${selectedItems.length} item(s) cancelled successfully`, 'success');
-        this.hideMultiItemCancelModal();
-        
-        // Update each cancelled item
-        selectedItems.forEach(itemId => {
-          this.updateItemStatus(itemId, 'cancelled', data.cancellationReason);
-        });
-        
-        // Add timeline entry
-        this.addTimelineEntry('partial-cancellation', `${selectedItems.length} item(s) cancelled`);
-      } else {
-        this.showToast(result.message || 'Failed to cancel items', 'error');
-      }
-    } catch (error) {
-      this.showToast('An error occurred while cancelling items', 'error');
-      console.error('Cancel items error:', error);
-    }
-  },
-
   // Handle single item cancellation
   async handleItemCancel(formData) {
     try {
@@ -1677,7 +1595,11 @@ const OrderManager = {
         orderId: this.config.orderId,
         itemId: formData.get('itemId'),
         cancellationReason: formData.get('cancellationReason'),
-        additionalComments: formData.get('additionalComments') || ''
+        notes: formData.get('additionalComments') || '',
+        variant: {
+          color: formData.get('itemColor'),
+          size: formData.get('itemSize')
+        }
       };
       
       const result = await this.makeAPIRequest(`${window.location.origin}/user/orders/${this.config.orderId}/cancel-item`, 'POST', data);
@@ -1718,51 +1640,15 @@ const OrderManager = {
           const itemId = item.getAttribute('data-item-id');
           this.updateItemStatus(itemId, 'return-requested', data.returnReason, data.returnNote);
         });
+        
+        // Show admin approval alert
+        location.reload();
       } else {
         this.showToast(result.message || 'Failed to submit return request', 'error');
       }
     } catch (error) {
       this.showToast('An error occurred while submitting return request', 'error');
       console.error('Return order error:', error);
-    }
-  },
-
-  // Handle multi item return
-  async handleMultiItemReturn(formData) {
-    try {
-      const selectedItems = Array.from(formData.getAll('itemIds'));
-      
-      if (selectedItems.length === 0) {
-        this.showToast('Please select at least one item to return', 'warning');
-        return;
-      }
-      
-      const data = {
-        orderId: this.config.orderId,
-        itemIds: selectedItems,
-        returnReason: formData.get('returnReason'),
-        returnNote: formData.get('returnNote')
-      };
-      
-      const result = await this.makeAPIRequest(`${window.location.origin}/user/orders/${this.config.orderId}/return-items`, 'POST', data);
-      
-      if (result.success) {
-        this.showToast(`Return request submitted for ${selectedItems.length} item(s)`, 'success');
-        this.hideMultiItemReturnModal();
-        
-        // Update each returned item
-        selectedItems.forEach(itemId => {
-          this.updateItemStatus(itemId, 'return-requested', data.returnReason, data.returnNote);
-        });
-        
-        // Add timeline entry
-        this.addTimelineEntry('partial-return', `Return requested for ${selectedItems.length} item(s)`);
-      } else {
-        this.showToast(result.message || 'Failed to submit return request', 'error');
-      }
-    } catch (error) {
-      this.showToast('An error occurred while submitting return request', 'error');
-      console.error('Return items error:', error);
     }
   },
 
@@ -1773,7 +1659,11 @@ const OrderManager = {
         orderId: this.config.orderId,
         itemId: formData.get('itemId'),
         returnReason: formData.get('returnReason'),
-        returnNote: formData.get('returnNote')
+        returnNote: formData.get('returnNote'),
+        variant: {
+          color: formData.get('itemColor'),
+          size: formData.get('itemSize')
+        }
       };
       
       const result = await this.makeAPIRequest(`${window.location.origin}/user/orders/${this.config.orderId}/return-item`, 'POST', data);
@@ -1782,6 +1672,11 @@ const OrderManager = {
         this.showToast('Return request submitted successfully', 'success');
         this.updateItemStatus(data.itemId, 'return-requested', data.returnReason, data.returnNote);
         this.hideItemReturnModal();
+        
+        // Show admin approval alert if this is the first return request
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
       } else {
         this.showToast(result.message || 'Failed to submit return request', 'error');
       }
@@ -1794,18 +1689,6 @@ const OrderManager = {
   // ===== EVENT LISTENERS SETUP =====
   
   setupEventListeners() {
-    // Handle item checkbox selection visual feedback
-    document.querySelectorAll('.item-checkbox input[type="checkbox"]').forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const label = this.closest('.item-checkbox');
-        if (this.checked) {
-          label.classList.add('selected');
-        } else {
-          label.classList.remove('selected');
-        }
-      });
-    });
-
     // Auto-resize textareas
     document.querySelectorAll('textarea').forEach(textarea => {
       textarea.addEventListener('input', function() {
@@ -1868,41 +1751,6 @@ const OrderManager = {
       });
     }
 
-    // Multi Item Cancel Form
-    const multiItemCancelForm = document.getElementById('multiItemCancelForm');
-    if (multiItemCancelForm) {
-      multiItemCancelForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const selectedItems = formData.getAll('itemIds');
-        const reason = formData.get('cancellationReason');
-        
-        if (selectedItems.length === 0) {
-          this.showToast('Please select at least one item to cancel', 'warning');
-          return;
-        }
-        
-        if (!reason) {
-          this.showToast('Please select a cancellation reason', 'warning');
-          return;
-        }
-        
-        if (!confirm(`Are you sure you want to cancel ${selectedItems.length} selected item(s)?`)) {
-          return;
-        }
-        
-        const submitBtn = document.getElementById('multiCancelSubmitBtn');
-        this.setButtonLoading(submitBtn, true);
-        
-        try {
-          await this.handleMultiItemCancel(formData);
-        } finally {
-          this.setButtonLoading(submitBtn, false);
-        }
-      });
-    }
-
     // Single Item Cancel Form
     const itemCancelForm = document.getElementById('itemCancelForm');
     if (itemCancelForm) {
@@ -1952,7 +1800,7 @@ const OrderManager = {
           return;
         }
         
-        if (!confirm('Are you sure you want to return this entire order? A pickup will be scheduled once approved.')) {
+        if (!confirm('Are you sure you want to return this entire order? A pickup will be scheduled once approved by admin.')) {
           return;
         }
         
@@ -1961,47 +1809,6 @@ const OrderManager = {
         
         try {
           await this.handleFullOrderReturn(formData);
-        } finally {
-          this.setButtonLoading(submitBtn, false);
-        }
-      });
-    }
-
-    // Multi Item Return Form
-    const multiItemReturnForm = document.getElementById('multiItemReturnForm');
-    if (multiItemReturnForm) {
-      multiItemReturnForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const selectedItems = formData.getAll('itemIds');
-        const reason = formData.get('returnReason');
-        const note = formData.get('returnNote').trim();
-        
-        if (selectedItems.length === 0) {
-          this.showToast('Please select at least one item to return', 'warning');
-          return;
-        }
-        
-        if (!reason) {
-          this.showToast('Please select a return reason', 'warning');
-          return;
-        }
-        
-        if (!note) {
-          this.showToast('Please provide a detailed description', 'warning');
-          return;
-        }
-        
-        if (!confirm(`Are you sure you want to return ${selectedItems.length} selected item(s)? A pickup will be scheduled once approved.`)) {
-          return;
-        }
-        
-        const submitBtn = document.getElementById('multiReturnSubmitBtn');
-        this.setButtonLoading(submitBtn, true);
-        
-        try {
-          await this.handleMultiItemReturn(formData);
         } finally {
           this.setButtonLoading(submitBtn, false);
         }
@@ -2028,7 +1835,7 @@ const OrderManager = {
           return;
         }
         
-        if (!confirm('Are you sure you want to return this item? A pickup will be scheduled once approved.')) {
+        if (!confirm('Are you sure you want to return this item? A pickup will be scheduled once approved by admin.')) {
           return;
         }
         

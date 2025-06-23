@@ -1,6 +1,6 @@
 const express = require('express');
-const {  getCartCount, renderCartPage, updateCart, addToCart, renderCheckout, verifyAndRedirectCheckout, applyCoupon, createCheckoutSession, renderPaymentPage, getCheckoutSession} = require('../controllers/userCartController');
-const { checkCartExists, checkIsCheckoutSessionExists } = require('../middlewares/userCartMiddleWares');
+const {  getCartCount, renderCartPage, updateCart, addToCart, renderCheckout, verifyAndRedirectCheckout, applyCoupon, createCheckoutSession, renderPaymentPage, getCheckoutSession} = require('../../controllers/user/userCartController');
+const { checkCartExists, checkIsCheckoutSessionExists } = require('../../middlewares/userCartMiddleWares');
 const cartRouter = express.Router();
 
 

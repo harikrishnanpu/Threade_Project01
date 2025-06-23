@@ -1,4 +1,4 @@
-const adminInventoryServices = require('../services/adminInventoryService');
+const adminInventoryServices = require('../../services/adminInventoryService');
 
 
 const getInventoryPage = async (req, res) => {

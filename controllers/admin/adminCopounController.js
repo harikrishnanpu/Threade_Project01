@@ -1,5 +1,5 @@
-const couponService = require('../services/adminCouponServices');
-const { findOneUserById } = require('../services/userServices');
+const couponService = require('../../services/adminCouponServices');
+const { findOneUserById } = require('../../services/userServices');
 
 
 

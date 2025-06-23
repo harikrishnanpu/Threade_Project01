@@ -92,7 +92,7 @@
   transition: border-color 0.2s ease;
 }
 #vsThumbs img.vs-thumb.selected {
-  border-color: #007bff;
+  border-color: #000;
 }
 
 .vs-selectors .vs-group {
@@ -121,9 +121,9 @@
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 .vs-options button.active {
-  background: #007bff;
+  background: #000;
   color: #fff;
-  border-color: #007bff;
+  border-color: #000;
 }
 
 .vs-qty-controls {
@@ -156,14 +156,14 @@
   font-size: 1rem;
   font-weight: 600;
   border: none;
-  background-color: #007bff;
+  background-color: #000;
   color: #fff;
   text-transform: uppercase;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 .vs-add-btn:hover {
-  background-color: #0056b3;
+  background-color: #000;
 }
 
 @media (max-width: 576px) {

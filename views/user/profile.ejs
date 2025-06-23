@@ -1,171 +1,381 @@
-<!-- views/user/profile/index.ejs -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Personal data – <%= user.name %></title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Personal data – <%= user.name %></title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
 
-  <style>
-  :root{
-    --bg:#f7f9fc;--white:#fff;--primary:#0d6efd;--primary-light:#e8f0ff;
-    --text:#374151;--muted:#6b7280;--radius:12px;--tr:.25s;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",sans-serif}
-  body{background:var(--bg);color:var(--text);line-height:1.5}
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --white: #fff;
+        --primary: #000;
+        --primary-light: #e8f0ff;
+        --text: #374151;
+        --muted: #6b7280;
+        --radius: 12px;
+        --tr: 0.25s;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", sans-serif;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
 
-  /* wrapper layout */
-  .wrapper{display:flex;min-height:100dvh;max-width:1300px;margin:auto}
+      /* wrapper layout */
+      .wrapper {
+        display: flex;
+        min-height: 100dvh;
+        max-width: 1300px;
+        margin: auto;
+      }
 
-  /* sidebar */
-  .sidebar{width:250px;background:var(--white);border-right:1px solid #e5e7eb;
-           display:flex;flex-direction:column;padding:1.5rem 0;transition:transform var(--tr)}
-  .avatar-box{display:flex;align-items:center;gap:.9rem;padding-inline:1.5rem;margin-bottom:1.6rem}
-  .avatar{width:54px;height:54px;border-radius:50%;background:var(--primary-light);
-          display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:var(--primary);font-weight:600}
-  nav ul{list-style:none}
-  nav li a{display:flex;align-items:center;gap:.75rem;padding:.85rem 1.5rem;
-           text-decoration:none;color:inherit;border-left:3px solid transparent;transition:background var(--tr)}
-  nav li a:hover{background:#f1f5f9}
-  nav li a.active{border-color:var(--primary);background:#eef4ff}
-  nav li i{width:18px;text-align:center}
-  .logout{margin-top:auto;padding:.9rem 1.5rem;background:none;border:none;color:#ef4444;
-          display:flex;gap:.6rem;cursor:pointer}
+      /* sidebar */
+      .sidebar {
+        width: 250px;
+        background: var(--white);
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem 0;
+        transition: transform var(--tr);
+      }
+      .avatar-box {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding-inline: 1.5rem;
+        margin-bottom: 1.6rem;
+      }
+      .avatar {
+        padding-inline: 10px;
+        padding-block: 5px;
+        border-radius: 50%;
+        background: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: var(--primary);
+        font-weight: 600;
+      }
+      nav ul {
+        list-style: none;
+      }
+      nav li a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.85rem 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        border-left: 3px solid transparent;
+        transition: background var(--tr);
+      }
+      nav li a:hover {
+        background: #f1f5f9;
+      }
+      nav li a.active {
+        border-color: var(--primary);
+        background: #eef4ff;
+      }
+      nav li i {
+        width: 18px;
+        text-align: center;
+      }
+      .logout {
+        margin-top: auto;
+        padding: 0.9rem 1.5rem;
+        background: none;
+        border: none;
+        color: #ef4444;
+        display: flex;
+        gap: 0.6rem;
+        cursor: pointer;
+      }
 
-  /* mobile header */
-  .mobile-top{display:none;background:var(--white);border-bottom:1px solid #e5e7eb;
-              padding:1rem 1.25rem;align-items:center;justify-content:space-between;position:sticky;top:0;}
-  .mobile-btn{background:none;border:none;font-size:1.3rem}
-  .overlay{display:none;position:fixed;inset:0;background:#0005;z-index:800}
+      /* mobile header */
+      .mobile-top {
+        display: none;
+        background: var(--white);
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 1.25rem;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+      }
+      .mobile-btn {
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+      }
+      .overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: #0005;
+        z-index: 800;
+      }
 
-  /* main */
-  main{flex:1;padding:2rem 2.5rem}
-  h1{font-size:1.4rem;margin-bottom:1.4rem}
-  .crumb{font-size:.85rem;color:var(--muted);margin-bottom:1.2rem}
-  .crumb i{margin-inline:.25rem}
+      /* main */
+      main {
+        flex: 1;
+        padding: 2rem 2.5rem;
+      }
+      h1 {
+        font-size: 1.4rem;
+        margin-bottom: 1.4rem;
+      }
+      .crumb {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 1.2rem;
+      }
+      .crumb i {
+        margin-inline: 0.25rem;
+      }
 
-  /* profile image + grid */
-  .profile-top{display:flex;align-items:center;gap:1.2rem;margin-bottom:1.8rem}
-  .big-avatar{width:90px;height:90px;border-radius:50%;background:var(--primary-light);
-              display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--primary);font-weight:600}
-  .id-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
-  .label{font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:.35rem}
-  .field-box{background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);
-             padding:1rem;display:flex;align-items:center;gap:.7rem}
-  .field-box input{flex:1;border:none;background:none;font-size:.95rem;color:var(--text)}
+      /* profile image + grid */
+      .profile-top {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        margin-bottom: 1.8rem;
+      }
+      .big-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .id-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      }
+      .label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 0.35rem;
+      }
+      .field-box {
+        background: var(--white);
+        border: 1px solid #e5e7eb;
+        border-radius: var(--radius);
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+      }
+      .field-box input {
+        flex: 1;
+        border: none;
+        background: none;
+        font-size: 0.95rem;
+        color: var(--text);
+      }
 
-  /* responsive tweaks */
-  @media(max-width:768px){
-    .sidebar{position:fixed;inset:0 50% 0 0;transform:translateX(-100%);z-index:850}
-    .sidebar.open{transform:none}
-    .mobile-top{display:flex}
-    .wrapper{flex-direction:column}
-    main{padding:1.25rem;margin-top:64px}
-    .overlay.show{display:block}
-  }
+      /* responsive tweaks */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          inset: 0 50% 0 0;
+          transform: translateX(-100%);
+          z-index: 850;
+        }
+        .sidebar.open {
+          transform: none;
+        }
+        .mobile-top {
+          display: flex;
+        }
+        .wrapper {
+          flex-direction: column;
+        }
+        main {
+          padding: 1.25rem;
+          margin-top: 64px;
+        }
+        .overlay.show {
+          display: block;
+        }
+      }
 
-    .edit-wrapper{margin-top:2.5rem;text-align:left}
-  .edit-btn{
-    display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;
-    background:var(--primary);color:var(--white) !important;border:none;border-radius:var(--radius);
-    text-decoration:none;font-size:.95rem;transition: background var(--tr),transform var(--tr);
-  }
-  .edit-btn:hover{background:#0b5be0;transform:translateY(-2px)}
-  </style>
-</head>
-<body>
-
-<!-- mobile header -->
-<div class="mobile-top">
-  <button class="mobile-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-  <span>Personal data</span>
-  <span></span>
-</div>
-<div class="overlay" onclick="toggleMenu()"></div>
-
-<div class="wrapper">
-  <!-- sidebar -->
-  <aside class="sidebar" id="side">
-    <div class="avatar-box">
-      <div class="avatar"><%= user.name[0].toUpperCase() %></div>
-      <div>
-        <strong><%= user.name %></strong><br>
-        <span style="font-size:.8rem;color:var(--muted)"><%= user.email %></span>
-      </div>
+      .edit-wrapper {
+        margin-top: 2.5rem;
+        text-align: left;
+      }
+      .edit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary);
+        color: var(--white) !important;
+        border: none;
+        border-radius: var(--radius);
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: background var(--tr), transform var(--tr);
+      }
+      .edit-btn:hover {
+        background: #0b5be0;
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- mobile header -->
+    <div class="mobile-top">
+      <button class="mobile-btn" onclick="toggleMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <span>Personal data</span>
+      <span></span>
     </div>
-    <nav>
-      <ul>
-        <li><a class="active" href="/user/profile"><i class="fas fa-user"></i>Personal data</a></li>
-        <li><a href="/user/profile/address"><i class="fas fa-map-marker-alt"></i>Addresses</a></li>
-        <li><a href="/user/profile/payments"><i class="fas fa-credit-card"></i>Payment & instalments</a></li>
-        <li><a href="/user/profile/orders"><i class="fas fa-box"></i>Orders</a></li>
-        <li><a href="/user/profile/wishlist"><i class="fas fa-heart"></i>Wish list</a></li>
-        <li><a href="/user/profile/discounts"><i class="fas fa-gift"></i>Discounts</a></li>
-        <li><a href="/user/profile/security"><i class="fas fa-shield-halved"></i>Security & access</a></li>
-        <li><a href="/user/profile/notifications"><i class="fas fa-bell"></i>Notification</a></li>
-        <li><a href="/contact-us"><i class="fas fa-phone"></i>Contact us</a></li>
-      </ul>
-    </nav>
-    <button class="logout" onclick="location.href='/logout'"><i class="fas fa-right-from-bracket"></i> Log out</button>
-  </aside>
+    <div class="overlay" onclick="toggleMenu()"></div>
 
-  <!-- main -->
-  <main>
-    <div class="crumb"><i class="fas fa-house"></i> Home › Account › Personal</div>
-    <h1>Profile details</h1>
-
-    <!-- profile image -->
-    <div class="profile-top">
-      <% if(user.profileImage){ %>
-        <img src="<%= user.profileImage %>" alt="profile" class="big-avatar" style="object-fit:cover"/>
-      <% }else{ %>
-        <div class="big-avatar"><%= user.name[0].toUpperCase() %></div>
-      <% } %>
-      <div>
-        <strong style="font-size:1.2rem"><%= user.name %></strong><br>
-        <span style="color:var(--muted)"><%= user.email %></span>
-      </div>
-    </div>
-
-    <!-- read-only fields -->
-    <div class="id-grid">
-      <div>
-        <p class="label">Full name</p>
-        <div class="field-box"><i class="fas fa-user"></i><input value="<%= user.name %>" readonly></div>
-      </div>
-      <div>
-        <p class="label">E-mail</p>
-        <div class="field-box"><i class="fas fa-envelope"></i><input value="<%= user.email %>" readonly></div>
-      </div>
-      <div>
-        <p class="label">Phone</p>
-        <div class="field-box"><i class="fas fa-phone"></i><input value="<%= user.phone||'' %>" readonly></div>
-      </div>
-      <div>
-        <p class="label">Date of birth</p>
-        <div class="field-box"><i class="fas fa-calendar"></i>
-          <input value="<%= user.dateOfBirth?user.dateOfBirth.toISOString().slice(0,10):'' %>" readonly>
+    <div class="wrapper">
+      <!-- sidebar -->
+      <aside class="sidebar" id="side">
+        <div class="avatar-box">
+          <div class="avatar"><%= user.name[0].toUpperCase() %></div>
+          <div>
+            <strong><%= user.name %></strong><br />
+            <span style="font-size: 0.8rem; color: var(--muted)"
+              ><%= user.email %></span
+            >
+          </div>
         </div>
-      </div>
-      <div>
-        <p class="label">Status</p>
-        <div class="field-box"><i class="fas fa-circle-check"></i>
-          <input value="<%= user.isVerified?'Verified':'Unverified' %>" readonly>
-        </div>
-      </div>
-    </div>
-  <div class="edit-wrapper">
-<a class="edit-btn" href="/user/profile/edit"><i class="fas fa-pen"></i>Edit profile</a>
-</div>
-  </main>
-</div>
+        <nav>
+          <ul>
+            <li>
+              <a class="active" href="/user/profile"
+                ><i class="fas fa-user"></i>Personal data</a
+              >
+            </li>
+            <li>
+              <a href="/user/profile/address"
+                ><i class="fas fa-map-marker-alt"></i>Addresses</a
+              >
+            </li>
 
-<script>
-function toggleMenu(){
-  document.getElementById('side').classList.toggle('open');
-  document.querySelector('.overlay').classList.toggle('show');
-}
-</script>
-</body>
+            <li>
+              <a href="/user/profile/orders"
+                ><i class="fas fa-box"></i>Orders</a
+              >
+            </li>
+
+            <li>
+              <a href="/contact-us"><i class="fas fa-phone"></i>Contact us</a>
+            </li>
+          </ul>
+        </nav>
+        <button class="logout" onclick="location.href='/logout'">
+          <i class="fas fa-right-from-bracket"></i> Log out
+        </button>
+      </aside>
+
+      <!-- main -->
+      <main>
+        <div class="crumb">
+          <i class="fas fa-house"></i> Home › Account › Personal
+        </div>
+        <h1>Profile details</h1>
+
+        <!-- profile image -->
+        <div class="profile-top">
+          <% if(user.profileImage){ %>
+          <img
+            src="<%= user.profileImage %>"
+            alt="profile"
+            class="big-avatar"
+            style="object-fit: cover"
+          />
+          <% }else{ %>
+          <div class="big-avatar"><%= user.name[0].toUpperCase() %></div>
+          <% } %>
+          <div>
+            <strong style="font-size: 1.2rem"><%= user.name %></strong><br />
+            <span style="color: var(--muted)"><%= user.email %></span>
+          </div>
+        </div>
+
+        <!-- read-only fields -->
+        <div class="id-grid">
+          <div>
+            <p class="label">Full name</p>
+            <div class="field-box">
+              <i class="fas fa-user"></i
+              ><input value="<%= user.name %>" readonly />
+            </div>
+          </div>
+          <div>
+            <p class="label">E-mail</p>
+            <div class="field-box">
+              <i class="fas fa-envelope"></i
+              ><input value="<%= user.email %>" readonly />
+            </div>
+          </div>
+          <div>
+            <p class="label">Phone</p>
+            <div class="field-box">
+              <i class="fas fa-phone"></i
+              ><input value="<%= user.phone||'' %>" readonly />
+            </div>
+          </div>
+          <div>
+            <p class="label">Date of birth</p>
+            <div class="field-box">
+              <i class="fas fa-calendar"></i>
+              <input
+                value="<%= user.dateOfBirth?user.dateOfBirth.toISOString().slice(0,10):'' %>"
+                readonly
+              />
+            </div>
+          </div>
+          <div>
+            <p class="label">Status</p>
+            <div class="field-box">
+              <i class="fas fa-circle-check"></i>
+              <input
+                value="<%= user.isVerified?'Verified':'Unverified' %>"
+                readonly
+              />
+            </div>
+          </div>
+        </div>
+        <div class="edit-wrapper">
+          <a class="edit-btn" href="/user/profile/edit"
+            ><i class="fas fa-pen"></i>Edit profile</a
+          >
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function toggleMenu() {
+        document.getElementById("side").classList.toggle("open");
+        document.querySelector(".overlay").classList.toggle("show");
+      }
+    </script>
+  </body>
 </html>

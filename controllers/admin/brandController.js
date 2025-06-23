@@ -1,6 +1,6 @@
-const brandService = require('../services/brandServices');
-const Category = require('../models/categoryModel');
-const { getAllBrandListQuery } = require('../utils/queries/getAllBrandQuery');
+const brandService = require('../../services/brandServices');
+const Category = require('../../models/categoryModel');
+const { getAllBrandListQuery } = require('../../utils/queries/getAllBrandQuery');
 
 
 
