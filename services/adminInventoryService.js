@@ -99,7 +99,7 @@ const updateStock = async ({
 
     await StockRegistry.create({
       productId,
-      variantId,
+      variant: { color: variant.color , size: variant.size  },
       productName   : product.name,
       action,
       quantity,
@@ -120,7 +120,7 @@ const updateStock = async ({
 
 const listStockHistory = async (limit = 40) => {
   try {
-    const history = await StockRegistry.find().sort({ createdAt: -1 }).limit(limit).lean();
+    const history = await StockRegistry.find().sort({ createdAt: -1 }).lean().limit(limit).lean();
     // console.log(history);
     
     return { success: true, data: history };

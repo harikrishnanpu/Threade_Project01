@@ -5,7 +5,7 @@
   <title>Payment | Checkout</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  
+
   <style>
     /* Base styles */
     :root {
@@ -41,7 +41,8 @@
       margin: 0 auto;
       padding: 0 1rem;
     }
-    
+  
+
     /* Header */
     .header {
       background-color: var(--bg-white);
@@ -732,6 +733,12 @@
       color: var(--text-light);
       font-style: italic;
     }
+
+    a:hover {
+      color: #000 !important;
+    }
+    
+
   </style>
 </head>
 <body>
@@ -794,6 +801,15 @@
               </div>
             </div>
           </div>
+
+            <div class="payment-method" onclick="selectPaymentMethod('online',this)">
+    <input type="radio" name="paymentMethod" value="online">
+    <div class="payment-info">
+      <div class="payment-icon"><i class="fas fa-university"></i></div>
+      <div class="payment-details"><h4>Online Payment</h4><p>UPI / Net-banking / Cards</p></div>
+    </div>
+  </div>
+
         </div>
 
         <a href="/user/cart/checkout" class="return-link">
@@ -845,7 +861,7 @@
         </div>
 
         <!-- Applied Coupon Section -->
-        <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon) { %>
+        <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon && appliedCoupon?.appliedDiscount > 0) { %>
           <div class="applied-coupon-section">
             <div class="coupon-header">
               <h3>Applied Coupon</h3>
@@ -854,15 +870,12 @@
               <div class="coupon-info">
                 <div class="coupon-badge">
                   <i class="fas fa-tag"></i>
-                  <span class="coupon-code"><%= appliedCoupon.code %></span>
+                  <span class="coupon-code">Code:<%= appliedCoupon.code %></span>
                 </div>
                 <div class="coupon-savings">
                   <span class="savings-text">You saved</span>
-                  <span class="savings-amount">₹<%= appliedCoupon.discount.toFixed(2) %></span>
+                  <span class="savings-amount">₹<%= appliedCoupon.appliedDiscount.toFixed(2) %></span>
                 </div>
-              </div>
-              <div class="coupon-description">
-                <%= appliedCoupon.description || appliedCoupon.discount + '% off on your order' %>
               </div>
             </div>
           </div>
@@ -896,48 +909,134 @@
     </div>
   </div>
 
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+let selectedMethod = 'cod';
+
+function selectPaymentMethod(method, el) {
+  selectedMethod = method;
+  document.querySelectorAll('.payment-method').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  document.querySelectorAll('input[name="paymentMethod"]').forEach(r => {
+    r.checked = r.value === method;
+  });
+}
+
+async function placeOrder() {
+  if (isProcessing) return;
+  hideErrorMessage(); showLoading();
+  try {
+    const res = await fetch('/user/orders/placeorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentMethod: selectedMethod })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    if (selectedMethod === 'online') {
+      const { razorpay, customer } = data;
+      const options = {
+        key: razorpay.key,
+        amount: razorpay.amount,
+        currency: razorpay.currency,
+        name: "Threade",
+        description: "Order Payment",
+        order_id: razorpay.razorpayOrderId,
+handler: async function (response) {
+  try {
+    const verify = await fetch(`/user/orders/payment/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_signature: response.razorpay_signature,
+        orderId: razorpay.orderId
+      })
+    });
+
+    const result = await verify.json();
+    if (result.success) {
+      window.location.href = `/user/orders/payment/success/${razorpay.orderId}?payment_id=${response.razorpay_payment_id}`;
+    } else {
+      window.location.href = `/user/orders/payment/failed/${razorpay.orderId}`;
+    }
+  } catch (err) {
+    window.location.href = `/user/orders/payment/failed/${razorpay.orderId}`;
+  }
+},
+        modal: {
+          ondismiss: function () {
+            window.location.href = `/user/orders/payment/failed/${razorpay.orderId}`;
+          }
+        },
+        prefill: {
+          name: customer.name || "User",
+          email: customer.email,
+          contact: customer.phone
+        },
+        theme: {
+          color: "#000"
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function () {
+        window.location.href = `/user/orders/payment/failed/${razorpay.orderId}`;
+      });
+      rzp.open();
+      return;
+    }
+
+    showSuccessMessage('Order placed');
+    setTimeout(() => location.href = data.redirectUrl, 1500);
+  } catch (err) {
+    showErrorMessage(err.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+
+</script>
+
+
   <script>
     // Global variables
     let isProcessing = false;
 
-    // Place order function (simplified)
-    async function placeOrder() {
-      if (isProcessing) return;
+//    let selectedMethod = 'cod'
 
-      hideErrorMessage();
-      showLoading();
+// function selectPaymentMethod(method, el) {
+//   selectedMethod = method
+//   document.querySelectorAll('.payment-method').forEach(d => d.classList.remove('selected'))
+//   el.classList.add('selected')
+//   document.querySelectorAll('input[name="paymentMethod"]').forEach(r => {
+//     r.checked = r.value === method
+//   })
+// }
 
-      try {
-
-        const orderData = {
-          paymentMethod: 'cod'
-          };
-
-        const response = await fetch('/user/orders/placeorder', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(orderData)
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showSuccessMessage('Order placed successfully! Redirecting...');
-          setTimeout(() => {
-            window.location.href = result.redirectUrl || '/user/order/success';
-          }, 2000);
-        } else {
-          showErrorMessage(result.message || 'Failed to place order. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error placing order:', error);
-        showErrorMessage('An error occurred while placing your order. Please try again.');
-      } finally {
-        hideLoading();
-      }
-    }
+// async function placeOrder() {
+//   if (isProcessing) return
+//   hideErrorMessage(); showLoading()
+//   try {
+//     const res = await fetch('/user/orders/placeorder',{
+//       method:'POST',
+//       headers:{'Content-Type':'application/json'},
+//       body:JSON.stringify({ paymentMethod:selectedMethod })
+//     })
+//     const data = await res.json()
+//     if (!res.ok) throw new Error(data.message)
+//     if (selectedMethod === 'online') return window.location.href = data.redirectUrl
+//     showSuccessMessage('Order placed'); setTimeout(()=>location.href=data.redirectUrl,1500)
+//   } catch (err) {
+//     showErrorMessage(err.message)
+//   } finally {
+//     hideLoading()
+//   }
+// }
 
     // Remove all card-related functions and keep only the essential ones
     
@@ -984,5 +1083,7 @@
       }
     });
   </script>
+
+
 </body>
 </html>

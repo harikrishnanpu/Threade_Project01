@@ -8,6 +8,9 @@ productRouter.get('/shop', productController.renderShopPage);
 productRouter.get('/:id', productController.renderProductById);
 
 
+productRouter.post('/review/add', productController.addReview);
+
+
 productRouter.get('/api/:id', productController.getProductById);
 productRouter.get('/tags', productController.getAllTags); 
 

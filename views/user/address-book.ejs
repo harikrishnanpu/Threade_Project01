@@ -202,35 +202,42 @@
         <input type="hidden" name="addressId" id="addressId">
 
         <div class="form-group">
-          <label>Full name *</label>
-          <input type="text" name="fullName" required>
-        </div>
+  <label>Full name *</label>
+  <input type="text" name="fullName" id="fullName">
+  <small class="error-note" data-err="fullName"></small>
+</div>
 
-        <div class="form-group">
-          <label>Phone *</label>
-          <input type="tel" name="phone" required>
-        </div>
+<div class="form-group">
+  <label>Phone *</label>
+  <input type="tel" name="phone" id="phone">
+  <small class="error-note" data-err="phone"></small>
+</div>
 
-        <div class="form-group">
-          <label>Street *</label>
-          <input type="text" name="street" required>
-        </div>
+<div class="form-group">
+  <label>Street *</label>
+  <input type="text" name="street" id="street">
+  <small class="error-note" data-err="street"></small>
+</div>
 
-        <div class="inline">
-          <div class="form-group">
-            <label>City *</label>
-            <input type="text" name="city" required>
-          </div>
-          <div class="form-group">
-            <label>State *</label>
-            <input type="text" name="state" required>
-          </div>
-        </div>
+<div class="inline">
+  <div class="form-group">
+    <label>City *</label>
+    <input type="text" name="city" id="city">
+    <small class="error-note" data-err="city"></small>
+  </div>
+  <div class="form-group">
+    <label>State *</label>
+    <input type="text" name="state" id="state">
+    <small class="error-note" data-err="state"></small>
+  </div>
+</div>
 
-        <div class="form-group">
-          <label>pincode *</label>
-          <input type="text" name="pincode" maxlength="12" required>
-        </div>
+<div class="form-group">
+  <label>Pincode *</label>
+  <input type="text" name="pincode" id="pincode">
+  <small class="error-note" data-err="pincode"></small>
+</div>
+
 
         <div class="form-group">
           <label>Address type</label>
@@ -327,33 +334,80 @@ document.querySelectorAll('.deleteBtn').forEach(b=>{
   };
 });
 
-/* ===== form submit ===== */
-document.getElementById('addrForm').addEventListener('submit',async e=>{
-  e.preventDefault();
-  showMsg('#modalMsg','');
-  const btn=document.getElementById('submitBtn');
-  setLoading(btn,'Saving');
-  const fd=new FormData(e.target);
-  const data={};
-  fd.forEach((v,k)=>{if(k!=='_method'&&k!=='addressId')data[k]=v;});
-  if(fd.get('addressType')==='home')data.isHomeAddress=true;
-  if(fd.get('addressType')==='work')data.isWorkAddress=true;
-  const isEdit=fd.get('_method')==='PUT';
-  const id=fd.get('addressId');
-  const url=isEdit?`${BASE}/user/profile/address/${id}/edit`:`${BASE}/user/profile/address/add`;
-  const method=isEdit?'PUT':'POST';
 
-  try{
-    const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    const out=await r.json();
-    if(!r.ok)throw new Error(out.message);
-    showMsg('#pageNote',out.message||'Saved','success');
+/* ===== validation helpers (JS-only) ===== */
+const validators = {
+  fullName: v => /^[A-Za-z\s.'-]{3,60}$/.test(v.trim()),
+  phone    : v => /^[6-9]\d{9}$/.test(v.trim()),
+  street   : v => v.trim().length >= 5 && v.trim().length <= 120,
+  city     : v => /^[A-Za-z\s.'-]{2,50}$/.test(v.trim()),
+  state    : v => /^[A-Za-z\s.'-]{2,50}$/.test(v.trim()),
+  pincode  : v => /^\d{6}$/.test(v.trim())
+};
+
+function clearFieldErrors () {
+  document.querySelectorAll('.error-note').forEach(el => el.textContent = '');
+  document.querySelectorAll('.form-group input').forEach(i => i.classList.remove('invalid'));
+}
+
+function validateAddressPayload (data) {
+  clearFieldErrors();
+  let ok = true;
+  for (const [field, fn] of Object.entries(validators)) {
+    if (!fn(data[field] || '')) {
+      ok = false;
+      const msgEl = document.querySelector(`[data-err="${field}"]`);
+      const inEl  = document.getElementById(field);
+      if (msgEl) msgEl.textContent = 'Invalid ' + field;
+      if (inEl)  inEl.classList.add('invalid');
+    }
+  }
+  return ok;
+}
+
+
+document.getElementById('addrForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  showMsg('#modalMsg', '');
+  const btn = document.getElementById('submitBtn');
+  setLoading(btn, 'Saving');
+
+  const fd = new FormData(e.target);
+  const payload = {
+    fullName : fd.get('fullName'),
+    phone    : fd.get('phone'),
+    street   : fd.get('street'),
+    city     : fd.get('city'),
+    state    : fd.get('state'),
+    pincode  : fd.get('pincode'),
+    type     : fd.get('addressType'),
+    isDefault: !!fd.get('isDefault')
+  };
+
+  if (!validateAddressPayload(payload)) { clearLoading(btn); return; }
+
+  const isEdit = fd.get('_method') === 'PUT';
+  const id     = fd.get('addressId');
+  const url    = isEdit ? `${BASE}/user/profile/address/${id}/edit`
+                        : `${BASE}/user/profile/address/add`;
+  const method = isEdit ? 'PUT' : 'POST';
+
+  try {
+    const r   = await fetch(url, { method,
+                                   headers: { 'Content-Type': 'application/json' },
+                                   body   : JSON.stringify(payload) });
+    const out = await r.json();
+    if (!r.ok) throw new Error(out.message);
+    showMsg('#pageNote', out.message || 'Saved', 'success');
     closeModal();
-    setTimeout(()=>location.reload(),800);
-  }catch(err){
-    showMsg('#modalMsg',err.message);
-  }finally{clearLoading(btn);}
+    setTimeout(() => location.reload(), 700);
+  } catch (err) {
+    showMsg('#modalMsg', err.message);
+  } finally {
+    clearLoading(btn);
+  }
 });
+
 
 /* ===== close modal on outside click ===== */
 document.getElementById('modal').addEventListener('click',e=>{

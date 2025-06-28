@@ -19,7 +19,14 @@ const {
 } = require("../../controllers/user/userProfileController")
 
 
-const userProfileRouter = express.Router()
+const userProfileRouter = express.Router();
+
+
+
+userProfileRouter.use((req,res,next)=>{
+      res.locals.isSubheaderHidden = true;
+      next();
+});
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

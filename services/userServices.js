@@ -4,10 +4,12 @@ const { generateResetToken } = require("../utils/jwt.js");
 const { comparePassword, hashPassword } = require("../utils/bcrypt.js");
 const Brand = require("../models/brandModel.js");
 const Product = require("../models/productModel.js");
+const UserWallet = require("../models/userWalletModel.js");
+const coupounModel = require("../models/coupounModel.js");
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 
-const insertOneUser = async ({name,phone,email,password, isBlocked=false, isListed=true, isVerified=false}) => {
+const insertOneUser = async ({name,phone,email,password, isBlocked=false, isListed=true, isVerified=false, referredBy=null}) => {
     try{
         
         const user = await Users.findOne({ email });
@@ -26,8 +28,46 @@ const hashedPassword = await bcrypt.hash(password, 10);
     password: hashedPassword,
     isBlocked: Boolean(isBlocked),
     isListed: Boolean(isListed),
-    isVerified: Boolean(isVerified)
+    isVerified: Boolean(isVerified),
+    referredBy: referredBy ? referredBy : null
   });
+
+
+  if(referredBy) {
+
+await UserWallet.create({
+  user: newUser._id,
+  transactions: [{
+    type: 'credit',
+    amount: 100,
+    description: 'referral',
+    reference: 'reward',
+    note: 'welcome to threade '
+  }]
+});
+
+
+  const referrer = await Users.findById(referredBy);
+
+  if (referrer) {
+    
+    await coupounModel.create({
+      code: 'REF-' + referrer._id.toString().slice(-6).toUpperCase() + '-' + Date.now(),
+      discount: 10,
+      maxDiscount: 100,
+      isActive: true,
+      onlyFor: 'all',
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      allowedUsers: [referrer._id],
+      usedBy: [],
+      usedCount: 0,
+      maxUsage: 1
+    });
+  }
+
+
+  }
+
 
   
 

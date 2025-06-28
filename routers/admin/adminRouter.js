@@ -14,6 +14,8 @@ const { validateUserBody } = require('../../validators/bodyValidator');
 const couponsRouter = require('./adminCouponsRouter');
 const adminOrderRouter = require('./adminOrderRouter');
 const adminInventoryRouter = require('./adminInventoryRouter');
+const offerRouter = require('./adminOfferRouter');
+const adminReportRouter = require('./adminReportRouter');
 const adminRouter = express.Router();
 
 
@@ -33,6 +35,8 @@ adminRouter.use('/banners',checkIsAdminAuthenticated, bannerRouter);
 adminRouter.use('/coupons',checkIsAdminAuthenticated, couponsRouter);
 adminRouter.use('/orders',checkIsAdminAuthenticated, adminOrderRouter);
 adminRouter.use('/inventory', checkIsAdminAuthenticated, adminInventoryRouter);
+adminRouter.use('/offers', checkIsAdminAuthenticated, offerRouter);
+adminRouter.use('/reports', checkIsAdminAuthenticated, adminReportRouter);
 
 
 adminRouter.get('/login',checkIsAdminExists, getAdminLoginPage);

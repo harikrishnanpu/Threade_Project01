@@ -10,11 +10,11 @@ adminOrderRouter.get('/api/order/:orderId', orderController.getOneOrder);
 
 
 adminOrderRouter.post('/update-status', orderController.updateOrderStatus);
-adminOrderRouter.post('/bulk-update', orderController.bulkUpdateOrders);
 
 adminOrderRouter.post('/:orderId/status', orderController.orderDetailsStatusUpdate);
 
 adminOrderRouter.put('/:orderId/update', orderController.updateFullOrder);
+
 adminOrderRouter.post('/:id/return-request-action', orderController.returnRequestAction);
 
 

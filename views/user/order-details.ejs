@@ -15,6 +15,10 @@
   *{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",sans-serif}
   body{background:var(--bg);color:var(--text);line-height:1.5}
 
+  .modal{
+    position: static !important;
+  }
+
   /* wrapper layout */
   .wrapper{display:flex;min-height:100dvh;max-width:1300px;margin:auto}
 
@@ -472,15 +476,11 @@
     </div>
     <nav>
       <ul>
-        <li><a href="/user/profile"><i class="fas fa-user"></i>Personal data</a></li>
-        <li><a href="/user/profile/address"><i class="fas fa-map-marker-alt"></i>Addresses</a></li>
-        <li><a href="/user/profile/payments"><i class="fas fa-credit-card"></i>Payment & instalments</a></li>
-        <li><a class="active" href="/user/profile/orders"><i class="fas fa-box"></i>Orders</a></li>
-        <li><a href="/user/profile/wishlist"><i class="fas fa-heart"></i>Wish list</a></li>
-        <li><a href="/user/profile/discounts"><i class="fas fa-gift"></i>Discounts</a></li>
-        <li><a href="/user/profile/security"><i class="fas fa-shield-halved"></i>Security & access</a></li>
-        <li><a href="/user/profile/notifications"><i class="fas fa-bell"></i>Notification</a></li>
-        <li><a href="/contact-us"><i class="fas fa-phone"></i>Contact us</a></li>
+          <li><a href="/user/profile"><i class="fas fa-user"></i>Personal data</a></li>
+          <li><a href="/user/profile/address"><i class="fas fa-map-marker-alt"></i>Addresses</a></li>
+          <li><a  class="active" href="/user/profile/orders"><i class="fas fa-box"></i>Orders</a></li>
+                    <li><a  href="/user/profile/wallet"><i class="fas fa-wallet"></i>Wallet</a></li>
+          <li><a href="/contact-us"><i class="fas fa-phone"></i>Contact us</a></li>
       </ul>
     </nav>
     <button class="logout" onclick="location.href='/logout'"><i class="fas fa-right-from-bracket"></i> Log out</button>
@@ -530,6 +530,57 @@
       </div>
     </div>
 
+<% if (
+  order.orderStatus.includes('return') ||
+  order.items.some(i => i.status && i.status.includes('return'))
+) { 
+  const returnItem = order.items.find(i => i.status && i.status.includes('return'));
+  const pickupDate = returnItem?.pickupDate;
+  const returnReason = returnItem?.returnReason;
+  const returnNote = returnItem?.returnNote;
+  const returnStatus = returnItem?.status || order.orderStatus;
+
+  let statusText = '';
+  if (returnStatus === 'return-requested') {
+    statusText = 'Your return request is pending admin approval.';
+  } else if (returnStatus === 'return-processing') {
+    statusText = 'Your return is approved and currently being processed.';
+  } else if (returnStatus === 'return-pickup') {
+    statusText = 'Pickup is scheduled. Our delivery partner will collect the item soon.';
+  } else if (returnStatus === 'return-complete') {
+    statusText = 'Your return has been completed successfully.';
+  } else if (returnStatus === 'return-rejected') {
+    statusText = 'Your return request has been rejected. Please contact support for details.';
+  }
+%>
+
+<div class="admin-approval-alert" style="margin-top:-1rem; margin-bottom:1.5rem;">
+  <div class="icon"><i class="fas fa-undo"></i></div>
+  <div class="content">
+    <div class="title">Return Status: <%= returnStatus.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %></div>
+    <div class="message">
+      <p><%= statusText %></p>
+
+      <ul style="list-style: none; padding-left: 0; margin-top: .75rem;">
+        <% if (returnReason) { %>
+          <li><strong>Reason:</strong> <%= returnReason %></li>
+        <% } %>
+        <% if (returnNote) { %>
+          <li><strong>Note:</strong> <%= returnNote %></li>
+        <% } %>
+        <% if (pickupDate) { %>
+          <li><strong>Pickup Date:</strong> <%= new Date(pickupDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) %></li>
+        <% } else if (returnStatus === 'return-requested') { %>
+          <li><em>Pickup date will be shared after admin approval.</em></li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+</div>
+<% } %>
+
+
+
     <div class="content-grid">
       <!-- main content -->
       <div class="main-content">
@@ -553,7 +604,7 @@
                       Color: <%= item.variant.color %> • Size: <%= item.variant.size.toUpperCase() %>
                     </div>
                     <div class="item-quantity">Quantity: <%= item.quantity %></div>
-                    <div class="item-price">₹<%= item.price.toFixed(2) %> each</div>
+                    <div class="item-price">₹<%= parseInt(item.price || 1) / parseInt(item.quantity || 1) %> each</div>
                     
                     <div class="item-status">
                       <% if (item.isCancelled) { %>
@@ -606,12 +657,16 @@
                   </div>
                   
                   <div class="item-total">
-                    ₹<%= (item.price * item.quantity).toFixed(2) %>
+                    ₹<%= (parseInt(item.price || 1) / parseInt(item.quantity || 1) * parseInt(item.quantity)).toFixed(2) %>
                   </div>
                   
                   <!-- Item Actions -->
                   <div class="item-actions">
-                    <% if (!item.isCancelled && (!item.status || !item.status.includes('return')) && (order.orderStatus === 'pending' || order.orderStatus === 'confirmed')) { %>
+<% if (
+  !item.isCancelled &&
+  (!item.status || (!item.status.includes('return') && item.status !== 'cancelled')) &&
+  (order.orderStatus === 'pending' || order.orderStatus === 'confirmed')
+) { %>
                       <button class="item-action-btn danger" onclick="OrderManager.showItemCancelModal('<%= item._id || index %>', `<%= item.productName %>`, '<%= item.variant.color %>', '<%= item.variant.size %>')">
                         <i class="fas fa-times"></i> Cancel Item
                       </button>
@@ -725,7 +780,14 @@
                 </div>
                 
                 <% if (order.orderStatus !== 'pending') { %>
-                  <div class="timeline-item <%= order.orderStatus === 'cancelled' ? 'cancelled' : (order.orderStatus.includes('return') ? 'return' : 'completed') %>">
+                  <div class="timeline-item <%= 
+  order.orderStatus === 'cancelled' 
+    ? 'cancelled' 
+    : order.orderStatus.includes('return') 
+      ? 'return' 
+      : 'completed' 
+%>
+">
                     <div class="timeline-marker">
                       <i class="<%= order.orderStatus === 'cancelled' ? 'fas fa-times' : (order.orderStatus.includes('return') ? 'fas fa-undo' : 'fas fa-check') %>"></i>
                     </div>
@@ -876,20 +938,37 @@
           </div>
           <div class="card-body">
             <div class="action-buttons" id="orderActions">
-              <% if (order.orderStatus === 'pending' || order.orderStatus === 'confirmed') { %>
+
+<% if (order.paymentStatus === 'pending') { %>
+  <button class="action-btn primary" onclick="orderPayment('<%= order._id %>')">
+    <i class="fas fa-credit-card"></i> Pay Now
+  </button>
+<% } %>
+
+<% if (
+  (order.orderStatus === 'pending' || order.orderStatus === 'confirmed') &&
+  order.items.every(i => !i.isCancelled && (!i.status || (!i.status.includes('return') && i.status !== 'cancelled')))
+) { %>
                 <button class="action-btn danger" onclick="OrderManager.showFullOrderCancelModal()">
                   <i class="fas fa-times"></i> Cancel Full Order
                 </button>
               <% } %>
               
-              <% if (order.orderStatus === 'delivered') { %>
-                <button class="action-btn warning" onclick="OrderManager.showFullOrderReturnModal()">
-                  <i class="fas fa-undo"></i> Return Full Order
-                </button>
-                <a href="#" class="action-btn primary">
-                  <i class="fas fa-repeat"></i> Reorder
-                </a>
-              <% } %>
+<% if (
+  order.orderStatus === 'delivered' &&
+  order.items.every(item => !item.isCancelled && (!item.status || (!item.status.includes('return') && item.status !== 'cancelled')))
+) { %>
+  <button class="action-btn warning" onclick="OrderManager.showFullOrderReturnModal()">
+    <i class="fas fa-undo"></i> Return Full Order
+  </button>
+<% } %>
+
+<% if (order.orderStatus === 'delivered') { %>
+  <a href="/user/profile/orders/<%= order._id %>/reorder" class="action-btn primary">
+    <i class="fas fa-repeat"></i> Reorder
+  </a>
+<% } %>
+
               
               <a href="/user/profile/orders/<%= order._id %>/invoice" class="action-btn">
                 <i class="fas fa-download"></i> Download Invoice
@@ -1166,6 +1245,80 @@
   </div>
 </div>
 
+
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+ const orderPayment = async function (orderId) {
+    try {
+      const res = await fetch(`/user/orders/payment/retry/${orderId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const {razorpay, customer, success, message } = await res.json();
+
+      const options = {
+        key: razorpay.key,
+        amount: razorpay.amount,
+        currency: razorpay.currency,
+        name: "Threade",
+        description: "Order Payment",
+        order_id: razorpay.razorpayOrderId,
+handler: async function (response) {
+  try {
+    const verify = await fetch(`/user/orders/payment/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_signature: response.razorpay_signature,
+        orderId: razorpay.orderId
+      })
+    });
+
+    const result = await verify.json();
+
+    console.log(result);
+    
+    if (result.success) {
+      window.location.href = `/user/orders/payment/success/${razorpay.orderId}?payment_id=${response.razorpay_payment_id}`;
+    } else {
+      window.location.href = `/user/orders/payment/failed/${razorpay.orderId}`;
+    }
+  } catch (err) {
+      window.location.href = `/user/orders/payment/failed/${razorpay.orderId}`;
+  }
+},
+        modal: {
+          ondismiss: function () {
+            window.location.href = `/user/orders/payment/failed/${razorpay.orderId}`;
+          }
+        },
+        prefill: {
+          name: customer.name || "User",
+          email: customer.email,
+          contact: customer.phone
+        },
+        theme: {
+          color: "#000"
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function () {
+        window.location.href = `/user/orders/payment/failed/${razorpay.orderId}`;
+      });
+      rzp.open();
+      return;
+    } catch (err) {
+      OrderManager.showToast('Failed to launch payment window', 'error');
+    }
+  };
+</script>
+
+
 <script>
 // ===== ORDER MANAGER - COMPLETE SOLUTION =====
 const OrderManager = {
@@ -1337,10 +1490,10 @@ const OrderManager = {
       }
     }
     
-    // Remove action buttons
-    if (actionsElement) {
-      actionsElement.innerHTML = '';
-    }
+if (actionsElement) {
+  actionsElement.remove();
+}
+
   },
 
   // Update order status in the UI
@@ -1421,7 +1574,7 @@ const OrderManager = {
     let statusTitle = status.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     let statusDesc = '';
     
-    // Customize titles and descriptions
+
     if (status === 'cancelled') {
       statusTitle = 'Order Cancelled';
       statusDesc = 'Your order has been cancelled';

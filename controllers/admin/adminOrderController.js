@@ -4,7 +4,9 @@ const orderService = require('../../services/adminOrderServices');
 const getAllOrders = async (req, res) => {
   try {
     const { orders, totalOrders, totalRevenue, totalPages, currentPage, filters } =
-      await orderService.fetchAllOrders(req);
+    
+    
+    await orderService.fetchAllOrders(req);
 
     res.render('admin/allOrders', {
       orders,
@@ -14,16 +16,21 @@ const getAllOrders = async (req, res) => {
       currentPage,
       ...filters,
     });
-  } catch (error) {
-    console.error('Error fetching orders:', error);
+
+
+  } catch (err) {
+
+    console.log('ORDERS:', err);
+
     res.status(500).render('admin/orders/all-orders', {
       orders: [],
       totalOrders: 0,
       totalRevenue: 0,
       totalPages: 1,
       currentPage: 1,
-      error: 'Failed to fetch orders. Please try again later.',
+      error: err.message,
     });
+
   }
 };
 
@@ -47,8 +54,13 @@ const updateOrderStatus = async (req, res) => {
   try {
     const result = await orderService.updateOrderStatus(req.body);
     res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to update order status' });
+
+
+  } catch (err) {
+
+    // console.log(err);
+    
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -110,12 +122,24 @@ const bulkUpdateOrders = async (req, res) => {
       throw new Error('Invalid bulk action');
     }
 
-    const operations = orderIds.map(orderId => ({
-      updateOne: {
-        filter: { _id: orderId },
-        update: { $set: { orderStatus: newStatus } }
+const operations = orderIds.map(orderId => ({
+  updateOne: {
+    filter: { _id: orderId },
+    update: {
+      $set: {
+        orderStatus: newStatus,
+        'items.$[elem].status': newStatus
       }
-    }));
+    },
+    arrayFilters: [
+      {
+        'elem.status': { $nin: ['cancelled', 'delivered'] },
+        'elem.status': { $not: { $regex: '^return' } } // starts with retur
+      }
+    ]
+  }
+}));
+
 
     // console.log(operations);
     
@@ -146,12 +170,14 @@ const returnRequestAction = async (req, res) => {
     });
 
     if (!result.success) {
-      return res.json({ success: false, message: result.message });
+      return res.status(400).json({ success: false, message: result.message });
     }
 
-    res.json({ success: true, data: result.data });
+    res.status(200).json({ success: true, data: result.data });
   } catch (err) {
-    console.log(err);
+
+    // console.log(err);
+    
     res.status(500).json({ success: false, message: err.message });
   }
 };

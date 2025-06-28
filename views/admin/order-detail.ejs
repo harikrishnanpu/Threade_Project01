@@ -2258,7 +2258,7 @@ function updateOrderSummary(){
 
   // Order-level return request functions
   function acceptOrderReturnRequest() {
-    document.getElementById('order-return-request-action-type').value = 'accept';
+    document.getElementById('order-return-request-action-type').value = 'return-approved';
     document.getElementById('order-return-request-modal-title').textContent = 'Accept Order Return Request';
     document.getElementById('order-return-request-text').textContent = 'Accept Return';
     document.getElementById('order-return-request-submit').className = 'btn btn-success';
@@ -2275,7 +2275,7 @@ function updateOrderSummary(){
   }
 
   function rejectOrderReturnRequest() {
-    document.getElementById('order-return-request-action-type').value = 'reject';
+    document.getElementById('order-return-request-action-type').value = 'return-rejected';
     document.getElementById('order-return-request-modal-title').textContent = 'Reject Order Return Request';
     document.getElementById('order-return-request-text').textContent = 'Reject Return';
     document.getElementById('order-return-request-submit').className = 'btn btn-danger';
@@ -2435,7 +2435,7 @@ function updateOrderSummary(){
     const returnReason = getItemReturnReason(itemIndex);
     
     document.getElementById('return-request-item-index').value = itemIndex;
-    document.getElementById('return-request-action-type').value = 'accept';
+    document.getElementById('return-request-action-type').value = 'return-approved';
     document.getElementById('return-request-modal-title').textContent = `Accept Return Request - ${itemName}`;
     document.getElementById('return-request-text').textContent = 'Accept Return';
     document.getElementById('return-request-submit').className = 'btn btn-success';
@@ -2463,7 +2463,7 @@ function updateOrderSummary(){
     const returnReason = getItemReturnReason(itemIndex);
     
     document.getElementById('return-request-item-index').value = itemIndex;
-    document.getElementById('return-request-action-type').value = 'reject';
+    document.getElementById('return-request-action-type').value = 'return-rejected';
     document.getElementById('return-request-modal-title').textContent = `Reject Return Request - ${itemName}`;
     document.getElementById('return-request-text').textContent = 'Reject Return';
     document.getElementById('return-request-submit').className = 'btn btn-danger';
@@ -2485,7 +2485,7 @@ function updateOrderSummary(){
     const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
     
     document.getElementById('return-action-item-index').value = itemIndex;
-    document.getElementById('return-action-type').value = 'process';
+    document.getElementById('return-action-type').value = 'return-processing';
     document.getElementById('return-action-modal-title').textContent = `Mark Return as Processing - ${itemName}`;
     document.getElementById('return-action-text').textContent = 'Mark as Processing';
     document.getElementById('return-action-submit').className = 'btn btn-primary';
@@ -2497,7 +2497,7 @@ function updateOrderSummary(){
     const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
     
     document.getElementById('return-action-item-index').value = itemIndex;
-    document.getElementById('return-action-type').value = 'complete';
+    document.getElementById('return-action-type').value = 'return-complete';
     document.getElementById('return-action-modal-title').textContent = `Complete Return - ${itemName}`;
     document.getElementById('return-action-text').textContent = 'Complete Return';
     document.getElementById('return-action-submit').className = 'btn btn-success';
@@ -2509,7 +2509,7 @@ function updateOrderSummary(){
     const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
     
     document.getElementById('return-action-item-index').value = itemIndex;
-    document.getElementById('return-action-type').value = 'reject-process';
+    document.getElementById('return-action-type').value = 'return-rejected';
     document.getElementById('return-action-modal-title').textContent = `Reject Return - ${itemName}`;
     document.getElementById('return-action-text').textContent = 'Reject Return';
     document.getElementById('return-action-submit').className = 'btn btn-danger';
@@ -2731,7 +2731,7 @@ function updateOrderSummary(){
       })
       .catch(error => {
         showItemMessage('Error processing return action', 'error', itemIndex);
-        console.error('Error:', error);
+        console.log('Error:', error);
       })
       .finally(() => {
         hideLoading();

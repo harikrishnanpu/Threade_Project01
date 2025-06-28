@@ -1300,6 +1300,12 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+
+      const confirmForm = document.getElementById('confirm-form');
+
+      console.log(confirmForm);
+      
+
     document.getElementById('status-filter').addEventListener('change', function(e) {
       STATE.status = e.target.value;
       STATE.page = 1;
@@ -1346,7 +1352,7 @@
     });
 
     document.getElementById('reset-filters').addEventListener('click', resetFilters);
-    document.getElementById('export-orders').addEventListener('click', exportOrders);
+    // document.getElementById('export-orders').addEventListener('click', exportOrders);
 
     document.getElementById('select-all').addEventListener('change', function(e) {
       const checkboxes = document.querySelectorAll('.order-checkbox');
@@ -1395,9 +1401,10 @@
       
       const formData = new FormData(this);
       const data = Object.fromEntries(formData);
-      
+      alert("cc");
       updateOrderStatus(data.orderId, 'confirmed', { notes: data.notes });
       closeConfirmModal();
+
     });
 
     document.getElementById('cancel-form').addEventListener('submit', async function(e) {
@@ -1406,7 +1413,7 @@
       const formData = new FormData(this);
       const data = Object.fromEntries(formData);
       
-      updateOrderStatus(data.orderId, 'cancelled', { reason: data.reason });
+      updateOrderStatus(data.orderId, 'cancelled', { notes: data.reason });
       closeCancelModal();
     });
 

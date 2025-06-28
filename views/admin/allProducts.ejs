@@ -390,13 +390,13 @@
                         <td class="price-cell">
                           <div class="price-info">
                             <% if(product.salePrice > 0 && product.salePrice < product.regularPrice){ %>
-                              <span class="regular-price">$<%=product.salePrice.toFixed(2)%></span>
-                              <span class="sale-price">$<%=product.regularPrice.toFixed(2)%></span>
+                              <span class="regular-price">₹<%=product.salePrice.toFixed(2)%></span>
+                              <span class="sale-price">₹<%=product.regularPrice.toFixed(2)%></span>
                               <span class="discount-badge">
                                 <%= Math.round(((product.regularPrice-product.salePrice)/product.regularPrice)*100) %>% OFF
                               </span>
                             <% } else { %>
-                              <span class="regular-price">$<%=product.regularPrice.toFixed(2)%></span>
+                              <span class="regular-price">₹<%=product.regularPrice.toFixed(2)%></span>
                             <% } %>
                           </div>
                         </td>
@@ -509,9 +509,9 @@
                         <div class="card-stat">
                           <div class="card-stat-value">
                             <% if(product.salePrice > 0 && product.salePrice < product.regularPrice){ %>
-                              $<%=product.salePrice.toFixed(2)%>
+                              ₹<%=product.salePrice.toFixed(2)%>
                             <% } else { %>
-                              $<%=product.regularPrice.toFixed(2)%>
+                              ₹<%=product.regularPrice.toFixed(2)%>
                             <% } %>
                           </div>
                           <div class="card-stat-label">Price</div>

@@ -4,6 +4,7 @@ const Product = require("../models/productModel");
 const Coupon = require('../models/coupounModel');
 const Addresses = require("../models/addressModel");
 const CheckoutSession = require('../models/checkoutSessionModel');
+const Wishlist = require("../models/wishListModel");
 
 
 
@@ -16,6 +17,10 @@ if (isNaN(quantity) || quantity <= 0) {
 }
 
 
+console.log("QUANTITY:   ",quantity);
+
+
+
     try{
 
      const product = await Product.findById(productId);
@@ -26,11 +31,11 @@ if (isNaN(quantity) || quantity <= 0) {
     }
 
     const variantMatch = product.variants.find(
-      v => v.size === variant.size && v.color === variant.color
+      v => v.size === variant.size && v.color === variant.color && v.isActive == true
     );
 
     if (!variantMatch){
-      throw new Error('variant not found')
+      throw new Error('variant not found or inactive')
     }
 
     let cart = await Cart.findOne({ userId: userId });
@@ -45,11 +50,20 @@ if (isNaN(quantity) || quantity <= 0) {
       item.variant.color === variant.color
     );
 
-    const existingCartItemQty = existingCartItem !== -1 ? existingCartItem.quantity : 0;
+const existingCartItemQty = existingCartItem !== -1 ? cart.items[existingCartItem].quantity : 0;
+
+    console.log("EXISTING CART ITEM QTY:", existingCartItemQty);
 
     
     if((existingCartItemQty + quantity) > variantMatch.stock){
       throw new Error('out of stock');
+    }
+
+    console.log("MAXCARTQUANTITY",product.maxCartQuantity);
+    
+    if(existingCartItemQty + quantity > product.maxCartQuantity){
+      console.log("FHBJHDBJF HJV FJHHB VHJF HBXHJBCHJBHJCBHJSBCVHJBFSHJVBHJFHBVJH FHJVBHJFBVJHB FHJ");
+      throw new Error('max cart count for the product exceeds')
     }
 
     const itemData = {
@@ -67,6 +81,19 @@ if (isNaN(quantity) || quantity <= 0) {
     } else {
       cart.items.push(itemData);
     }
+
+
+    const wishlist = await Wishlist.findOne({ user: userId })
+    console.log("Wishlist Found",wishlist);
+
+ if (wishlist) {
+  wishlist.items = wishlist.items.filter(
+    (itm) => itm.product?.toString() !== product._id.toString()
+  );
+
+  await wishlist.save();
+}
+    
 
     await cart.save();
 
@@ -126,34 +153,62 @@ const updateCart = async (userId, itemId, variant, quantity) => {
       throw new Error('cart not found');
     }
 
-    if(!item || !item.isActive){
-      return {isNotActive: true};
-    }
+
+        console.log(quantity);
+
 
     const cartItemIndex = cart.items.findIndex(item =>
       item.product.toString() === itemId && item.variant.color === variant.color && item.variant.size === variant.size
     );
     
     if (cartItemIndex === -1) {
-      throw new Error('item not found');
+      return {isNotActive: true }
+    }
+
+
+
+        if(quantity === 0){
+          cart.items.splice(cartItemIndex, 1); 
+          return await cart.save()
+        }
+
+    if(!item || !item.isActive){
+      return {isNotActive: true};
     }
 
 
     const cartItem = cart.items[cartItemIndex];
+
+
     const variantMatch = item.variants.find(
-      v => v.size === cartItem.variant.size && v.color === cartItem.variant.color
+      v => v.size === cartItem.variant.size && v.color === cartItem.variant.color && v.isActive == true
     );
 
+
     if(!variantMatch){
-      throw new Error('variant not found');
+       return {isNotActive: true }
     }
 
+
+
+    
+
+
     if (quantity === 0) {
+      
       cart.items.splice(cartItemIndex, 1); 
     } else {
+
+    console.log("MAXCARTQUANTITY", item.maxCartQuantity);
+    
+    if(quantity > item.maxCartQuantity){
+       return {maxCartCount: true, limit: item.maxCartQuantity }
+    }
+
       if(variantMatch.stock < quantity){
-        throw new Error('item is out of stock')
+        return { outOfStock: true, stock: variantMatch.stock}
       }
+
       cartItem.quantity = quantity; 
     }
 
@@ -166,6 +221,8 @@ const updateCart = async (userId, itemId, variant, quantity) => {
 
     return result;
   } catch (err) {
+    console.log(err);
+    
     throw new Error(err.message);
   }
 
@@ -174,36 +231,32 @@ const updateCart = async (userId, itemId, variant, quantity) => {
 
 
 const applyCoupon = async (code, userId, cartTotal, userType) => {
-  try {
 
+  try {
     const coupon = await Coupon.findOne({ code: code.toUpperCase() });
 
     if (!coupon) throw new Error('Coupon not found');
-
     if (!coupon.isActive) throw new Error('Coupon is not active');
-
     if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
       throw new Error('Coupon has expired');
     }
-
     if (coupon.usedCount >= coupon.maxUsage) {
       throw new Error('Coupon usage limit reached');
     }
-
     if (coupon.minOrderAmount && cartTotal < coupon.minOrderAmount) {
       throw new Error(`Minimum order amount is ₹${coupon.minOrderAmount}`);
     }
-
     if (coupon.onlyFor !== 'all' && coupon.onlyFor !== userType) {
-      throw new Error(`Coupon is not valid for ${userType === 'newUsers' ? 'new' : 'Premium'} users`);
+      throw new Error(`Coupon is not valid for ${userType === 'newUsers' ? 'new' : 'premium'} users`);
     }
 
-    const discountAmount = (coupon.discount / 100) * cartTotal;
-    // const finalAmount = cartTotal - discountAmount;
+    const discount = (coupon.discount / 100) * cartTotal;
+    const finalDiscount = Math.min(discount, coupon.maxDiscount);
 
     return {
       couponCode: coupon.code,
-      discount: discountAmount,
+      discount: finalDiscount,
+      maxDiscount: coupon.maxDiscount
     };
   } catch (error) {
     throw new Error(error.message);
@@ -219,6 +272,7 @@ const saveCheckoutSession = async (userId, { addressId, shippingMethod, couponCo
 
     const validMethods = ['free', 'regular', 'express'];
     if (!validMethods.includes(shippingMethod)) {
+  
       throw new Error('Invalid shipping method.');
     }
 

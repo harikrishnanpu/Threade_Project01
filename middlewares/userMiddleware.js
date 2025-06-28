@@ -1,8 +1,9 @@
 const {  getPageWiseBanner } = require('../services/bannerService');
 const { getAllBrands } = require('../services/brandServices');
 const { getCartCount } = require('../services/userCartService');
-const { getProducts, getHotProducts, getAllProductsByCategory, getHotProductsByMainCategory } = require('../services/userproductServices');
+const { getProducts, getHotProducts, getAllProductsByCategory, getHotProductsByMainCategory, productSuggestions, getDealOfTheDayProducts, getTopRatedProducts, getAllNewArrivals, getAllCategoriesBySubCategories } = require('../services/userproductServices');
 const { findOneUserById } = require('../services/userServices');
+const { getCountWishlist } = require('../services/userWishListServices');
 const { verifyToken, verifyResetToken } = require('../utils/jwt');
 
 
@@ -37,13 +38,17 @@ const checkIsUserAuthenticatedAndRedirect = async (req, res, next) => {
     }
     
     const cartCount = await getCartCount(user._id);
+    const wishlistCount = await getCountWishlist(user._id);
 
     res.locals.user = user;
     res.locals.cartCount = cartCount;
+    res.locals.wishlistCount = wishlistCount;
     req.user = user;
     return next(); 
   } catch (err) {
-    if(err.message == "deleted"){
+    
+    
+    if(err.message == "deleted"){ 
       return res.redirect('/user/login?error=deleted')
     }
 
@@ -78,9 +83,12 @@ const checkIsUserAuthenticated = async (req, res, next) => {
     }
 
     const cartCount = await getCartCount(user._id);
-
+    const wishlistCount = await getCountWishlist(user._id);
+    
+    
     res.locals.user = user;
     res.locals.cartCount = cartCount;
+    res.locals.wishlistCount = wishlistCount;
     req.user = user;
     return next(); 
   } catch (err) {
@@ -133,19 +141,37 @@ const checkAndRedirect = async (req, res) => {
 
  try{
 
-  const [
+const [
   data,
-  banner,
+  banners,
   brands,
   hotProducts,
-  categoryWiseProducts
+  topRatedProducts,
+  hotProductsByCat,
+  categoryWiseProducts,
+  newArrivals,
+  allMainCatsbySub,
+  userProductSuggestions,
+  dealsOfTheDayProducts
 ] = await Promise.all([
   getProducts(),
   getPageWiseBanner(),
   getAllBrands(),
+  getHotProducts(),
+  getTopRatedProducts(),
   getHotProductsByMainCategory(6),
-  getAllProductsByCategory(6)
+  getAllProductsByCategory(6),
+  getAllNewArrivals(5),
+  getAllCategoriesBySubCategories(8),
+  productSuggestions(5),
+  getDealOfTheDayProducts()
 ]);
+
+console.log(allMainCatsbySub);
+
+console.log(userProductSuggestions);
+
+
 
  
  try {
@@ -155,11 +181,33 @@ const checkAndRedirect = async (req, res) => {
     if (decoded) {
       return res.redirect('/user/home');
     }
+
     res.locals.user = null;
-    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner, brands, hotProducts, categoryWiseProducts });
+    return res.render('user/landing',
+      { noHeader: false, user: null, noFooter: false,isSubheaderHidden: false,wishlistItemIds:[], data,
+      banners,
+      brands,
+      hotProducts,
+      topRatedProducts,
+      hotProductsByCat,
+      categoryWiseProducts,
+      newArrivals,
+      allMainCatsbySub,
+      userProductSuggestions,
+      dealsOfTheDayProducts });
   } catch (err) {
     res.locals.user = null;
-    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, products: data.products, banners: banner, brands, hotProducts, categoryWiseProducts });
+    return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, wishlistItemIds:[], isSubheaderHidden: false,       data,
+      banners,
+      brands,
+      hotProducts,
+      topRatedProducts,
+      hotProductsByCat,
+      categoryWiseProducts,
+      newArrivals,
+      allMainCatsbySub,
+      userProductSuggestions,
+      dealsOfTheDayProducts });
   }
 
 

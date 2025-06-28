@@ -2,8 +2,11 @@ const Cart = require('../models/cartModel');
 const Order = require('../models/orderModel');
 const Address = require('../models/addressModel');
 const Coupon = require('../models/coupounModel');
+const Product = require('../models/productModel');
 const CheckoutSession = require('../models/checkoutSessionModel');
+const UserWallet = require('../models/userWalletModel');
 const mongoose = require('mongoose');
+const Users = require('../models/userModel');
 
 
 const findUserOrder = async (orderId, userId) => {
@@ -20,126 +23,301 @@ const saveTimeline = (order, status, note) => {
 
 
 const createCodOrder = async (userId) => {
-  try{
-
-  const cart = await Cart.findOne({ userId }).populate('items.product');
-  if (!cart || cart.items.length === 0) throw new Error('your cart is empty');
-
-  const session = await CheckoutSession.findOne({ userId });
-  if (!session) throw new Error('please complete the checkout step again');
-
-  const address = await Address.findOne({ _id: session.addressId, user: userId });
-  if (!address) throw new Error('selected Delivery address not found');
-
-  const hasInactive = cart.items.some(item => !item.product || !item.product.isActive);
-  if (hasInactive)throw new Error('cart contains inactive products');
-
-  console.log(cart.items);
-  
-
-const inactiveCartItemVariants = cart.items.filter(item => {
-  const matched = item.product.variants.find(variant =>
-    variant.color === item.variant.color &&
-    variant.size === item.variant.size &&
-    variant.isActive === false
-  );
-  return matched;
-});
-
-// console.log(inactiveCartItemVariants); 
+  try {
 
 
-if (inactiveCartItemVariants.length > 0) throw new Error(`cart item: variant is inactive`)
+    const cart = await Cart.findOne({ userId }).populate('items.product');
 
-  const subtotal = cart.items.reduce((sum, item) => {
-    const price = item.product.salePrice || 0;
-    return sum + (price * item.quantity);
-  }, 0);
-
-  let discountAmount = 0;
-  let couponData = null;
-
-  if (session.couponCode) {
-    const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase() });
-    if (!coupon) throw new Error('coupon no longer valid');
-
-    if (!coupon.isActive || (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()))
-      throw new Error('coupon is expired or inactive');
-
-    if (subtotal < coupon.minOrderAmount)
-      throw new Error(`coupon valid only for orders above ₹${coupon.minOrderAmount}`);
-
-    if (coupon.usedCount >= coupon.maxUsage)
-      throw new Error('coupon usage limit reached');
-
-if (coupon.usedBy?.some(u => u.toString() === userId.toString())) {
-  throw new Error('Coupon already used by you');
-}
-
-    discountAmount = Math.round((coupon.discount / 100) * subtotal);
-
-    couponData = {
-      code: coupon.code,
-      discountAmount
-    };
-  }
-
-  const shippingCost = session.shippingMethod === 'free' ? 0 : session.shippingMethod === 'express' ? 100 : 50;
-  const totalAmount = subtotal + shippingCost - discountAmount;
-
+    console.log(cart);
     
-  const orderNumber = `ORD-${Date.now()}-${userId}`;
 
-  const orderItems = cart.items.map(item => ({
-    productId: item.product._id,
-    productName: item.name,
-    productImage: item.image,
-    brand: item.product.brand || '',
-    variant: item.variant,
-    quantity: item.quantity,
-    price: item.quantity * (item.product.salePrice || item.product.price || 0)
-  }));
+    if (!cart || cart.items.length === 0) throw new Error('cart is empty');
 
-  const order = await Order.create({
-    orderNumber,
-    user: userId,
-    items: orderItems,
-    shippingAddress: {
-      fullName: address.fullName,
-      phone: address.phone,
-      street: address.street,
-      city: address.city,
-      state: address.state,
-      pincode: address.pincode
-    },
-    coupon: couponData,
-    subtotal,
-    totalAmount,
-    paymentMethod: 'cod',
-    paymentStatus: 'pending',
-    orderStatus: 'pending'
-  });
+    const session = await CheckoutSession.findOne({ userId });
+    if (!session) throw new Error('complete the checkout step');
 
-  if (session.couponCode && couponData) {
-    await Coupon.updateOne(
-      { code: session.couponCode.toUpperCase() },
-      {
-        $inc: { usedCount: 1 },
-        $addToSet: { usedBy: userId }
+    const address = await Address.findOne({ _id: session.addressId, user: userId });
+    if (!address) throw new Error('delivery address not found');
+
+    const hasInactive = cart.items.some(item => !item.product || !item.product.isActive);
+    if (hasInactive) throw new Error('cart contains inactive products');
+
+
+    const inactiveVariants = cart.items.filter(item => {
+      return item.product.variants.some(variant =>
+        variant.color === item.variant.color &&
+        variant.size === item.variant.size &&
+        variant.isActive === false
+      );
+    });
+
+
+    if (inactiveVariants.length > 0) throw new Error('cart contains inactive variant');
+
+    const subtotal = cart.items.reduce((sum, item) => {
+      const matchedVariant = item.product.variants.find(variant =>
+        variant.color === item.variant.color && variant.size === item.variant.size
+      );
+      const variantPrice = matchedVariant?.salePrice ?? matchedVariant?.price ?? 0;
+      return sum + (variantPrice * item.quantity);
+    }, 0);
+
+
+    let discountAmount = 0;
+    let couponData = null;
+
+    if (session.couponCode) {
+      const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase() });
+
+      if (!coupon) throw new Error('coupon is no longer valid');
+  
+  
+  if (!coupon.isActive || (coupon.expiresAt && new Date(coupon.expiresAt) < new Date())) {
+        throw new Error('coupon is expired');
       }
-    );
+
+      if (subtotal < coupon.minOrderAmount) {
+        throw new Error(`coupon  only valids for orders above ${coupon.minOrderAmount}`);
+      }
+      if (coupon.usedCount >= coupon.maxUsage) {
+        throw new Error('Coupon usage limit reached');
+      }
+
+      if (coupon.usedBy?.some(u => u.toString() == userId.toString())) {
+        throw new Error('coupon already used by you');
+      }
+
+      const discounAmt = Math.round((coupon.discount / 100) * subtotal);
+
+      discountAmount = Math.min(discounAmt, coupon.maxDiscount);
+
+      couponData = {
+        code: coupon.code,
+        discountAmount
+      };
+
+    }
+
+    const shippingCost = session.shippingMethod === 'free' ? 0 : session.shippingMethod === 'express' ? 100 : 50;
+    const totalAmount = subtotal + shippingCost - discountAmount;
+
+    const orderNumber = `ORD-${Date.now()}-${userId}`;
+
+    const orderItems = cart.items.map(item => {
+
+      const matchedVariant = item.product.variants.find(v =>
+        v.color === item.variant.color && v.size === item.variant.size
+      );
+
+
+      const variantPrice = matchedVariant?.salePrice ?? matchedVariant?.price ?? 0;
+
+      return {
+        productId: item.product._id,
+        productName: item.product.name,
+        productImage: item.product.images?.[0] || '',
+        brand: item.product.brand || '',
+        variant: item.variant,
+        quantity: item.quantity,
+        price: item.quantity * variantPrice
+      };
+    });
+
+    const order = await Order.create({
+      orderNumber,
+      user: userId,
+      items: orderItems,
+      shippingAddress: {
+        fullName: address.fullName,
+        phone: address.phone,
+        street: address.street,
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode
+      },
+      coupon: couponData,
+      subtotal,
+      totalAmount,
+      paymentMethod: 'cod',
+      paymentStatus: 'pending',
+      orderStatus: 'pending'
+    });
+
+
+
+    if (session.couponCode && couponData) {
+      await Coupon.updateOne(
+        { code: session.couponCode.toUpperCase() },
+        {
+          $inc: { usedCount: 1 },
+          $addToSet: { usedBy: userId }
+        }
+      );
+    }
+
+    await Cart.deleteOne({ userId });
+    await CheckoutSession.deleteOne({ userId });
+
+    return order;
+
+  } catch (err) {
+
+    console.log(err);
+    
+
+    throw new Error(err.message);
   }
-
-  await Cart.deleteOne({ userId });
-  await CheckoutSession.deleteOne({ userId });
-
-  return order;
-
-}catch(err){
-  throw new Error(err.message);
-}
-
 };
+
+
+
+const prepareOnlineOrder = async (userId) => {
+  try {
+
+    const user = await Users.findById(userId);
+
+    if(!user || user.isBlocked){
+      throw new Error('user not found or inactive')
+    }
+
+    const cart = await Cart.findOne({ userId }).populate('items.product');
+    if (!cart || cart.items.length === 0) throw new Error('cart is empty');
+
+    const session = await CheckoutSession.findOne({ userId });
+    if (!session) throw new Error('complete the checkout step');
+
+    const address = await Address.findOne({ _id: session.addressId, user: userId });
+    if (!address) throw new Error('delivery address not found');
+
+    const hasInactive = cart.items.some(item => !item.product || !item.product.isActive);
+    if (hasInactive) throw new Error('cart contains inactive products');
+
+    const inactiveVariants = cart.items.filter(item => {
+      return item.product.variants.some(variant =>
+        variant.color === item.variant.color &&
+        variant.size === item.variant.size &&
+        variant.isActive === false
+      );
+    });
+
+    if (inactiveVariants.length > 0) throw new Error('cart contains inactive variant');
+
+    const subtotal = cart.items.reduce((sum, item) => {
+      const matchedVariant = item.product.variants.find(v =>
+        v.color === item.variant.color && v.size === item.variant.size
+      );
+      const variantPrice = matchedVariant?.salePrice ?? matchedVariant?.price ?? 0;
+      return sum + (variantPrice * item.quantity);
+    }, 0);
+
+    let discountAmount = 0;
+    let couponData = null;
+
+    if (session.couponCode) {
+      const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase() });
+      if (!coupon) throw new Error('coupon is no longer valid');
+
+      if (!coupon.isActive || (coupon.expiresAt && new Date(coupon.expiresAt) < new Date())) {
+        throw new Error('coupon is expired');
+      }
+
+      if (subtotal < coupon.minOrderAmount) {
+        throw new Error(`coupon only valid for orders above ₹${coupon.minOrderAmount}`);
+      }
+
+      if (coupon.usedCount >= coupon.maxUsage) {
+        throw new Error('Coupon usage limit reached');
+      }
+
+      if (coupon.usedBy?.some(u => u.toString() == userId.toString())) {
+        throw new Error('coupon already used by you');
+      }
+
+      const discounAmt = Math.round((coupon.discount / 100) * subtotal);
+      discountAmount = Math.min(discounAmt, coupon.maxDiscount);
+
+      couponData = {
+        code: coupon.code,
+        discountAmount
+      };
+    }
+
+    const shippingCost = session.shippingMethod === 'free' ? 0 : session.shippingMethod === 'express' ? 100 : 50;
+const totalAmount = subtotal + shippingCost - discountAmount;
+
+    const orderNumber = `ORD-${Date.now()}-${userId}`;
+
+    const orderItems = cart.items.map(item => {
+      const matchedVariant = item.product.variants.find(v =>
+        v.color === item.variant.color && v.size === item.variant.size
+      );
+      const variantPrice = matchedVariant?.salePrice ?? matchedVariant?.price ?? 0;
+
+      return {
+        productId: item.product._id,
+        productName: item.product.name,
+        productImage: item.product.images?.[0] || '',
+        brand: item.product.brand || '',
+        variant: item.variant,
+        quantity: item.quantity,
+        price: item.quantity * variantPrice
+      };
+
+
+    });
+
+    const order = await Order.create({
+      orderNumber,
+      user: userId,
+      items: orderItems,
+      shippingAddress: {
+        fullName: address.fullName,
+        phone: address.phone,
+        street: address.street,
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode
+      },
+      
+      
+      coupon: couponData,
+      subtotal,
+      totalAmount,
+      paymentMethod: 'online',
+      paymentStatus: 'pending',
+      orderStatus: 'pending'
+
+
+    });
+
+
+        if (session.couponCode && couponData) {
+      await Coupon.updateOne(
+        { code: session.couponCode.toUpperCase() },
+        {
+          $inc: { usedCount: 1 },
+          $addToSet: { usedBy: userId }
+        }
+      );
+    }
+
+    await Cart.deleteOne({ userId });
+    await CheckoutSession.deleteOne({ userId });
+
+
+    return {
+      amount: totalAmount,
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      customer: { name: user.name, phone: user.phone , email: user.email }
+    };
+
+
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
 
 
 
@@ -210,59 +388,226 @@ const getUserOrderById = async (userId, orderId) => {
 
 
 const cancelFullOrder = async ({ orderId, userId, reason, note }) => {
-  try{
+  try {
+    const order = await findUserOrder(orderId, userId);
 
-    const order = await findUserOrder(orderId, userId)
-    if (!['pending', 'shipped' ,'confirmed'].includes(order.orderStatus)) throw new Error('cannot cancel this order')
-      
-      order.orderStatus = 'cancelled'
-      order.items.forEach(itm => {
-        itm.isCancelled = true
-        itm.cancellationReason = reason
-        itm.cancelledBy = 'user'
-        itm.cancelledAt = new Date()
-        itm.status = 'cancelled'
-      })
-      
-      saveTimeline(order, 'cancelled', note)
-      return order.save()
-    }catch(err){
-      throw new Error(err.message)
+    if (!['pending', 'confirmed', 'shipped'].includes(order.orderStatus)) {
+      throw new Error('cannot cancel this order');
     }
-}
+
+    order.orderStatus = 'cancelled';
+
+    for (const itm of order.items) {
+
+      if (itm.isCancelled) continue;
 
 
+      if (itm.status === 'pending') {
 
 
+        const product = await Product.findById(itm.productId);
+        if (product) {
+          const variant = product.variants.find(
+            v => v.size === itm.variant.size && v.color === itm.variant.color
+          );
+          if (variant) {
+            const previousStock = variant.stock;
+            const newStock = previousStock + itm.quantity;
+            variant.stock = newStock;
+            await product.save();
 
-const cancelSingleItem = async ({orderId, userId, itemId, reason, note}) => {
-  try{
+            await StockRegistry.create({
+              productId: product._id,
+              variant: { size: itm.variant.size, color: itm.variant.color },
+              productName: product.name,
+              action: 'stock_in',
+              quantity: itm.quantity,
+              previousStock,
+              newStock,
+              reason: 'User cancelled full order',
+              updatedBy: 'user'
+            });
+          }
+        }
+      }
 
-  const order = await findUserOrder(orderId, userId);
-  if (!['pending', 'confirmed'].includes(order.orderStatus)) throw new Error('cannot cancel items now')
-
-  let changed = 0;
-
-  order.items.forEach(itm => {
-    if (itm._id.toString() == itemId && !itm.isCancelled) {
-      itm.isCancelled = true
-      itm.cancellationReason = reason
-      itm.cancelledBy = 'user'
-      itm.cancelledAt = new Date()
-      itm.status = 'cancelled'
-      changed++
+      itm.isCancelled = true;
+      itm.cancellationReason = reason;
+      itm.cancelledBy = 'user';
+      itm.cancelledAt = new Date();
+      itm.status = 'cancelled';
     }
-  })
 
-  if (!changed) throw new Error('no valid items to cancel')
-  saveTimeline(order, 'cancelled', note)
+    let refundPrice = order.totalAmount;
+    
+    if(order.coupon){
+   const discountAmount = order?.coupon?.discountAmount || 0;
+     refundPrice = itemTotal -  ( (itemTotal / totalAmount ) * discountAmount );
+    }
 
-  return order.save()
+    const refundAmount = Math.round(refundPrice);
 
-  }catch(err){
-    throw new Error(err.message)
+    let wallet = await UserWallet.findOne({ user: userId });
+    if (!wallet) {
+      wallet = await UserWallet.create({ user: userId, transactions: [] });
+    }
+
+    wallet.transactions.push({
+      type: 'credit',
+      amount: refundAmount,
+      description: 'refund for cancelled order',
+      reference: order._id.toString(),
+      note: 'order cancelled FULL'
+
+    });
+
+    await wallet.save();
+
+    saveTimeline(order, 'cancelled', note || reason);
+
+    await order.save();
+
+    return {
+      success: true,
+      message: 'order cancelled and refund processed',
+      data: { refundAmount, updatedOrder: order }
+    };
+  } catch (err) {
+    throw new Error(err.message);
   }
-}
+};
+
+
+
+
+
+const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
+  try {
+    const order = await findUserOrder(orderId, userId);
+
+    console.log(order);
+    
+    if (!['pending', 'confirmed'].includes(order.orderStatus)) {
+      throw new Error('Cannot cancel items now');
+    }
+
+    let changed = 0;
+    let refundAmount = 0;
+    let originalItem = null;
+
+    order.items.forEach(itm => {
+      if (itm._id.toString() === itemId && !itm.isCancelled) {
+        changed++;
+        originalItem = itm;
+        itm.isCancelled = true;
+        itm.cancellationReason = reason;
+        itm.cancelledBy = 'user';
+        itm.cancelledAt = new Date();
+        itm.status = 'cancelled';
+      }
+    });
+
+
+
+    if (!changed) {
+      throw new Error('no items to cancel');
+    }
+
+    if (!originalItem) {
+      throw new Error('item not found');
+    }
+
+    if(order.items.every(itm => itm.status == 'cancelled')){
+      order.orderStatus = 'cancelled'
+    }
+
+    const { productId, variant, quantity, price, status } = originalItem;
+
+    const product = await Product.findById(productId);
+
+    if (!product) throw new Error('Product not found');
+
+    const targetVariant = product.variants.find(
+      v => v.size === variant.size && v.color === variant.color
+    );
+
+    if (!targetVariant) throw new Error('variant not found');
+
+
+    if (status === 'pending') {
+      
+      const previousStock = targetVariant.stock;
+
+      const newStock = previousStock + quantity;
+      targetVariant.stock = newStock;
+      await product.save();
+
+      await StockRegistry.create({
+        productId: product._id,
+        variant: {
+          size: variant.size,
+          color: variant.color
+        },
+        productName: product.name,
+        action: 'stock_in',
+        quantity,
+        previousStock,
+        newStock,
+        reason: 'User cancelled item',
+        updatedBy: 'user'
+      });
+
+    }
+
+    const perItemPrice =  price / quantity;
+
+    const itemTotal = perItemPrice * quantity;
+    const totalAmount = order.totalAmount;
+    const discountAmount = order?.coupon?.discountAmount || 0;
+
+    const refundPrice = itemTotal -  ( (itemTotal / totalAmount ) * discountAmount );
+
+    refundAmount = Math.round(refundPrice);
+
+    let wallet = await UserWallet.findOne({ user: userId });
+
+    if (!wallet) {
+      wallet = await UserWallet.create({
+        user: userId,
+        transactions: []
+      });
+    }
+
+    wallet.transactions.push({
+
+      type: 'credit',
+      amount: refundAmount,
+      description: 'Refund for cancelled item',
+      reference: order._id.toString(),
+      note: `Refunded for cancelled item ${originalItem.productName}`
+
+    });
+
+    await wallet.save();
+
+    saveTimeline(order, 'cancelled', note);
+
+    await order.save();
+
+    return {
+      success: true,
+      message: 'Item cancelled and refund processed',
+      data: {
+        refundAmount,
+        updatedOrder: order
+      }
+    };
+
+
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
 
 const returnFullOrder = async ({ orderId, userId, reason, note }) => {
   const order = await findUserOrder(orderId, userId)
@@ -318,4 +663,6 @@ const returnSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
 module.exports = { createCodOrder,getUserOrders, getUserOrderById,   cancelFullOrder,
   cancelSingleItem,
   returnFullOrder,
-  returnSingleItem };
+  returnSingleItem ,
+  prepareOnlineOrder
+};

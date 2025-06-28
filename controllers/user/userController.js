@@ -4,12 +4,15 @@ const { generateToken } = require("../../utils/jwt.js");
 const { sendOtpToEmail, verifyEmailOtp, findAndDeletePreviousOtp, sendResetPasswordLinkToEmail } = require("../../services/emailVerificationService.js");
 const otpModel = require("../../models/otpModel.js");
 const { generateOtp } = require("../../utils/otp.js");
-const { getFeaturedProducts, getNewProducts, getSaleProducts, getDealOfTheDay, getAllFeaturedBrands, getProducts, getHotProducts, getAllProductsByCategory, getHotProductsByMainCategory } = require("../../services/userproductServices.js");
+const { getFeaturedProducts, getNewProducts, getSaleProducts, getDealOfTheDay, getAllFeaturedBrands, getProducts, getHotProducts, getAllProductsByCategory, getHotProductsByMainCategory, getAllCategoriesBySubCategories, getAllNewArrivals, getTopRatedProducts, productSuggestions, getDealOfTheDayProducts } = require("../../services/userproductServices.js");
 const Product = require("../../models/productModel.js");
 const bannerModel = require("../../models/bannerModel.js");
 const Category = require("../../models/categoryModel.js");
 const { getPageWiseBanner } = require("../../services/bannerService.js");
 const { getAllBrands } = require("../../services/brandServices.js");
+const { getWishlist } = require("../../services/userWishListServices.js");
+const Wishlist = require("../../models/wishListModel.js");
+const Users = require("../../models/userModel.js");
 require('../../utils/passport.js');
 
 
@@ -37,15 +40,36 @@ const getUserHomePage = async (req, res) => {
   banners,
   brands,
   hotProducts,
-  categoryWiseProducts
+  topRatedProducts,
+  hotProductsByCat,
+  categoryWiseProducts,
+  newArrivals,
+  allMainCatsbySub,
+  userProductSuggestions,
+  dealsOfTheDayProducts,
 ] = await Promise.all([
   getProducts(),
   getPageWiseBanner(),
   getAllBrands(),
+  getHotProducts(),
+  getTopRatedProducts(),
   getHotProductsByMainCategory(6),
-  getAllProductsByCategory(6)
+  getAllProductsByCategory(6),
+  getAllNewArrivals(5),
+  getAllCategoriesBySubCategories(8),
+  productSuggestions(req.user._id,5),
+  getDealOfTheDayProducts(),
 ]);
 
+const userWishlist = await Wishlist.findOne({ user: req.user._id }).lean();
+
+const wishlistItemIds = userWishlist?.items.map(i => i.product.toString()) || [];
+
+
+
+console.log(allMainCatsbySub);
+
+console.log(userProductSuggestions);
 
 
     
@@ -54,14 +78,19 @@ const getUserHomePage = async (req, res) => {
       banners,
       brands,
       hotProducts,
+      topRatedProducts,
+      hotProductsByCat,
       categoryWiseProducts,
-      title: 'Home | Your Store',
-      metaDescription: 'Welcome to our online store. Shop the latest products and deals.'
-    });
-  } catch (error) {
-    res.status(500).render('error', {
+      newArrivals,
+      allMainCatsbySub,
+      userProductSuggestions,
+      dealsOfTheDayProducts,
+      wishlistItemIds,
+        });
+  } catch (err) {
+    res.status(500).json({
       message: 'Failed to load home page',
-      error
+      err: err.message
     });
   }
 };
@@ -116,19 +145,37 @@ res.cookie('token', token, {
 
 
 const registerNewUser = async (req, res) => {
-  const { name, phone, email, password } = req.body;
+  const { name, phone, email, password, referralCode } = req.body;
   try {
     
-    const newUser = await insertOneUser({ name, phone, email, password });
+    
+    
+    let referredBy = null;
+    
+    if (referralCode) {
+      const referrer = await Users.findOne({ referralCode: referralCode.trim().toUpperCase() });
+      
+      if (!referrer) {
+        return res.status(400).json({ success: false, message: 'invalid referral code' });
+      }
+      
+      referredBy = referrer._id;
+      
+    }
+    
+    const newUser = await insertOneUser({ name, phone, email, password, referredBy });
 
     console.log(newUser);
     
     const otp = generateOtp();
 
+    console.log(otp);
+    
+
     await otpModel.create({
       email,
       otp,
-      expiresAt: Date.now() +  2 * 60 * 1000, // 2 mins expiry
+      expiresAt: Date.now() +  2 * 60 * 1000, 
     });
 
     await sendOtpToEmail(email, otp);
@@ -277,6 +324,9 @@ const resendUserEmailOtp = async (req,res) =>{
 
     if(deleted){
       const otp = generateOtp();
+
+      console.log("RESET",otp);
+      
       await otpModel.create({
       email,
       otp,

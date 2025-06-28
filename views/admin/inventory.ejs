@@ -172,8 +172,8 @@
                   <% stockHistory.forEach(entry => { %>
                     <tr>
                       <td class="registry-date">
-                        <%= new Date(entry.timestamp).toLocaleDateString() %><br>
-                        <small><%= new Date(entry.timestamp).toLocaleTimeString() %></small>
+                        <%= new Date(entry.createdAt).toLocaleDateString() %><br>
+                        <small><%= new Date(entry.createdAt).toLocaleTimeString() %></small>
                       </td>
                       <td class="product-name"><%= entry.productName %></td>
                       <td class="variant-info">
@@ -199,8 +199,8 @@
                           <% } %>
                         </span>
                       </td>
-                      <td class="quantity-change <%= entry.quantity > 0 ? 'positive' : 'negative' %>">
-                        <%= entry.quantity > 0 ? '+' : '' %><%= entry.quantity %>
+                      <td class="quantity-change <%= entry.action == 'stock_in' ? 'positive' : 'negative' %>">
+                        <%= entry.action == 'stock_in' ? '+' : '-' %><%= entry.quantity %>
                       </td>
                       <td class="previous-stock"><%= entry.previousStock %></td>
                       <td class="new-stock"><%= entry.newStock %></td>

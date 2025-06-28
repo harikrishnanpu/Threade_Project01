@@ -8,12 +8,20 @@ const Users = require("../../models/userModel")
 const { hashPassword, comparePassword } = require("../../utils/bcrypt")
 const { getUserOrders, getUserOrderById } = require("../../services/userOrderServices")
 const walletService = require('../../services/userWalletServices');
+const crypto = require('crypto');
 
 const renderProfilePage = async (req, res) => {
   const userId = req.user._id
   try {
     const user = await findOneUserById(userId)
     const addresses = (await userProfileService.getUserAddressById(userId)) || []
+
+    if (!user.referralCode) {
+      const generatedCode = crypto.randomBytes(3).toString('hex').toUpperCase()
+
+      await Users.findByIdAndUpdate(userId ,{ referralCode: generatedCode })
+      user.referralCode = generatedCode
+    }
 
     res.render("user/profile", {
       user,

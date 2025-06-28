@@ -1,25 +1,58 @@
 const orderService = require('../../services/userOrderServices');
+const paymentService = require('../../services/userPaymentServices');
 
 const placeOrder = async (req, res) => {
   try {
     const userId = req.user._id;
     const { paymentMethod } = req.body;
 
-    if(paymentMethod == 'cod'){   
-        const order = await orderService.createCodOrder(userId);
-        return res.status(201).json({
-            success: true,
-            message: 'Order placed successfully',
-            redirectUrl: `/user/orders/success/${order._id}`
-        });
+    if (paymentMethod === 'cod') {
+      const order = await orderService.createCodOrder(userId);
+      return res.status(201).json({
+        success: true,
+        message: 'Order placed successfully',
+        redirectUrl: `/user/orders/success/${order._id}`
+      });
     }
-            
-    return res.status(400).json({ success: false, message: 'payment method not found' });
+
+if (paymentMethod === 'online') {
+  const razorpayOrder = await paymentService.createRazorpayOrder(userId);
+  return res.status(200).json({
+    success: true,
+    razorpay: razorpayOrder,
+    customer: razorpayOrder.customer
+  });
+}
+
+    return res.status(400).json({ success: false, message: 'Invalid payment method' });
     
-    } catch (err) {
+  } catch (err) {
     return res.status(400).json({ success: false, message: err.message });
   }
 };
+
+
+const retryOrderPayment = async (req, res) => {
+  try {
+
+    const { orderId } = req.params;
+
+    const razorpayOrder = await paymentService.orderPayment(orderId,req.user?._id);
+
+  return res.status(200).json({
+    success: true,
+    razorpay: razorpayOrder,
+    customer: razorpayOrder.customer
+  });
+
+
+  } catch (err) {
+    console.log(err);
+    
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 
 
 const renderOrderSuccessPage = async (req,res) => {
@@ -34,7 +67,69 @@ const renderOrderSuccessPage = async (req,res) => {
       throw new Error('order not found')
     }
 
-    res.render('user/order-success',{ order })
+    res.render('user/order-success',{ order, isSubheaderHidden: true })
+  }catch(err){
+    res.status(500).json({message: err.message})
+  }
+}
+
+
+
+
+const renderOrderFailurePage = async (req,res) => {
+  try{
+    // console.log(req.params.id);
+    
+    const order = await orderService.getUserOrderById(req.user._id,req.params.id);
+
+    console.log(order);
+    
+    if(!order){
+      throw new Error('order not found')
+    }
+
+    res.render('user/order-payment-failure',{ order })
+  }catch(err){
+    res.status(500).json({message: err.message})
+  }
+}
+
+
+const verifyRazorpayPayment = async (req, res) => {
+  try {
+console.log(req.body);
+
+
+    const result = await paymentService.verifyRazorpayPayment(req.body);
+    if (result.success) {
+console.log("SUCCESS");
+
+
+      return res.status(200).json(result);
+
+    } else {
+
+      return res.status(400).json(result);
+    }
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+const renderOrderPyamentSuccessPage = async (req,res) => {
+  try{
+    // console.log(req.params.id);
+    
+    const order = await orderService.getUserOrderById(req.user._id,req.params.id);
+
+    console.log(order);
+    
+    if(!order){
+      throw new Error('order not found')
+    }
+
+    res.render('user/order-payment-success',{ order })
   }catch(err){
     res.status(500).json({message: err.message})
   }
@@ -106,7 +201,6 @@ const returnFullOrder = async (req, res) => {
 
 const returnSingleItem = async (req, res) => {
 
-
   try {
 
 
@@ -138,5 +232,9 @@ const returnSingleItem = async (req, res) => {
 
 module.exports = { placeOrder ,   renderOrderSuccessPage, cancelFullOrder, cancelSingleItem,
   returnFullOrder,
-  returnSingleItem
+  returnSingleItem,
+  renderOrderFailurePage,
+  renderOrderPyamentSuccessPage,
+  retryOrderPayment,
+  verifyRazorpayPayment
 };

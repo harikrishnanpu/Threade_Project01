@@ -1,114 +1,252 @@
 
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
 
 
-	
-	<style>
+  <link rel="stylesheet" href="/landing/css/style-prefix.css">
 
-		.swiper{
-			padding-bottom: 20px !important;
-		}
+<body>
 
-.swiper-button-next:after{
-	font-size: 30px;
-	color: black;
-}
 
-.swiper-button-prev:after{
-	font-size: 30px;
-	color: black;
-}
+    <div class="notification-toast" data-toast>
 
-.section-title{
-	text-align: left;
-}
+    <button class="toast-close-btn" data-toast-close>
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
 
-.section-title::before{
-	text-align: left;
-}
-	</style>
+    <div class="toast-banner">
+      <img src="/uploads/products/img1.png" alt="Rose Gold Earrings" width="80" height="70">
+    </div>
 
-<body class="js">
-	
-	<!-- Preloader -->
-	<!-- <div class="preloader">
-		<div class="preloader-inner">
-			<div class="preloader-icon">
-				<span></span>
-				<span></span>
-			</div>
-		</div>
-	</div> -->
-	<!-- End Preloader -->
-	
-	
-	<!-- Header -->
+    <div class="toast-detail">
 
-	<!--/ End Header -->
-	
-	<!-- Slider Area -->
-	    <section class="hero">
-        <div class="hero__slider owl-carousel">
-            <% if (banners && banners.length > 0) { %>
-                <% banners.forEach(banner => { %>
-                    <div class="hero__items set-bg" data-setbg="<%= banner.image %>">
-                        <div class="container">
-                            <div class="row">
-                                <div class="col-xl-5 col-lg-7 col-md-8">
-                                    <div class="hero__text">
-                                        <h6><%= banner.name %></h6>
-                                        <h2><%= banner.description %></h2>
-                                        <% if (banner.buttonText && banner.buttonLink) { %>
-                                            <a href="<%= banner.buttonLink %>" class="primary-btn"><%= banner.buttonText %> <span class="arrow_right"></span></a>
-                                        <% } else { %>
-                                            <a href="/user/products/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
-                                        <% } %>
-                                        <div class="hero__social">
-                                            <a href="#"><i class="fa fa-facebook"></i></a>
-                                            <a href="#"><i class="fa fa-twitter"></i></a>
-                                            <a href="#"><i class="fa fa-pinterest"></i></a>
-                                            <a href="#"><i class="fa fa-instagram"></i></a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <% }) %>
-            <% } else { %>
-                <div class="hero__items set-bg" data-setbg="/img/hero/hero-1.jpg">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-xl-5 col-lg-7 col-md-8">
-                                <div class="hero__text">
-                                    <h6>Summer Collection</h6>
-                                    <h2>Fall - Winter Collections 2030</h2>
-                                    <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
-                                    <div class="hero__social">
-                                        <a href="#"><i class="fa fa-facebook"></i></a>
-                                        <a href="#"><i class="fa fa-twitter"></i></a>
-                                        <a href="#"><i class="fa fa-pinterest"></i></a>
-                                        <a href="#"><i class="fa fa-instagram"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <% } %>
+      <p class="toast-message">
+        Someone in new just bought
+      </p>
+
+      <p class="toast-title">
+        Men's Casual T-shirt
+      </p>
+
+      <p class="toast-meta">
+        <time datetime="PT2M">2 Minutes</time> ago
+      </p>
+
+    </div>
+
+  </div>
+
+  <div class="overlay" data-overlay></div>
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+  <!--
+    - MAIN
+  -->
+
+  <main>
+
+    <!--
+      - BANNER
+    -->
+
+    <div class="banner">
+
+      <div class="container mb-2">
+
+        <div class="slider-container has-scrollbar">
+
+          <% if(banners && banners.length > 0){ %>
+
+            <% banners.forEach((banner) => { %>
+
+          <div class="slider-item">
+
+            <img src="<%= banner.image %>" alt="women's latest fashion sale" class="banner-img">
+
+            <div class="banner-content">
+
+              <p><%= banner.name %></p>
+
+              <h2 style="font-weight: 800;font-size: 1.8rem;"><%= banner.description %></h2>
+
+              <p >
+                new offer available f
+              </p>
+
+              <a href="<%= banner.buttonLink %>" class="banner-btn mt-4"><%= banner.buttonText %></a>
+
+            </div>
+
+          </div>
+
+          <% }) } %>
+
         </div>
-    </section>
-	<!--/ End Slider Area -->
-	
 
-<section class="small-banner section container">
+      </div>
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+    <!--
+      - PRODUCT
+    -->
+
+    <div class="product-container">
+
+      <div class="container">
+
+
+        <!--
+          - SIDEBAR
+        -->
+
+        <div class="sidebar  has-scrollbar" data-mobile-menu>
+
+          <div class="sidebar-category">
+
+            <div class="sidebar-top">
+              <h2 class="sidebar-title" style="font-weight: 800;">Category</h2>
+
+              <button class="sidebar-close-btn" data-mobile-menu-close-btn>
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+
+            <ul class="sidebar-menu-category-list">
+
+              <% if(allMainCatsbySub && allMainCatsbySub.length > 0) { %>
+                <% allMainCatsbySub.forEach((mainCat)=>{ %>
+
+              <li class="sidebar-menu-category">
+
+                <button class="sidebar-accordion-menu" data-accordion-btn>
+
+                  <div class="menu-title-flex">
+
+                    <p style="font-weight: 800;" class="menu-title"><%= mainCat.name %></p>
+                  </div>
+
+                  <div>
+                    <ion-icon name="add-outline" class="add-icon"></ion-icon>
+                    <ion-icon name="remove-outline" class="remove-icon"></ion-icon>
+                  </div>
+
+                </button>
+
+                <% if(mainCat.subCategories && mainCat.subCategories.length > 0){  %>
+                <ul class="sidebar-submenu-category-list" data-accordion>
+
+                  <% mainCat.subCategories.forEach((cat)=> { %>
+                  <li class="sidebar-submenu-category">
+                    <a href="#" class="sidebar-submenu-title">
+                      <p class="product-name"><%= cat.name %></p>
+                      <data value="300" class="stock" title="Available Stock">300</data>
+                    </a>
+                  </li>
+
+                  <% }) %>
+
+                </ul>
+
+                <% } %>
+
+              </li>
+
+              <% }) }%>
+
+            </ul>
+
+          </div>
+
+          <div class="product-showcase">
+
+            <h3 class="showcase-heading">suggested for you</h3>
+
+            <div class="showcase-wrapper">
+
+              <div class="showcase-container">
+
+                <% if(userProductSuggestions && userProductSuggestions.length > 0 ){ %>
+
+                  <% userProductSuggestions.forEach((product)=>{ %>
+                <div class="showcase">
+
+                  <a href="<%= `/user/products/${product._id}` %>" class="showcase-img-box">
+                    <img src="<%= product.images[0] %>" alt="baby fabric shoes" width="75" height="75"
+                      class="showcase-img">
+                  </a>
+
+                  <div class="showcase-content">
+
+                    <a href="<%= `/user/products/${product._id}` %>">
+                      <h4 class="showcase-title"><%= product.name %></h4>
+                    </a>
+
+                    <div class="showcase-rating">
+                      <ion-icon name="star"></ion-icon>
+                      <ion-icon name="star"></ion-icon>
+                      <ion-icon name="star"></ion-icon>
+                      <ion-icon name="star"></ion-icon>
+                      <ion-icon name="star"></ion-icon>
+                    </div>
+
+                    <div class="price-box">
+                      <del>₹<%= product.regularPrice %></del>
+                      <p class="price">₹<%= product.salePrice %></p>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <% }) } %>
+
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="product-box">
+
+
+          <section class="small-banner section container d-block">
 
 	<div class="d-flex justify-content-between align-items-center w-100">
 		<div>
 			<h4 class="mb-1 mt-3">Our Brands</h4>
 			<p class="">checkout our brands</p>
 		</div>
-		<div class="d-inline">
+    		<div class="d-inline">
 			<a class="btn btn-primary d-inline" href="">See All</a>
 		</div>
 	</div>
@@ -119,10 +257,10 @@
       <div class="swiper myBrandSwiper">
         <div class="swiper-wrapper">
           <% brands.forEach((brand) => { %>
-            <div class="swiper-slide">
+            <div style="cursor: pointer;" class="swiper-slide">
               <div class="col-lg-5 brand-card col-md-4 col-6">
                 <div class="single-banner">
-                  <img src="<%= brand.image %>" alt="#">
+                  <img style="border-radius: 50%;" src="<%= brand.image %>" alt="" >
                 </div>
               </div>
             </div>
@@ -136,64 +274,45 @@
     <% } %>
   </div>
 </section>
+          <!--
+            - PRODUCT MINIMAL
+          -->
 
+          <div class="product-minimal">
 
-<% if(hotProducts && hotProducts.length > 0 ) { %> 
-	<% hotProducts.forEach((data,ind)=>{ %>
-		<% if( data.products && data.products.length > 0 ) { %>
-	<div class="product-area most-popular section mt-5">
-        <div class="container">
-            <div class="row">
+            <div class="product-showcase">
 
+              <h2 class="title">New Arrivals</h2>
 
-<div class="col-12">
-  <h5 style="color: #d80027; font-weight: 600;">
-    Hot Items for <%= data.name %>
-  </h5>
-  <p style="color: #333;">
-    Products with discounts up to 
-    <span style="color: #d80027; font-weight: bold; font-size: 20px;">
-      <%= data.products[0]?.discountPercentage %>%
-    </span>
-  </p>
-</div>
+              <div class="showcase-wrapper has-scrollbar">
 
-				</div>
-            </div>
-            <div class="row">
-                <div class="col-12 container">
-                    <div class="owl-carousel popular-slider">
+                <div class="showcase-container">
 
+                  <% if(newArrivals && newArrivals.length > 0) { %>
 
-	<% data.products?.forEach((product)=> {  %>
+                    <% newArrivals.forEach((product)=> { %>
+                  <div class="showcase">
 
-		<% if(data.products && data.products.length > 0 ) { %>
+                    <a href="<%= `/user/products/${product._id}` %>" class="showcase-img-box">
+                      <img style="border-radius: 10px;" src="<%= product.images[0] %>" alt="relaxed short full sleeve t-shirt" width="70" class="showcase-img">
+                    </a>
 
-						<div class="single-product">
-							<div class="product-img">
-								<a href="/user/products/<%= product._id %>">
-									<img class="default-img" src="<%= product.images[0]%>" alt="#">
-									<img class="hover-img" src="<%= product.images[1] %>" alt="#">
-								</a>
-							</div>
-							<div class="product-content">
-								<h3><a href="/user/products/<%= product._id %>"><%= product.name  %></a></h3>
-																<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
-  <% const roundedRating = Math.round(product.rating || 0); %>
-  <% for (let i = 1; i <= 5; i++) { %>
-    <i class="fas fa-star" style="color: '<%= i <= roundedRating ? '#f7c948' : '#ccc' %>'; font-size: 14px;"></i>
-  <% } %>
-  <span style="font-size: 13px; color: #777;">(<%= product.rating?.toFixed(1) || '0.0' %>)</span>
-</div>
-								<div class="product-price mb-2">
-									<span style="color: #bd1c1c;" class="old">₹<%= product.regularPrice  %></span>
-									<span style="font-weight: bold;">₹<%= product.salePrice  %> <span style="background-color: #d80027;color: white;font-weight: 800;padding-inline: 4px;border-radius: 2px;"><%= product.discountPercentage%>%</span> </span>
-								</div>
+                    <div class="showcase-content">
 
+                      <a href="<%= `/user/products/${product._id}` %>">
+                        <h4 class="showcase-title"><%= product.name %></h4>
+                      </a>
 
-								<div class="product-actions">
+                      <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
+
+                      <div class="price-box">
+                        <p class="price">₹<%= product.regularPrice %></p>
+                        <del>₹<%= product.salePrice %></del>
+                      </div>
+
+                                            					<div class="product-actions d-flex">
 									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="btn" href="javascript:void(0);">Add to cart 
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark" href="javascript:void(0);">Add to cart 
 											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
 												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
 												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
@@ -201,91 +320,68 @@
 											</svg>
 										</a>	
 																</div>
-										<div class="whishlist">
-											<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-												<path fill-rule="evenodd" clip-rule="evenodd" d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124ZM10.762 5.8319C9.10073 4.17062 6.40725 4.17062 4.74596 5.8319C3.08468 7.49319 3.08468 10.1867 4.74596 11.848L11.4697 18.5718C11.7625 18.8647 12.2374 18.8647 12.5303 18.5718L19.254 11.8481C20.9153 10.1868 20.9153 7.49329 19.254 5.83201C17.5927 4.17072 14.8993 4.17072 13.238 5.83201L12.5304 6.53961C12.3897 6.68026 12.199 6.75928 12 6.75928C11.8011 6.75928 11.6104 6.68026 11.4697 6.53961L10.762 5.8319Z" fill="#323544"/>
-											</svg>
-											
-										</div>
+<div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
+     data-product-id="<%= product._id %>">
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path
+      d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z"
+      stroke-width="1.8"
+      stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>"
+      fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>">
+    </path>
+  </svg>
+</div>
+
 									</div>
-							</div>
-						</div>
 
-						<% } %>
-
-						<% }) %>
                     </div>
+
+                  </div>
+
+                  <% }) } %>
+
+
                 </div>
+
+              </div>
+
             </div>
 
-        </div>
-		<% } }) } %>
+            <div class="product-showcase">
+            
+              <h2 class="title">Trending</h2>
+            
+              <div class="showcase-wrapper  has-scrollbar">
+            
+                <div class="showcase-container">
+            
 
-		
+                  <% if(hotProducts && hotProducts.length > 0 ) { %>
+                    <% hotProducts.forEach((product) => { %>
 
+                  <div class="showcase">
+            
+                    <a href="<%= `/user/products/${product._id}` %>" class="showcase-img-box">
+                      <img style="border-radius: 10px;" src="<%= product.images[0] %>" alt="running & trekking shoes - white" class="showcase-img"
+                        width="70">
+                    </a>
+            
+                    <div class="showcase-content">
+            
+                      <a href="<%= `/user/products/${product._id}` %>">
+                        <h4 class="showcase-title"><%= product.name %></h4>
+                      </a>
+            
+                      <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
+            
+                      <div class="price-box">
+                        <p class="price">₹<%= product.regularPrice %></p>
+                        <del>₹<%= product.salePrice  %></del>
+                      </div>
 
-		
-
-	
-	<!-- Start Product Area -->
-    <div class="product-area section mb-5">
-            <div class="container">
-				<div class="row">
-<div class="col-12 my-4">
-  <h4 style="color: #1e1e1e; font-weight: 600;">
-    Trending Items
-  </h4>
-</div>
-				</div>
-				<div class="row">
-					<div class="col-12">
-						<div class="product-info">
-							<div class="nav-main">
-								<!-- Tab Nav -->
-								<ul class="nav nav-tabs" id="myTab" role="tablist">
-									<% if(categoryWiseProducts && categoryWiseProducts.length > 0 ) { %>
-										<% categoryWiseProducts.forEach((category,index)=>{ %>
-									<li class="nav-item"><a class="nav-link <%= index == 0 ? 'active' : '' %>" data-toggle="tab" href="#<%= category._id.toLowerCase() %>" role="tab"><%= category._id %></a></li>
-									 <% }) } %>
-								</ul>
-								<!--/ End Tab Nav -->
-							</div>
-							<div class="tab-content" id="myTabContent">
-							<% if(categoryWiseProducts && categoryWiseProducts.length > 0 ) { %>
-										<% categoryWiseProducts.forEach((category,index)=>{ %>
-
-								<div class="tab-pane fade show <%= index === 0 ? 'active' : '' %>" id="<%= category._id.toLowerCase() %>" role="tabpanel">
-									<div class="tab-single">
-										<div class="row">
-
-											<% if( category.products && category.products.length > 0 ) { %>
-										<% category.products.forEach((product)=>{ %>
-											<div class="col-xl-3 col-lg-4 col-md-4 col-6">
-						<div class="single-product">
-							<div class="product-img">
-								<a href="/user/products/<%= product._id %>">
-									<img class="default-img" src="<%= product.images[0]%>" alt="#">
-									<img class="hover-img" src="<%= product.images[1] %>" alt="#">
-								</a>
-							</div>
-							<div class="product-content">
-								<h3><a href="/user/products/<%= product._id %>"><%= product.name  %></a></h3>
-																<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
-  <% const roundedRating = Math.round(product.rating || 0); %>
-  <% for (let i = 1; i <= 5; i++) { %>
-    <i class="fas fa-star" style="color: '<%= i <= roundedRating ? '#f7c948' : '#ccc' %>'; font-size: 14px;"></i>
-  <% } %>
-  <span style="font-size: 13px; color: #777;">(<%= product.rating?.toFixed(1) || '0.0' %>)</span>
-</div>
-								<div class="product-price mb-2">
-									<span style="color: #bd1c1c;" class="old">₹<%= product.regularPrice  %></span>
-									<span style="font-weight: bold;">₹<%= product.salePrice  %> <span style="background-color: #d80027;color: white;font-weight: 800;padding-inline: 4px;border-radius: 2px;"><%= product.discountPercentage%>%</span> </span>
-								</div>
-
-
-								<div class="product-actions">
+                      					<div class="product-actions d-flex">
 									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="btn" href="javascript:void(0);">Add to cart 
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark" href="javascript:void(0);">Add to cart 
 											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
 												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
 												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
@@ -293,158 +389,361 @@
 											</svg>
 										</a>	
 																</div>
-										<div class="whishlist">
-											<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-												<path fill-rule="evenodd" clip-rule="evenodd" d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124ZM10.762 5.8319C9.10073 4.17062 6.40725 4.17062 4.74596 5.8319C3.08468 7.49319 3.08468 10.1867 4.74596 11.848L11.4697 18.5718C11.7625 18.8647 12.2374 18.8647 12.5303 18.5718L19.254 11.8481C20.9153 10.1868 20.9153 7.49329 19.254 5.83201C17.5927 4.17072 14.8993 4.17072 13.238 5.83201L12.5304 6.53961C12.3897 6.68026 12.199 6.75928 12 6.75928C11.8011 6.75928 11.6104 6.68026 11.4697 6.53961L10.762 5.8319Z" fill="#323544"/>
+<div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
+     data-product-id="<%= product._id %>">
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path
+      d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z"
+      stroke-width="1.8"
+      stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>"
+      fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>">
+    </path>
+  </svg>
+</div>
+
+									</div>
+            
+                    </div>
+            
+                  </div>
+
+                  <% }) } %>
+            
+                </div>
+            
+            
+              </div>
+            
+            </div>
+
+            <div class="product-showcase">
+            
+              <h2 class="title">Top Rated</h2>
+            
+              <div class="showcase-wrapper  has-scrollbar">
+            
+                <div class="showcase-container">
+            
+
+                  <% if(topRatedProducts && topRatedProducts.length > 0) { %>
+                    <% topRatedProducts.forEach((product)=> { %>
+                  <div class="showcase">
+            
+                    <a href="<%= `/user/products/${product._id}` %>" class="showcase-img-box">
+                      <img style="border-radius: 10px;" src="<%= product.images[0] %>" alt="pocket watch leather pouch" class="showcase-img"
+                        width="70">
+                    </a>
+            
+                    <div class="showcase-content">
+            
+                      <a href="<%= `/user/products/${product._id}` %>">
+                        <h4 class="showcase-title"><%= product.name %></h4>
+                      </a>
+            
+                      <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
+            
+                      <div class="price-box">
+                        <p class="price">₹<%= product.regularPrice %></p>
+                        <del>₹<%= product.salePrice %></del>
+                      </div>
+
+					<div class="product-actions d-flex">
+									<div>
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark" href="javascript:void(0);">Add to cart 
+											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
+												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
+												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
+												<path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
 											</svg>
-											
-										</div>
+										</a>	
+																</div>
+<div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
+     data-product-id="<%= product._id %>">
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path
+      d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z"
+      stroke-width="1.8"
+      stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>"
+      fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>">
+    </path>
+  </svg>
+</div>
+
 									</div>
-							</div>
-						</div>
-											</div>
-
-											<% }) } %>
-
-										</div>
-									</div>
-								</div>
-<% }) } %>
-
-							</div>
-						</div>
-					</div>
-				</div>
-            </div>
-    </div>
-	<!-- End Product Area -->
-
-	
-		
-	<section class="section p-3 free-version-banner">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8 offset-md-2 col-xs-12">
-                    <div class="section-title mb-60">
-<span class="text-white wow fadeInDown" data-wow-delay=".2s" style="visibility: visible; animation-delay: 0.2s; animation-name: fadeInDown;">
-  Discover the Trend
-</span>
-
-<h2 class="text-white wow fadeInUp" data-wow-delay=".4s" style="visibility: visible; animation-delay: 0.4s; animation-name: fadeInUp;">
-  Elevate Your Style with Our<br> Latest Fashion Collection
-</h2>
-
-<p class="text-white wow fadeInUp" data-wow-delay=".6s" style="visibility: visible; animation-delay: 0.6s; animation-name: fadeInUp;">
-  Shop the season’s must-have outfits, from timeless classics to bold streetwear.<br>
-  Explore premium quality, trendy designs, and exclusive discounts — just for you.
-</p>
-
-
-                        <div class="button">
-                            <a href="https://wpthemesgrid.com/downloads/eshop-ecommerce-html5-template/" target="_blank" rel="nofollow" class="btn wow fadeInUp" data-wow-delay=".8s">Purchase Now</a>
-                        </div>
+            
                     </div>
+            
+                  </div>
+
+                  <%  }) } %>
+            
+
+            
                 </div>
+
+            
+              </div>
+            
             </div>
+
+          </div>
+
+
+
+          <!--
+            - PRODUCT FEATURED
+          -->
+
+          <div class="product-featured">
+
+            <h2 class="title">Deal of the day</h2>
+
+            <div class="showcase-wrapper has-scrollbar">
+
+              <% if(dealsOfTheDayProducts && dealsOfTheDayProducts.length > 0){ %>
+                <% dealsOfTheDayProducts.forEach((product)=>{ %>
+
+              <div class="showcase-container">
+                <div class="showcase">
+                  
+                  <div class="showcase-banner">
+                    <img src="<%= product.images[0] %>" alt="shampoo, conditioner & facewash packs" class="showcase-img">
+                  </div>
+
+                  <div class="showcase-content">
+                    
+                    <div class="showcase-rating">
+                      <ion-icon name="star"></ion-icon>
+                      <ion-icon name="star"></ion-icon>
+                      <ion-icon name="star"></ion-icon>
+                      <ion-icon name="star-outline"></ion-icon>
+                      <ion-icon name="star-outline"></ion-icon>
+                    </div>
+
+                    <a href="<%= `/user/products/${product._id}` %>">
+                      <h3 class="showcase-title"><%= product.name %></h3>
+                    </a>
+
+                    <p class="showcase-desc">
+                      <%= product.description %>
+                    </p>
+
+                    <div class="price-box">
+                      <p class="price">₹<%= product.regularPrice %></p>
+
+                      <del>₹<%= product.salePrice %></del>
+                    </div>
+
+	<div class="product-actions d-flex mb-5">
+									<div>
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">Add to cart 
+											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
+												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
+												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
+												<path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
+											</svg>
+										</a>	
+																</div>
+<div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
+     data-product-id="<%= product._id %>">
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path
+      d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z"
+      stroke-width="1.8"
+      stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>"
+      fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>">
+    </path>
+  </svg>
+</div>
+
+									</div>
+                    <div class="showcase-status">
+                      <div class="wrapper">
+                        <p>
+                          already sold: <b>50+</b>
+                        </p>
+
+                        <p>
+                          available: <b><%= product.stock %></b>
+                        </p>
+                      </div>
+
+                      <div class="showcase-status-bar"></div>
+                    </div>
+
+                    <div class="countdown-box">
+
+                      <p class="countdown-desc mb-2">
+                        Hurry Up! Offer ends in:
+                      </p>
+
+ <div class="countdown" id="countdown">
+  <div class="countdown-content">
+    <p class="display-number" id="days">0</p>
+    <p class="display-text">Days</p>
+  </div>
+  <div class="countdown-content">
+    <p class="display-number" id="hours">9</p>
+    <p class="display-text">Hours</p>
+  </div>
+  <div class="countdown-content">
+    <p class="display-number" id="minutes">0</p>
+    <p class="display-text">Min</p>
+  </div>
+  <div class="countdown-content">
+    <p class="display-number" id="seconds">0</p>
+    <p class="display-text">Sec</p>
+  </div>
+</div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+
+              <% }) } %>
+
+            </div>
+
+          </div>
+
+
+
+          <!--
+            - PRODUCT GRID
+          -->
+
+          <div class="product-main">
+
+            <h2 class="title">New Products</h2>
+
+            <div class="product-grid">
+
+
+                  <% if(newArrivals && newArrivals.length > 0) { %>
+
+                    <% newArrivals.forEach((product)=> { %>
+              <div class="showcase">
+
+                <div class="showcase-banner">
+
+                  <img src="<%= product.images[0] %>" alt="Mens Winter Leathers Jackets" width="300" class="product-img default">
+                  <img src="<%= product.images[1] %>" alt="Mens Winter Leathers Jackets" width="300" class="product-img hover">
+
+                  <p class="showcase-badge">15%</p>
+
+                  <div class="showcase-actions">
+
+                    <button class="btn-action">
+                      <ion-icon name="heart-outline"></ion-icon>
+                    </button>
+
+                    <button class="btn-action">
+                      <ion-icon name="eye-outline"></ion-icon>
+                    </button>
+
+                    <button class="btn-action">
+                      <ion-icon name="repeat-outline"></ion-icon>
+                    </button>
+
+                    <button class="btn-action">
+                      <ion-icon name="bag-add-outline"></ion-icon>
+                    </button>
+
+                  </div>
+
+                </div>
+
+                <div class="showcase-content">
+
+                  <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
+
+                  <a href="<%= `/user/products/${product._id}` %>">
+                    <h3 class="showcase-title text-truncate"><%= product.name %></h3>
+                  </a>
+
+                  <div class="showcase-rating">
+                    <ion-icon name="star"></ion-icon>
+                    <ion-icon name="star"></ion-icon>
+                    <ion-icon name="star"></ion-icon>
+                    <ion-icon name="star-outline"></ion-icon>
+                    <ion-icon name="star-outline"></ion-icon>
+                  </div>
+
+                  <div class="price-box">
+                    <p class="price">₹<%= product.regularPrice %></p>
+                    <del>₹<%= product.salePrice %></del>
+                  </div>
+
+                  	<div class="product-actions d-flex mb-2">
+									<div>
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark text-truncate" href="javascript:void(0);">Add to cart 
+											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
+												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
+												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
+												<path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
+											</svg>
+										</a>	
+																</div>
+<div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
+     data-product-id="<%= product._id %>">
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path
+      d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z"
+      stroke-width="1.8"
+      stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>"
+      fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>">
+    </path>
+  </svg>
+</div>
+
+
+
+
+
+									</div>
+
+                </div>
+
+              </div>
+
+              <% }) }%>
+
+            </div>
+
+          </div>
+
         </div>
-    </section>
 
+      </div>
 
-
-
-	
-	<!-- Start Shop Services Area -->
-	<section class="shop-services section home">
-		<div class="container">
-			<div class="row">
-				<div class="col-lg-3 col-md-6 col-12">
-					<!-- Start Single Service -->
-					<div class="single-service">
-						<i class="ti-rocket"></i>
-						<h4>Free shiping</h4>
-						<p>Orders over $100</p>
-					</div>
-					<!-- End Single Service -->
-				</div>
-				<div class="col-lg-3 col-md-6 col-12">
-					<!-- Start Single Service -->
-					<div class="single-service">
-						<i class="ti-reload"></i>
-						<h4>Free Return</h4>
-						<p>Within 30 days returns</p>
-					</div>
-					<!-- End Single Service -->
-				</div>
-				<div class="col-lg-3 col-md-6 col-12">
-					<!-- Start Single Service -->
-					<div class="single-service">
-						<i class="ti-lock"></i>
-						<h4>Sucure Payment</h4>
-						<p>100% secure payment</p>
-					</div>
-					<!-- End Single Service -->
-				</div>
-				<div class="col-lg-3 col-md-6 col-12">
-					<!-- Start Single Service -->
-					<div class="single-service">
-						<i class="ti-tag"></i>
-						<h4>Best Peice</h4>
-						<p>Guaranteed price</p>
-					</div>
-					<!-- End Single Service -->
-				</div>
-			</div>
-		</div>
-	</section>
-	<!-- End Shop Services Area -->
-	
-	<!-- Start Shop Newsletter  -->
-	<section class="shop-newsletter section my-5">
-		<div class="container">
-			<div class="inner-top">
-				<div class="row">
-					<div class="col-lg-8 offset-lg-2 col-12">
-						<!-- Start Newsletter Inner -->
-						<div class="inner">
-							<h4>Newsletter</h4>
-							<p> Subscribe to our newsletter and get <span>10%</span> off your first purchase</p>
-							<form action="mail/mail.php" method="get" target="_blank" class="newsletter-inner">
-								<input name="EMAIL" placeholder="Your email address" required="" type="email">
-								<button class="btn">Subscribe</button>
-							</form>
-						</div>
-						<!-- End Newsletter Inner -->
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-	<!-- End Shop Newsletter -->
-	
-	<!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="ti-close" aria-hidden="true"></span></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row no-gutters">
-							<div class="col-lg-6 offset-lg-3 col-12">
-								<h4 style="margin-top:100px;font-size:14px; font-weight:500; color:#F7941D; display:block; margin-bottom:5px;">Eshop Free Lite</h4>
-								<h3 style="font-size:30px;color:#333;">Currently You are using free lite Version of Eshop.<h3>
-								<p style="display:block; margin-top:20px; color:#888; font-size:14px; font-weight:400;">Please, purchase full version of the template to get all pages, features and commercial license</p>
-								<div class="button" style="margin-top:30px;">
-									<a href="https://wpthemesgrid.com/downloads/eshop-ecommerce-html5-template/" target="_blank" class="btn" style="color:#fff;">Buy Now!</a>
-								</div>
-							</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
     </div>
-    <!-- Modal end -->
-	
+
+
+
+
+
+
+
+
+
+
+
+  </main>
+
+
+
+
+
+  
+
+
+
+
+
+
 
 
 
@@ -487,6 +786,41 @@
 
 <script>
 
+
+async function addToCart(productId, variant, quantity = 1) {
+
+  try {
+    const res = await fetch('/user/cart/addtocart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ productId, variant, quantity })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      updateCartCount();
+      alert('Item added to cart!');
+    } else {
+      alert(data.message || 'Failed to add to cart');
+    }
+  } catch (err) {
+    console.error('Error adding to cart:', err);
+    alert('Something went wrong!');
+  }
+
+}
+
+async function updateCartCount() {
+  try {
+    const res = await fetch('/user/cart/count');
+    const data = await res.json();
+    document.getElementById('cartCount').innerText = data.count;
+  } catch (err) {
+    console.error('Failed to fetch cart count');
+  }
+}
 	
   const swiper = new Swiper('.myBrandSwiper', {
     slidesPerView: 4,
@@ -514,6 +848,39 @@
       }
     }
   });
+
+
 </script>
+
+<script>
+  // Set countdown to 9 hours from now
+  const countdownTarget = new Date().getTime() + 9 * 60 * 60 * 1000;
+
+  const countdownInterval = setInterval(() => {
+    const now = new Date().getTime();
+    const distance = countdownTarget - now;
+
+    if (distance <= 0) {
+      clearInterval(countdownInterval);
+      document.getElementById('days').textContent = 0;
+      document.getElementById('hours').textContent = 0;
+      document.getElementById('minutes').textContent = 0;
+      document.getElementById('seconds').textContent = 0;
+      return;
+    }
+
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    document.getElementById('days').textContent = days;
+    document.getElementById('hours').textContent = hours;
+    document.getElementById('minutes').textContent = minutes;
+    document.getElementById('seconds').textContent = seconds;
+  }, 1000);
+</script>
+
+
 
 

@@ -150,8 +150,9 @@
 }
 
 .vs-add-btn {
-  margin: 0 1rem 1rem;
-  padding: 0.85rem;
+  display: inline-block;
+  width: 100%;
+  padding: .5rem;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
@@ -166,6 +167,19 @@
   background-color: #000;
 }
 
+.vs-actions{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 20px;
+  padding-block: 20px;
+  margin-bottom: 4px;
+}
+
+.vs-actions > *{
+  cursor: pointer;
+}
+
 @media (max-width: 576px) {
   #variantSidebar {
     max-width: 100%;
@@ -174,4 +188,115 @@
     width: 52px;
     height: 52px;
   }
+}
+
+.vs-wishlist-btn {
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vs-wishlist-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.vs-wishlist-btn.pulse-continuous svg {
+  animation: vsPulseLoop 1.5s infinite ease-in-out;
+}
+
+.vs-wishlist-btn.pulse-once svg {
+  animation: vsPulseOnce 0.5s ease-in-out;
+}
+
+@keyframes vsPulseOnce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes vsPulseLoop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.vs-wishlist-btn.active svg path {
+  fill: #e63946 !important;
+  stroke: #e63946 !important;
+}
+
+
+.wishlist-confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1001;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wishlist-modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.wishlist-modal-actions button {
+  margin: 0 0.5rem;
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+
+
+.whishlist.pulse-continuous svg {
+  animation: wishlistPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes wishlistPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.wishlist-confirm-modal {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wishlist-modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.wishlist-modal-actions button {
+  margin: 0 10px;
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
 }

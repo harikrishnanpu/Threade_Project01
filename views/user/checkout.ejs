@@ -212,7 +212,7 @@
       margin-bottom: 0.15rem;
     }
     
-    .add-address-btn {
+    .add-address-btn, .view-all-addresses-btn {
       background-color: transparent;
       color: var(--primary);
       border: 2px dashed var(--primary);
@@ -226,10 +226,21 @@
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
+      margin-bottom: 0.5rem;
     }
     
-    .add-address-btn:hover {
+    .add-address-btn:hover, .view-all-addresses-btn:hover {
       background-color: rgba(66, 133, 244, 0.05);
+    }
+    
+    .view-all-addresses-btn {
+      border-style: solid;
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .view-all-addresses-btn:hover {
+      background-color: var(--primary-dark);
     }
     
     /* Shipping methods */
@@ -600,7 +611,7 @@
     }
     
     /* Modal styles */
-    .modal {
+    .checkout-modal {
       display: none;
       position: fixed;
       z-index: 1000;
@@ -623,6 +634,10 @@
       animation: slideIn 0.3s ease;
       max-height: 90vh;
       overflow-y: auto;
+    }
+    
+    .modal-content.large {
+      max-width: 700px;
     }
     
     @keyframes fadeIn {
@@ -770,6 +785,131 @@
       display: block;
     }
     
+    /* Coupon card styles */
+    .coupon-card {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      transition: all 0.2s;
+    }
+    
+    .coupon-card:hover {
+      border-color: var(--primary);
+      background-color: rgba(66, 133, 244, 0.02);
+    }
+    
+    .coupon-card.applied {
+      background-color: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+    
+    .coupon-card h4 {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.2rem;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .coupon-card p {
+      color: var(--text-light);
+      font-size: 0.8rem;
+      margin: 0;
+    }
+    
+    .coupon-card button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .coupon-card button:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .coupon-card button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .coupon-card.applied button {
+      background-color: var(--success);
+    }
+    
+    /* Address card styles */
+    .address-card {
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .address-card:hover {
+      border-color: var(--primary);
+    }
+    
+    .address-card.selected {
+      border-color: var(--primary);
+      background-color: rgba(66, 133, 244, 0.05);
+    }
+    
+    .address-card input[type="radio"] {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+    }
+    
+    .address-card h4 {
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+      color: var(--text-dark);
+    }
+    
+    .address-card p {
+      color: var(--text-light);
+      font-size: 0.8rem;
+      line-height: 1.3;
+      margin-bottom: 0.15rem;
+    }
+    
+    .browse-coupons-link {
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 0.8rem;
+      text-decoration: underline;
+      margin-top: 0.5rem;
+      display: inline-block;
+    }
+    
+    .browse-coupons-link:hover {
+      color: var(--primary-dark);
+    }
+    
+    /* Loading states */
+    .loading-text {
+      text-align: center;
+      color: var(--text-light);
+      padding: 2rem;
+    }
+    
+    .no-data-text {
+      text-align: center;
+      color: var(--text-light);
+      padding: 2rem;
+    }
+    
     /* Responsive styles */
     @media (max-width: 768px) {
       .container {
@@ -815,17 +955,20 @@
       }
       
       .address-option,
-      .shipping-option {
+      .shipping-option,
+      .address-card {
         padding: 0.6rem;
       }
       
       .address-info h4,
-      .shipping-info h4 {
+      .shipping-info h4,
+      .address-card h4 {
         font-size: 0.85rem;
       }
       
       .address-info p,
-      .shipping-info p {
+      .shipping-info p,
+      .address-card p {
         font-size: 0.75rem;
       }
       
@@ -897,6 +1040,16 @@
       .modal-body {
         padding: 1rem;
       }
+      
+      .coupon-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      
+      .coupon-card button {
+        align-self: flex-end;
+      }
     }
     
     @media (max-width: 480px) {
@@ -929,7 +1082,8 @@
       }
       
       .address-option,
-      .shipping-option {
+      .shipping-option,
+      .address-card {
         padding: 0.5rem;
       }
       
@@ -967,6 +1121,16 @@
         padding: 0.75rem;
       }
     }
+
+    input[type="radio"]{
+      width: auto !important;
+    }
+
+
+    a:hover {
+      color: #000 !important;
+    }
+    
   </style>
 </head>
 <body>
@@ -1026,7 +1190,7 @@
                     No delivery address found. Please add an address to continue.
                   </div>
                 <% } else { %>
-                  <% addresses.forEach((address, index) => { %>
+                  <% addresses.slice(0, 3).forEach((address, index) => { %>
                     <div class="address-option <%= index === 0 ? 'selected' : '' %>" 
                          onclick="selectAddress('<%= address._id %>', this)">
                       <input type="radio" name="selectedAddress" value="<%= address._id %>" 
@@ -1039,6 +1203,13 @@
                       </div>
                     </div>
                   <% }) %>
+                  
+                  <% if (addresses.length > 3) { %>
+                    <button class="view-all-addresses-btn" onclick="openAllAddressesModal()">
+                      <i class="fas fa-list"></i>
+                      View All Addresses (<%= addresses.length %>)
+                    </button>
+                  <% } %>
                 <% } %>
                 
                 <button class="add-address-btn" onclick="openAddressModal()">
@@ -1134,6 +1305,10 @@
                 remove
               </button>
             </div>
+
+            <span class="browse-coupons-link" onclick="openCouponsModal()">
+              Browse available coupons
+            </span>
             
             <div id="coupon-message"></div>
           </div>
@@ -1171,7 +1346,7 @@
   </div>
   
   <!-- Address Modal -->
-  <div id="addressModal" class="modal">
+  <div id="addressModal" class="checkout-modal">
     <div class="modal-content">
       <div class="modal-header">
         <h2 class="modal-title">Add New Address</h2>
@@ -1189,20 +1364,20 @@
           
           <div class="form-group">
             <label for="phone">Phone Number *</label>
-            <input type="tel" id="phone" name="phone" required>
+              <input type="tel" id="phone" name="phone" pattern="\d{10}" maxlength="10" required>
             <div class="form-error" id="phone-error"></div>
           </div>
           
           <div class="form-group">
             <label for="street">Street Address *</label>
-            <textarea id="street" name="street" required rows="3"></textarea>
+<textarea id="street" name="street" rows="3" required minlength="5"></textarea>
             <div class="form-error" id="street-error"></div>
           </div>
           
           <div class="form-row">
             <div class="form-group">
               <label for="city">City *</label>
-              <input type="text" id="city" name="city" required>
+<input type="text" id="city" name="city" required minlength="2" pattern="[A-Za-z\s]+" />
               <div class="form-error" id="city-error"></div>
             </div>
             
@@ -1210,9 +1385,8 @@
               <label for="state">State *</label>
               <select id="state" name="state" required>
                 <option value="">Select State</option>
-                <option value="Kerala">Kearala</option>
+                <option value="Kerala">Kerala</option>
                 <option value="Tamil Nadu">Tamil Nadu</option>
-        
               </select>
               <div class="form-error" id="state-error"></div>
             </div>
@@ -1236,91 +1410,122 @@
     </div>
   </div>
 
+  <!-- All Addresses Modal -->
+  <div id="allAddressesModal" class="checkout-modal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h2 class="modal-title">Select Delivery Address</h2>
+        <button class="close" onclick="closeAllAddressesModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="all-addresses-list">
+          <!-- Addresses will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coupons Modal -->
+  <div id="couponsModal" class="checkout-modal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h2 class="modal-title">Available Coupons</h2>
+        <button class="close" onclick="closeCouponsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="coupons-loading" class="loading-text" style="display: none;">
+          <i class="fas fa-spinner fa-spin"></i>
+          Loading coupons...
+        </div>
+        <div id="coupons-list">
+          <!-- Coupons will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-
-
-
-// LOADING THE CHECKOUT SESSION :
-
-window.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const response = await fetch('/user/cart/api/checkout/session', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    const result = await response.json();
-    if (response.ok && result.success && result.session) {
-      const session = result.session;
-
-      if (session.addressId) {
-        const addressElement = document.querySelector(`.address-option input[value="${session.addressId}"]`);
-        if (addressElement) {
-          addressElement.checked = true;
-          addressElement.closest('.address-option').classList.add('selected');
-          selectedAddressId = session.addressId;
-        }
-      }
-
-
-      if (session.shoppingMethod) {
-        const shippingOption = document.querySelector(`.shipping-option[onclick*="'${session.shoppingMethod}'"]`);
-        if (shippingOption) {
-          shippingOption.click(); 
-        }
-      }
-
-      if (session.couponCode) {
-        document.getElementById('coupon-code').value = session.couponCode;
-
-  const couponInput = document.getElementById('coupon-code');
-  const applyBtn = document.getElementById('apply-coupon-btn');
-  const messageDiv = document.getElementById('coupon-message');
-  const subTotal = parseFloat(`<%= subtotal %>`);
-
-  const code = couponInput.value.trim();
-
-
-  try {
-    const response = await fetch('/user/cart/coupons/apply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, subTotal })
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      appliedDiscount = result.data.discount;
-      couponCode = code;
-      calculateTotals();
-
-      showAppliedCoupon(code, result.data.discount);
-      document.getElementById('coupon-input-section').style.display = 'none';
-
-    }
-  } catch (err) {
-    console.log(err.message);
-  } 
-
-      }
-    }
-  } catch (err) {
-    console.warn('failed to restore checkout session:', err.message);
-  }
-
-});
-
-
-
-
-
-
+    // Global variables
     let selectedShippingCost = 100; 
     let appliedDiscount = 0;
     let couponCode = '';
     let selectedAddressId = '<%= addresses.length > 0 ? addresses[0]._id : "" %>';
+    let allAddresses = `<%- JSON.stringify(addresses) %>`;
+    let availableCoupons = [];
     
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadCheckoutSession();
+      calculateTotals();
+      
+      if (!selectedAddressId) {
+        document.getElementById('continue-btn').disabled = true;
+        showMessage(document.getElementById('checkout-messages'), 'Please add a delivery address to continue', 'warning');
+      }
+    });
+    
+    // Load checkout session
+    async function loadCheckoutSession() {
+      try {
+        const response = await fetch('/user/cart/api/checkout/session', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+        if (response.ok && result.success && result.session) {
+          const session = result.session;
+
+          if (session.addressId) {
+            const addressElement = document.querySelector(`.address-option input[value="${session.addressId}"]`);
+            if (addressElement) {
+              addressElement.checked = true;
+              addressElement.closest('.address-option').classList.add('selected');
+              selectedAddressId = session.addressId;
+            }
+          }
+
+          if (session.shoppingMethod) {
+            const shippingOption = document.querySelector(`.shipping-option[onclick*="'${session.shoppingMethod}'"]`);
+            if (shippingOption) {
+              shippingOption.click(); 
+            }
+          }
+
+          if (session.couponCode) {
+            await restoreAppliedCoupon(session.couponCode);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to restore checkout session:', err.message);
+      }
+    }
+    
+    async function restoreAppliedCoupon(code) {
+      document.getElementById('coupon-code').value = code;
+      const subTotal = parseFloat(`<%= subtotal %>`);
+
+      try {
+        const response = await fetch('/user/cart/coupons/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, subTotal })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          appliedDiscount = result.data.discount;
+          couponCode = code;
+          calculateTotals();
+          showAppliedCoupon(code, result.data.discount);
+          document.getElementById('coupon-input-section').style.display = 'none';
+        }
+      } catch (err) {
+        console.log('Failed to restore coupon:', err.message);
+      }
+    }
+    
+    // Calculate totals
     function calculateTotals() {
       const subtotal = parseFloat(`<%= subtotal %>`);
       const shipping = selectedShippingCost;
@@ -1348,12 +1553,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       element.classList.add('selected');
       
       element.querySelector('input[type="radio"]').checked = true;
-      
       document.getElementById('continue-btn').disabled = false;
-      
       clearPageMessages();
     }
     
+
+
     function selectShipping(method, cost, element) {
       selectedShippingCost = cost;
       
@@ -1365,6 +1570,152 @@ window.addEventListener('DOMContentLoaded', async () => {
       calculateTotals();
     }
     
+    
+window.openAddressModal = function () {
+  const modal = document.getElementById('addressModal');
+  modal.style.display = 'flex';          // <-- see 2.2
+  document.getElementById('modal-messages').innerHTML = '';
+  clearFormErrors();
+};
+    
+    function closeAddressModal() {
+      document.getElementById('addressModal').style.display = 'none';
+      document.getElementById('addressForm').reset();
+      clearFormErrors();
+    }
+    
+    function openAllAddressesModal() {
+      document.getElementById('allAddressesModal').style.display = 'block';
+      loadAllAddresses();
+    }
+    
+    function closeAllAddressesModal() {
+      document.getElementById('allAddressesModal').style.display = 'none';
+    }
+    
+    function loadAllAddresses() {
+      const container = document.getElementById('all-addresses-list');
+      container.innerHTML = '';
+      
+      if (allAddresses.length === 0) {
+        container.innerHTML = '<div class="no-data-text">No addresses found</div>';
+        return;
+      }
+      
+      allAddresses.forEach(address => {
+        const addressCard = document.createElement('div');
+        addressCard.className = `address-card ${selectedAddressId === address._id ? 'selected' : ''}`;
+        addressCard.onclick = () => selectAddressFromModal(address._id, addressCard);
+        
+        addressCard.innerHTML = `
+          <input type="radio" name="modalSelectedAddress" value="${address._id}" 
+                 ${selectedAddressId === address._id ? 'checked' : ''}>
+          <div class="address-info">
+            <h4>${address.name}</h4>
+            <p>${address.street}</p>
+            <p>${address.city}, ${address.state} - ${address.pincode}</p>
+            <p>Phone: ${address.phone}</p>
+          </div>
+        `;
+        
+        container.appendChild(addressCard);
+      });
+    }
+    
+    function selectAddressFromModal(addressId, element) {
+      selectedAddressId = addressId;
+      
+      document.querySelectorAll('.address-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      element.classList.add('selected');
+      element.querySelector('input[type="radio"]').checked = true;
+      
+      document.querySelectorAll('.address-option').forEach(option => {
+        option.classList.remove('selected');
+        const radio = option.querySelector('input[type="radio"]');
+        radio.checked = radio.value === addressId;
+        if (radio.checked) {
+          option.classList.add('selected');
+        }
+      });
+      
+      document.getElementById('continue-btn').disabled = false;
+      clearPageMessages();
+      
+      setTimeout(() => {
+        closeAllAddressesModal();
+      }, 300);
+    }
+    
+    function openCouponsModal() {
+      document.getElementById('couponsModal').style.display = 'block';
+      loadAvailableCoupons();
+    }
+    
+    function closeCouponsModal() {
+      document.getElementById('couponsModal').style.display = 'none';
+    }
+    
+    async function loadAvailableCoupons() {
+      const loadingDiv = document.getElementById('coupons-loading');
+      const listDiv = document.getElementById('coupons-list');
+      
+      loadingDiv.style.display = 'block';
+      listDiv.innerHTML = '';
+      
+      try {
+        const response = await fetch('/user/cart/api/coupons');
+        const result = await response.json();
+        
+        if (result.success && result.coupons && result.coupons.length > 0) {
+          availableCoupons = result.coupons;
+          renderCoupons();
+        } else {
+          listDiv.innerHTML = '<div class="no-data-text">No coupons available</div>';
+        }
+      } catch (error) {
+        listDiv.innerHTML = '<div class="no-data-text">Error loading coupons</div>';
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    }
+    
+    function renderCoupons() {
+      const container = document.getElementById('coupons-list');
+      container.innerHTML = '';
+      
+      availableCoupons.forEach(coupon => {
+        const isApplied = couponCode === coupon.code;
+        const couponCard = document.createElement('div');
+        couponCard.className = `coupon-card ${isApplied ? 'applied' : ''}`;
+        
+        const expiryDate = coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString() : 'No expiry';
+        const minOrder = coupon.minOrderAmount > 0 ? `Min order: ₹${coupon.minOrderAmount}` : 'No minimum order';
+        
+        couponCard.innerHTML = `
+          <div>
+            <h4>${coupon.code}</h4>
+            <p>${coupon.discount}% off | ${minOrder}</p>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Expires: ${expiryDate}</p>
+          </div>
+          <button onclick="applyCouponFromModal('${coupon.code}')" 
+                  ${isApplied ? 'disabled' : ''}>
+            ${isApplied ? 'Applied' : 'Apply'}
+          </button>
+        `;
+        
+        container.appendChild(couponCard);
+      });
+    }
+    
+    function applyCouponFromModal(code) {
+      document.getElementById('coupon-code').value = code;
+      closeCouponsModal();
+      applyCoupon();
+    }
+    
+    // Coupon functions
     async function applyCoupon() {
       const couponInput = document.getElementById('coupon-code');
       const applyBtn = document.getElementById('apply-coupon-btn');
@@ -1384,13 +1735,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       try {
         const response = await fetch('/user/cart/coupons/apply', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            code: code,
-            subTotal: subTotal
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code, subTotal: subTotal })
         });
         
         const result = await response.json();
@@ -1400,10 +1746,7 @@ window.addEventListener('DOMContentLoaded', async () => {
           couponCode = code;
           calculateTotals();
           
-          // Show applied coupon
           showAppliedCoupon(code, result.data.discount);
-          
-          // Hide input section
           document.getElementById('coupon-input-section').style.display = 'none';
           
           showMessage(messageDiv, `Coupon applied! You saved ₹${result.data.discount.toFixed(2)}`, 'success');
@@ -1429,57 +1772,20 @@ window.addEventListener('DOMContentLoaded', async () => {
       couponCode = '';
       calculateTotals();
       
-      // Hide applied coupon
       document.getElementById('applied-coupon').style.display = 'none';
-      
-      // Show input section
       document.getElementById('coupon-input-section').style.display = 'flex';
       
-      // Reset input
       const couponInput = document.getElementById('coupon-code');
       couponInput.value = '';
       couponInput.disabled = false;
       
-      // Reset button
       const applyBtn = document.getElementById('apply-coupon-btn');
       applyBtn.querySelector('.btn-text').textContent = 'Apply';
       
-      // Clear messages
       document.getElementById('coupon-message').innerHTML = '';
     }
     
-    function showMessage(container, message, type) {
-      const icon = type === 'error' ? 'fas fa-exclamation-circle' : 
-                   type === 'success' ? 'fas fa-check-circle' : 'fas fa-info-circle';
-      container.innerHTML = `<div class="message ${type} mt-2"><i class="${icon}"></i>${message}</div>`;
-      setTimeout(() => {
-        container.innerHTML = '';
-      }, 5000);
-    }
-    
-    function clearPageMessages() {
-      document.getElementById('page-messages').innerHTML = '';
-      document.getElementById('checkout-messages').innerHTML = '';
-    }
-    
-    function clearFormErrors() {
-      document.querySelectorAll('.form-group').forEach(group => {
-        group.classList.remove('error');
-      });
-      document.querySelectorAll('.form-error').forEach(error => {
-        error.textContent = '';
-      });
-    }
-    
-    function showFormError(fieldName, message) {
-      const field = document.getElementById(fieldName);
-      const formGroup = field.closest('.form-group');
-      const errorDiv = document.getElementById(`${fieldName}-error`);
-      
-      formGroup.classList.add('error');
-      errorDiv.textContent = message;
-    }
-    
+    // Form validation and submission
     function validateForm(formData) {
       clearFormErrors();
       let isValid = true;
@@ -1523,65 +1829,57 @@ window.addEventListener('DOMContentLoaded', async () => {
       return isValid;
     }
     
-    function openAddressModal() {
-      document.getElementById('addressModal').style.display = 'block';
-      document.getElementById('modal-messages').innerHTML = '';
-      clearFormErrors();
+    // Address form submission
+   window.addEventListener('DOMContentLoaded', async () => {
+  await loadCheckoutSession();
+  calculateTotals();
+
+  if (!selectedAddressId) {
+    document.getElementById('continue-btn').disabled = true;
+    showMessage(document.getElementById('checkout-messages'), 'Please add a delivery address to continue', 'warning');
+  }
+
+  document.getElementById('addressForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const addressData = Object.fromEntries(formData);
+
+    if (!validateForm(addressData)) {
+      return;
     }
-    
-    function closeAddressModal() {
-      document.getElementById('addressModal').style.display = 'none';
-      document.getElementById('addressForm').reset();
-      clearFormErrors();
+
+    const saveBtn = document.getElementById('save-address-btn');
+    const modalMessages = document.getElementById('modal-messages');
+
+    saveBtn.classList.add('loading');
+    saveBtn.disabled = true;
+
+    try {
+      const response = await fetch('/user/profile/address/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        location.reload();
+      } else {
+        showMessage(modalMessages, result.message || 'Failed to add address', 'error');
+      }
+    } catch (error) {
+      showMessage(modalMessages, 'Error adding address. Please try again.', 'error');
+    } finally {
+      saveBtn.classList.remove('loading');
+      saveBtn.disabled = false;
     }
+  });
+});
+
     
-    window.onclick = function(event) {
-      const modal = document.getElementById('addressModal');
-      if (event.target === modal) {
-        closeAddressModal();
-      }
-    }
-    
-    document.getElementById('addressForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const formData = new FormData(this);
-      const addressData = Object.fromEntries(formData);
-      
-      if (!validateForm(addressData)) {
-        return;
-      }
-      
-      const saveBtn = document.getElementById('save-address-btn');
-      const modalMessages = document.getElementById('modal-messages');
-      
-      saveBtn.classList.add('loading');
-      saveBtn.disabled = true;
-      
-      try {
-        const response = await fetch('/user/profile/address/add', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(addressData)
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-          location.reload();
-        } else {
-          showMessage(modalMessages, result.message || 'Failed to add address', 'error');
-        }
-      } catch (error) {
-        showMessage(modalMessages, 'Error adding address. Please try again.', 'error');
-      } finally {
-        saveBtn.classList.remove('loading');
-        saveBtn.disabled = false;
-      }
-    });
-    
+    // Proceed to payment
     async function proceedToPayment() {
       const continueBtn = document.getElementById('continue-btn');
       const messagesDiv = document.getElementById('checkout-messages');
@@ -1596,16 +1894,14 @@ window.addEventListener('DOMContentLoaded', async () => {
       
       const orderData = {
         addressId: selectedAddressId,
-        shippingMethod: selectedShippingCost == 100 ? 'express' : selectedShippingCost == 50 ? 'regular' : 'free' ,
+        shippingMethod: selectedShippingCost == 100 ? 'express' : selectedShippingCost == 50 ? 'regular' : 'free',
         couponCode: couponCode,
       };
       
       try {
         const response = await fetch('/user/cart/draft/checkout', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderData)
         });
         
@@ -1624,13 +1920,64 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     }
     
-    calculateTotals();
-    
-    if (!selectedAddressId) {
-      document.getElementById('continue-btn').disabled = true;
-      showMessage(document.getElementById('checkout-messages'), 'Please add a delivery address to continue', 'warning');
+    // Utility functions
+    function showMessage(container, message, type) {
+      const icon = type === 'error' ? 'fas fa-exclamation-circle' : 
+                   type === 'success' ? 'fas fa-check-circle' : 'fas fa-info-circle';
+      container.innerHTML = `<div class="message ${type}"><i class="${icon}"></i>${message}</div>`;
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 5000);
     }
-
+    
+    function clearPageMessages() {
+      document.getElementById('page-messages').innerHTML = '';
+      document.getElementById('checkout-messages').innerHTML = '';
+    }
+    
+    function clearFormErrors() {
+      document.querySelectorAll('.form-group').forEach(group => {
+        group.classList.remove('error');
+      });
+      document.querySelectorAll('.form-error').forEach(error => {
+        error.textContent = '';
+      });
+    }
+    
+    function showFormError(fieldName, message) {
+      const field = document.getElementById(fieldName);
+      const formGroup = field.closest('.form-group');
+      const errorDiv = document.getElementById(`${fieldName}-error`);
+      
+      formGroup.classList.add('error');
+      errorDiv.textContent = message;
+    }
+    
+    // Modal event handlers
+    window.onclick = function(event) {
+      const addressModal = document.getElementById('addressModal');
+      const allAddressesModal = document.getElementById('allAddressesModal');
+      const couponsModal = document.getElementById('couponsModal');
+      
+      if (event.target === addressModal) {
+        closeAddressModal();
+      }
+      if (event.target === allAddressesModal) {
+        closeAllAddressesModal();
+      }
+      if (event.target === couponsModal) {
+        closeCouponsModal();
+      }
+    }
+    
+    // Keyboard event handlers
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeAddressModal();
+        closeAllAddressesModal();
+        closeCouponsModal();
+      }
+    });
   </script>
 </body>
 </html>

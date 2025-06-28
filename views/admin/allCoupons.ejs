@@ -204,7 +204,7 @@
                     </div>
                   </td>
                   <td class="coupon-discount">
-                    <span class="discount-value"><%= coupon.discount %>% OFF</span>
+                    <span class="discount-value"><%= coupon.discount %>% OFF (max: <%= coupon.maxDiscount %>)</span>
                   </td>
                   <td class="user-type">
                     <span class="user-type-badge <%= coupon.onlyFor %>">
@@ -265,12 +265,6 @@
                         <span class="btn-text"><%= coupon.isActive ? 'Deactivate' : 'Activate' %></span>
                       </button>
 
-                      <button class="btn btn-sm btn-outline-danger delete-btn" 
-                              onclick="deleteCoupon('<%= coupon._id %>', '<%= coupon.code %>')"
-                              title="Delete Coupon">
-                        <i class="lni lni-trash-can"></i>
-                        <span class="btn-text">Delete</span>
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -367,6 +361,22 @@
                      required>
               <span class="input-group-text">%</span>
             </div>
+            <div class="form-error" id="discount-error"></div>
+          </div>
+        </div>
+
+                <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="max-coupon-discount" class="form-label">Max Discount Amount <span class="required">*</span></label>
+            <div class="input-group">
+              <input type="number" 
+                     id="max-coupon-discount" 
+                     name="maxDiscount" 
+                     class="form-control" 
+                     placeholder="Enter max discount percentage"
+                     min="0"
+                     required>
+                          </div>
             <div class="form-error" id="discount-error"></div>
           </div>
         </div>
@@ -1011,6 +1021,9 @@
         
         document.getElementById('coupon-code').value = coupon.code || '';
         document.getElementById('coupon-discount').value = coupon.discount || '';
+        document.getElementById('max-coupon-discount').value = coupon.maxDiscount || '';
+        
+
         document.getElementById('min-order-amount').value = coupon.minOrderAmount || 0;
         document.getElementById('max-usage').value = coupon.maxUsage || 1;
         document.getElementById('user-type').value = coupon.onlyFor || 'all';
@@ -1078,6 +1091,7 @@
     
     const code = document.getElementById('coupon-code').value.trim();
     const discount = document.getElementById('coupon-discount').value;
+    const maxDiscount = document.getElementById('max-coupon-discount').value;
     const maxUsage = document.getElementById('max-usage').value;
     const minOrderAmount = document.getElementById('min-order-amount').value;
     const expiresAt = document.getElementById('expires-at').value;
@@ -1096,7 +1110,7 @@
       isValid = false;
     }
     
-    if (!discount) {
+    if (!discount || !maxDiscount) {
       showFormError('discount', 'Discount percentage is required');
       isValid = false;
     } else if (discount < 1 || discount > 100) {
@@ -1237,6 +1251,7 @@
         const data = {
           code: formData.get('code').trim().toUpperCase(),
           discount: parseInt(formData.get('discount')),
+          maxDiscount: parseFloat(formData.get('maxDiscount')) || 0,
           minOrderAmount: parseFloat(formData.get('minOrderAmount')) || 0,
           maxUsage: parseInt(formData.get('maxUsage')),
           onlyFor: formData.get('onlyFor'),

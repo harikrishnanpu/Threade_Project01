@@ -3412,9 +3412,7 @@ font-size: 10px;
 	.banner__item {
 		margin-bottom: 40px;
 	}
-	.banner {
-		padding-bottom: 60px;
-	}
+
 	.categories__text {
 		margin-bottom: 40px;
 	}
@@ -3667,9 +3665,6 @@ font-size: 10px;
 	}
 	.banner__item {
 		margin-bottom: 40px;
-	}
-	.banner {
-		padding-bottom: 60px;
 	}
 	.banner__item__pic {
 		float: none;
