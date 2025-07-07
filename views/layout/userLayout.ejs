@@ -6,9 +6,6 @@
     <meta name="description" content="Threade Fashions | mens| womens| kids">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Threadë Fashions | Clothes | Mens | Womens | Kids</title>
-
-    <link rel="preload" href="/img/login_banner.jpg" as="image">
-    <link rel="preload" href="/img/signup_banner.jpg" as="image">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
     rel="stylesheet">
@@ -16,7 +13,6 @@
     <!-- Css Styles -->
     <link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
     <link rel="stylesheet" href="/css/font-awesome.min.css" type="text/css">
-    <link rel="stylesheet" href="/css/elegant-icons.css" type="text/css">
     <link rel="stylesheet" href="/css/magnific-popup.css" type="text/css">
     <link rel="stylesheet" href="/css/nice-select.css" type="text/css">
     <link rel="stylesheet" href="/css/owl.carousel.min.css" type="text/css">
@@ -29,38 +25,16 @@
 	
 	<!-- StyleSheet -->
 	
-	<!-- Bootstrap -->
-	<link rel="stylesheet" href="/landing/css/bootstrap.css">
-	<!-- Magnific Popup -->
-    <link rel="stylesheet" href="/landing/css/magnific-popup.min.css">
-	<!-- Font Awesome -->
-    <link rel="stylesheet" href="/landing/css/font-awesome.css">
-	<!-- Fancybox -->
-	<link rel="stylesheet" href="/landing/css/jquery.fancybox.min.css">
-	<!-- Themify Icons -->
-    <link rel="stylesheet" href="/landing/css/themify-icons.css">
-	<!-- Nice Select CSS -->
-    <link rel="stylesheet" href="/landing/css/niceselect.css">
-	<!-- Animate CSS -->
-    <link rel="stylesheet" href="/landing/css/animate.css">
-	<!-- Flex Slider CSS -->
-    <link rel="stylesheet" href="/landing/css/flex-slider.min.css">
-	<!-- Owl Carousel -->
-    <link rel="stylesheet" href="/landing/css/owl-carousel.css">
-	<!-- Slicknav -->
-    <link rel="stylesheet" href="/landing/css/slicknav.min.css">
 	
 	<!-- Eshop StyleSheet -->
-	<link rel="stylesheet" href="/landing/css/reset.css">
-	<link rel="stylesheet" href="/landing/style.css">
-    <link rel="stylesheet" href="/landing/css/responsive.css">
+	<link rel="stylesheet" href="/landing/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/landing/css/style-prefix.css" type="text/css">
 
 	<!-- Swiper CSS -->
 
 
 
   <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-
 
 
 
@@ -72,6 +46,12 @@
     <script src="/js/variantSidebar.js"></script>
 
     <style>
+
+
+body {
+  overflow-x: hidden;
+}
+
 
        .toast-global{
     position:fixed;
@@ -166,16 +146,98 @@ p{
 .action-btn{
   padding-inline: 8px;
   padding-block: 3px;
-  border-radius: 5px;
+  border-radius: 10px;
   font-size: 1rem !important;
   font-weight: bold;
   margin-top: 3px;
 }
 
 
+
+    /* -------------------------------------------------------
+       CONFIRMATION MODALS
+    ------------------------------------------------------- */
+
+
+.wishlist-confirm-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1050;
+      opacity: 0;
+      pointer-events: none;
+      transition:  all 0.2s ease;
+    }
+    .wishlist-confirm-modal:not(.hidden) {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .wishlist-modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      animation: scaleIn 0.25s ease;
+      color: #000;
+    }
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    .wishlist-modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .wishlist-modal-actions button {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 0.6rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition:  all 0.2s ease;
+    }
+    #wishlistConfirmYes,
+    #wishlistClearAllConfirmYes {
+      background: #dc2626;
+      color: #fff;
+    }
+    #wishlistConfirmNo,
+    #wishlistClearAllConfirmNo {
+      background: #f3f4f6;
+    }
+    #wishlistConfirmYes:hover,
+    #wishlistClearAllConfirmYes:hover {
+      background: #b91c1c;
+    }
+    #wishlistConfirmNo:hover,
+    #wishlistClearAllConfirmNo:hover {
+      background: #e5e7eb;
+    }
+
+
+
+        .action-btn:hover{background:#b91c1c;transform:translateY(-2px)}
+
+
     </style>
 </head>
 <body>
+  <div class="overlay" data-overlay></div>
 
 
   <div class="toast-global" id="toast-global">
@@ -204,6 +266,7 @@ p{
             <% if(!noFooter) { %>
                 <%- include('../partials/user/footer') %>
                 <% } %>
+                <%- include('../partials/user/chat')   %>
             </div>
 
 
@@ -223,7 +286,7 @@ p{
     </div>
 
     <div id="vsThumbs"></div>
-
+<p></p>
     <div class="vs-selectors">
       <div class="vs-group">
         <label>Size</label>
@@ -292,6 +355,7 @@ p{
 
 
 <script>
+  
 document.querySelectorAll('.whishlist').forEach(btn => {
   btn.addEventListener('click', async function () {
     const productId = this.dataset.productId;
@@ -331,8 +395,11 @@ document.querySelectorAll('.whishlist').forEach(btn => {
 
                 const r = await fetch("/user/wishlist/count");
       const d = await r.json();
-      const el = document.getElementById("HeaderwishCount");
-      if (r.ok && el) el.innerText = d.count;
+      
+document.querySelectorAll(".HeaderwishCount").forEach(el => {
+  console.log(el);
+  if (r.ok && el) el.textContent = d.count;
+});
 
           updateUI(true);
           showGlobalToast('Added to wishlist');
@@ -354,10 +421,7 @@ document.querySelectorAll('.whishlist').forEach(btn => {
 
           const data = await res.json();
           if (res.ok) {
-                  const r = await fetch("/user/wishlist/count");
-      const d = await r.json();
-      const el = document.getElementById("HeaderwishCount");
-      if (r.ok && el) el.innerText = d.count;
+            updateWishlistCount();
             updateUI(false);
             showGlobalToast('Removed from wishlist');
           } else {

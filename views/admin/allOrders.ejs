@@ -452,6 +452,8 @@
       <div class="modal-body">
         <p>Are you sure you want to confirm this order?</p>
         <div class="form-group">
+          <label for="deliveryDate" class="form-label mt-2">Delivery Date</label>
+          <input type="date" name="deliveryDate" id="deliveryDate" class="form-control mb-2">
           <label for="confirm-notes" class="form-label">Notes (Optional)</label>
           <textarea id="confirm-notes" name="notes" class="form-control" rows="3"
                     placeholder="Add any notes about this confirmation..."></textarea>
@@ -1273,8 +1275,30 @@
     });
   }
 
-  function printInvoice(orderId) {
-    window.open(`${BASE_URL}/admin/orders/${orderId}/invoice`, '_blank');
+  async function printInvoice(orderId) {
+    const BASE_URL = window.location.origin;
+    try{
+
+      const response = await fetch(`${BASE_URL}/admin/orders/${orderId}/pdf`)
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `invoice-${new Date().toISOString().split('T')[0]}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+        } else {
+          throw new Error(response.message);
+        }
+
+    }catch(err){
+      console.log(err);
+      
+    }
   }
 
   function updateBulkActions() {
@@ -1401,8 +1425,7 @@
       
       const formData = new FormData(this);
       const data = Object.fromEntries(formData);
-      alert("cc");
-      updateOrderStatus(data.orderId, 'confirmed', { notes: data.notes });
+      updateOrderStatus(data.orderId, 'confirmed', { notes: data.notes ,  deliveryDate: data.deliveryDate});
       closeConfirmModal();
 
     });

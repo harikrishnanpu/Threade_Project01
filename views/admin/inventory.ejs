@@ -321,11 +321,11 @@
                     </div>
                   </td>
                   <td class="product-price">
-                    <span class="price-value">$<%= item.price.toFixed(2) %></span>
+                    <span class="price-value">₹<%= item.price.toFixed(2) %></span>
                   </td>
                   <td class="sale-price">
                     <% if (item.salePrice && item.salePrice < item.price) { %>
-                      <span class="sale-price-value">$<%= item.salePrice.toFixed(2) %></span>
+                      <span class="sale-price-value">₹<%= item.salePrice.toFixed(2) %></span>
                     <% } else { %>
                       <span class="text-muted">-</span>
                     <% } %>

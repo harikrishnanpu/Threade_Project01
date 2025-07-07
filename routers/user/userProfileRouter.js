@@ -30,18 +30,18 @@ userProfileRouter.use((req,res,next)=>{
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "public/uploads/profiles/")
+    cb(null, "uploads/profiles/")
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
-    cb(null, "profile-" + uniqueSuffix + path.extname(file.originalname))
-  },
+    cb(null, `profile-` + uniqueSuffix + path.extname(file.originalname))
+  }
 })
 
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif/
@@ -64,7 +64,7 @@ userProfileRouter.get('/orders/:id', renderOrderDetailsPage);
 userProfileRouter.get('/wallet', renderWalletPage)
 
 
-userProfileRouter.put("/api/edit", updateProfile);
+userProfileRouter.put("/api/edit", upload.single('avatar'),updateProfile);
 userProfileRouter.post('/api/verify/email/otp', verifyUserProfileEmail);
 userProfileRouter.post('/api/change-password', changePassword)
 userProfileRouter.post("/password", changePassword)

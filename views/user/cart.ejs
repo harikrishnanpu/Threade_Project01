@@ -34,7 +34,10 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0 1rem
+      padding: 0 1rem;
+      @media (max-width: 600px){
+        padding: 0 10px;
+      }
     }
 
     .progress-indicator {
@@ -574,18 +577,20 @@ const modal = document.getElementById('confirm-modal');
     }
 
 
-            async function updateCartCount(userId) {
+    async function updateCartCount(userId) {
           const BASE_URL = window.location.origin;
           try {
             const res = await fetch(`${BASE_URL}/user/cart/api/count`);
             const result = await res.json();
             if (res.ok) {
-              const el = document.getElementById('HeadercartCount');
-              el.innerText = result.count;
+              
+
+document.querySelectorAll(".HeadercartCount").forEach(el => {  
+  if (res.ok && el) el.textContent = result.count;
+})
             } else {
               showGlobalToast(result.message,'error')
             }
-            if (el) el.innerText = count;
           } catch (err) {
             console.log('Error fetching cart count:', err);
           }
@@ -610,7 +615,7 @@ document.getElementById('checkout-btn').onclick = async () => {
     }, 1000); // delay 1 second to show spinner
 
   } catch (err) {
-    const item= err?.item
+    const item = err?.item
     console.log(err);
     if(item){
       showItemError(`${item._id}-${item.variant.size}-${item.variant.color}`, err.message )

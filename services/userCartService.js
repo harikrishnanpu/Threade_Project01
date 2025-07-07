@@ -235,19 +235,28 @@ const applyCoupon = async (code, userId, cartTotal, userType) => {
   try {
     const coupon = await Coupon.findOne({ code: code.toUpperCase() });
 
-    if (!coupon) throw new Error('Coupon not found');
-    if (!coupon.isActive) throw new Error('Coupon is not active');
+    if (!coupon) throw new Error('coupon not found');
+    if (!coupon.isActive) throw new Error('coupon is not active');
+
+
     if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-      throw new Error('Coupon has expired');
+      throw new Error('coupon has expired');
     }
+
     if (coupon.usedCount >= coupon.maxUsage) {
-      throw new Error('Coupon usage limit reached');
+      throw new Error('coupon usage limit reached');
     }
     if (coupon.minOrderAmount && cartTotal < coupon.minOrderAmount) {
-      throw new Error(`Minimum order amount is ₹${coupon.minOrderAmount}`);
+      throw new Error(`minimum order amount is ₹${coupon.minOrderAmount}`);
     }
     if (coupon.onlyFor !== 'all' && coupon.onlyFor !== userType) {
-      throw new Error(`Coupon is not valid for ${userType === 'newUsers' ? 'new' : 'premium'} users`);
+      throw new Error(`coupon is not valid for user`);
+    
+    }
+    
+
+    if(coupon.usedBy.includes(userId)){
+      throw new Error('coupon is already applied bby user')
     }
 
     const discount = (coupon.discount / 100) * cartTotal;
@@ -258,28 +267,34 @@ const applyCoupon = async (code, userId, cartTotal, userType) => {
       discount: finalDiscount,
       maxDiscount: coupon.maxDiscount
     };
+
   } catch (error) {
     throw new Error(error.message);
   }
+
 };
 
 
-const saveCheckoutSession = async (userId, { addressId, shippingMethod, couponCode }) => {
+const saveCheckoutSession = async (userId, { addressId, shippingMethod, couponCode, shippingCharge }) => {
   try {
 
     const address = await Addresses.findOne({ _id: addressId, user: userId });
-    if (!address) throw new Error('Invalid or missing delivery address.');
+    if (!address) throw new Error('invalid delivery address');
 
     const validMethods = ['free', 'regular', 'express'];
     if (!validMethods.includes(shippingMethod)) {
-  
-      throw new Error('Invalid shipping method.');
+      throw new Error('invalid shipping method');
     }
 
     let validCoupon = null;
     if (couponCode) {
       validCoupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
       if (!validCoupon) throw new Error('Invalid or expired coupon code.');
+    }
+
+    let verifiedShippingCharge = 100;
+    if(shippingMethod && shippingCharge){
+      
     }
 
     const session = await CheckoutSession.findOneAndUpdate(

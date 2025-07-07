@@ -9,19 +9,19 @@ const getInventoryPage = async (req, res) => {
 
     const categories = [];
 
-    console.log(inventory.data.items.map(i => i));
+    console.log(inventory);
     
 
     res.render('admin/inventory', {
       inventory  : inventory.data.items,
       totalItems   : inventory.data.total,
-      totalPages     : Math.ceil(inventory.data.total / 10),
+      totalPages : Math.ceil(inventory.data.total / 10),
       currentPage  : parseInt(req.query.page) || 1,
-      stockHistory   : stockRegistry.success ? stockRegistry.data : [],
-      status    : req.query.status  || 'all',
+      stockHistory : stockRegistry.success ? stockRegistry.data : [],
+      status : req.query.status  || 'all',
       categoryFilter : req.query.categoryFilter || 'all',
-      sortField    : req.query.sortField  || 'name',
-      sortOrder  : req.query.sortOrder || 'asc',
+      sortField    : req.query.sortField  || 'lastUpdated',
+      sortOrder  : req.query.sortOrder || 'desc',
       search  : req.query.search    || '',
       showLowStock  : req.query.showLowStock  || false,
       categories

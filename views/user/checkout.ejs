@@ -44,7 +44,6 @@
     
     /* Progress indicator */
     .progress-section {
-      background-color: var(--bg-white);
       padding: 1.5rem 0;
       margin-bottom: 1.5rem;
     }
@@ -151,7 +150,7 @@
     }
     
     .section-header {
-      padding: 1rem 1.25rem;
+      padding: .5rem 1.25rem;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
@@ -162,6 +161,7 @@
       font-size: 1rem;
       font-weight: 600;
       color: var(--text-dark);
+      margin: 2px;
     }
     
     .section-content {
@@ -656,6 +656,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      width: 100%;
     }
     
     .modal-title {
@@ -678,6 +679,7 @@
     
     .modal-body {
       padding: 1.25rem;
+      width: 100%;
     }
     
     .form-group {
@@ -1112,7 +1114,7 @@
       
       .section-header,
       .section-content {
-        padding: 0.5rem 0.6rem;
+        padding: .2rem 0.6rem;
       }
       
       .summary-header,
@@ -1129,6 +1131,19 @@
 
     a:hover {
       color: #000 !important;
+    }
+
+    .nice-select{
+      width: 100% !important;
+    }
+
+    #save-address-btn{
+      background-color: #000 !important;
+      color: white !important;
+    }
+
+    .coupon-card.disabled{
+      background-color: #eee;
     }
     
   </style>
@@ -1190,8 +1205,8 @@
                     No delivery address found. Please add an address to continue.
                   </div>
                 <% } else { %>
-                  <% addresses.slice(0, 3).forEach((address, index) => { %>
-                    <div class="address-option <%= index === 0 ? 'selected' : '' %>" 
+                  <% addresses.forEach((address, index) => { %>
+                    <div class="address-option" 
                          onclick="selectAddress('<%= address._id %>', this)">
                       <input type="radio" name="selectedAddress" value="<%= address._id %>" 
                              <%= index === 0 ? 'checked' : '' %>>
@@ -1358,32 +1373,32 @@
         <form id="addressForm">
           <div class="form-group">
             <label for="name">Full Name *</label>
-            <input type="text" id="name" name="fullName" required>
+            <input type="text" id="name" name="fullName" >
             <div class="form-error" id="name-error"></div>
           </div>
           
           <div class="form-group">
             <label for="phone">Phone Number *</label>
-              <input type="tel" id="phone" name="phone" pattern="\d{10}" maxlength="10" required>
+              <input type="tel" id="phone" name="phone" pattern="\d{10}" maxlength="10" >
             <div class="form-error" id="phone-error"></div>
           </div>
           
           <div class="form-group">
             <label for="street">Street Address *</label>
-<textarea id="street" name="street" rows="3" required minlength="5"></textarea>
+<textarea id="street" name="street" rows="3"  minlength="5"></textarea>
             <div class="form-error" id="street-error"></div>
           </div>
           
           <div class="form-row">
             <div class="form-group">
               <label for="city">City *</label>
-<input type="text" id="city" name="city" required minlength="2" pattern="[A-Za-z\s]+" />
+<input type="text" id="city" name="city"  minlength="2" pattern="[A-Za-z\s]+" />
               <div class="form-error" id="city-error"></div>
             </div>
             
             <div class="form-group">
               <label for="state">State *</label>
-              <select id="state" name="state" required>
+              <select id="state" name="state" >
                 <option value="">Select State</option>
                 <option value="Kerala">Kerala</option>
                 <option value="Tamil Nadu">Tamil Nadu</option>
@@ -1394,7 +1409,7 @@
           
           <div class="form-group">
             <label for="pincode">PIN Code *</label>
-            <input type="text" id="pincode" name="pincode" pattern="[0-9]{6}" required>
+            <input type="text" id="pincode" name="pincode" pattern="[0-9]{6}" >
             <div class="form-error" id="pincode-error"></div>
           </div>
           
@@ -1686,12 +1701,15 @@ window.openAddressModal = function () {
       container.innerHTML = '';
       
       availableCoupons.forEach(coupon => {
+        console.log(coupon);
+        console.log( coupon.usedBy);
+        
         const isApplied = couponCode === coupon.code;
         const couponCard = document.createElement('div');
-        couponCard.className = `coupon-card ${isApplied ? 'applied' : ''}`;
+        couponCard.className = `coupon-card ${isApplied ? 'applied' : ''} ${coupon.usedBy?.includes(`<%= user._id %>`) ? 'disabled' : '' }`;
         
         const expiryDate = coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString() : 'No expiry';
-        const minOrder = coupon.minOrderAmount > 0 ? `Min order: ₹${coupon.minOrderAmount}` : 'No minimum order';
+        const minOrder = coupon.minOrderAmount > 0 ? `Min order: ₹${coupon.minOrderAmount}` : 'No min order';
         
         couponCard.innerHTML = `
           <div>
@@ -1699,11 +1717,10 @@ window.openAddressModal = function () {
             <p>${coupon.discount}% off | ${minOrder}</p>
             <p style="font-size: 0.75rem; color: var(--text-muted);">Expires: ${expiryDate}</p>
           </div>
-          <button onclick="applyCouponFromModal('${coupon.code}')" 
-                  ${isApplied ? 'disabled' : ''}>
-            ${isApplied ? 'Applied' : 'Apply'}
+          <button style="${coupon.usedBy?.includes(`<%= user._id %>`) ? 'display:none' : '' }"  onclick="applyCouponFromModal('${coupon.code}')" ${ isApplied ? 'disabled' : ''}>
+            ${isApplied ? 'Applied'  :   'Apply' }
           </button>
-        `;
+        `; 
         
         container.appendChild(couponCard);
       });

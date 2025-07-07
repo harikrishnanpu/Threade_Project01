@@ -87,7 +87,19 @@
       if (r.ok) {
         showGlobalToast("item added to cart successfully");
         updateCartCount();
-        updateUI(false, id)
+        updateUI(false, id);
+
+
+          if(window.location.href.includes('wishlist')){
+
+                  const allBtns=document.querySelectorAll(`.whishlist-page-icon[data-product-id="${id}"]`);
+     allBtns.forEach(el=>{
+                const card = el.closest('.showcase') || el.parentElement;
+      if (card) card.remove(); 
+     })
+          }
+
+          
       } else {
         showGlobalToast(res.message, "error");
       }
@@ -100,8 +112,9 @@
     try {
       const r = await fetch("/user/cart/api/count");
       const d = await r.json();
-      const el = document.getElementById("HeadercartCount");
-      if (r.ok && el) el.innerText = d.count;
+document.querySelectorAll(".HeadercartCount").forEach(el => {
+  if (r.ok && el) el.innerText = d.count;
+})
       updateWishlistCount();
 
       
@@ -178,22 +191,24 @@ window.updateWishlistCount = async function() {
     try {
       const r = await fetch("/user/wishlist/count");
       const d = await r.json();
-      const el = document.getElementById("HeaderwishCount");
-      if (r.ok && el) el.innerText = d.count;
+document.querySelectorAll(".HeaderwishCount").forEach(el => {
+  console.log(el);
+  if (r.ok && el) el.textContent = d.count;
+});
     } catch (e) {
       console.error(e);
     }
   }
 
 
-window.showVariantSidebar = function (id) {
-  fetch("/user/products/api/" + id)
+window.showVariantSidebar = function (id,page) {
+  fetch("/user/products/api/"+id)
     .then((r) => r.json())
     .then(async function (data) {
       product = data;
 
       if (!product.variants || !product.variants.length) {
-        showGlobalToast("No Variants found for this product", "error");
+        showGlobalToast("no variants found for this product", "error");
         return;
       }
 

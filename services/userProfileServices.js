@@ -24,24 +24,19 @@ const findUserByEmail = async (email, excludeUserId = null) => {
 }
 
 const insertOneUserAddressById = async (userId, reqBody) => {
-  const { fullName, phone, street, city, state, pincode, isHomeAddress, isWorkAddress, isDefault } = reqBody;
+
+  const { fullName, phone, street, city, state, pincode, type, isDefault } = reqBody;
 
   console.log(reqBody);
   
 
   try {
+
     if (!fullName || !phone || !street || !city || !state || !pincode) {
-      throw new Error("All address fields are required")
+      throw new Error("all address fields are required")
     }
 
-    let type = "home" 
-    if (isWorkAddress === "on" || isWorkAddress === true) {
-      type = "work"
-    } else if (isHomeAddress === "on" || isHomeAddress === true) {
-      type = "home"
-    }
-
-    if (isDefault === "on" || isDefault === true) {
+    if (isDefault == "on") {
       await Address.updateMany({ user: userId }, { isDefault: false })
     }
 
@@ -54,32 +49,32 @@ const insertOneUserAddressById = async (userId, reqBody) => {
       state: state.trim(),
       pincode: pincode.trim(),
       type,
-      isDefault: isDefault === "on" || isDefault === true,
+      isDefault: isDefault == "on",
     })
 
     const savedAddress = await newAddress.save()
     return savedAddress
+
+    
   } catch (err) {
     throw new Error(err.message)
   }
 }
 
 const updateUserAddressById = async (userId, addressId, reqBody) => {
-  const { fullName, phone, street, city, state, pincode, isHomeAddress, isWorkAddress, isDefault } = reqBody
+
+  const { fullName, phone, street, city, state, pincode, type, isDefault } = reqBody
 
   try {
+
     if (!fullName || !phone || !street || !city || !state || !pincode) {
-      throw new Error("All address fields are required")
+      throw new Error("all address fields are required")
     }
 
-    let type = "home"
-    if (isWorkAddress === "on" || isWorkAddress === true) {
-      type = "work"
-    } else if (isHomeAddress === "on" || isHomeAddress === true) {
-      type = "home"
-    }
+    console.log(isDefault);
+    
 
-    if (isDefault === "on" || isDefault === true) {
+    if (isDefault == "on") {
       await Address.updateMany({ user: userId, _id: { $ne: addressId } }, { isDefault: false })
     }
 
@@ -93,7 +88,7 @@ const updateUserAddressById = async (userId, addressId, reqBody) => {
         state: state.trim(),
         pincode: pincode.trim(),
         type,
-        isDefault: isDefault === "on" || isDefault === true,
+        isDefault: isDefault == "on",
       })
 
     return updatedAddress
@@ -106,8 +101,7 @@ const deleteUserAddressById = async (userId, addressId) => {
   try {
 
     const deletedAddress = await Address.findOneAndUpdate(
-      { _id: addressId, user: userId },
-      { isActive: false })
+      { _id: addressId, user: userId },{ isActive: false })
       
     return deletedAddress
   } catch (err) {

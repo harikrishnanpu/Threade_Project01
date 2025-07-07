@@ -17,6 +17,8 @@ adminOrderRouter.put('/:orderId/update', orderController.updateFullOrder);
 
 adminOrderRouter.post('/:id/return-request-action', orderController.returnRequestAction);
 
+adminOrderRouter.get('/:orderId/pdf', orderController.getOrderPdf)
+
 
 
 

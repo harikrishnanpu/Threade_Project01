@@ -1,11 +1,32 @@
-const { loginAdmin, getAllUsers, changeUserStatusById, unlistUserById, updateUser } = require("../../services/adminServices");
+const { loginAdmin, getAllUsers, changeUserStatusById, unlistUserById, updateUser, getDashboardData } = require("../../services/adminServices");
 const { findOneUserById, insertOneUser } = require("../../services/userServices");
 const { hashPassword } = require("../../utils/bcrypt");
 const { generateAdminToken } = require("../../utils/jwt");
 
 
-const getAdminDashboardPage = async(req,res) =>{
-    res.render('admin/dashboard');
+const getAdminDashboardPage = async(req,res) => {
+
+  try{
+
+    
+    const {totals, dateRange, startDate, endDate, paymentMethod, status, chartData, topSellingProducts, topSellingBrands, topSellingCategories, recentOrders} = await getDashboardData(req.query);
+    res.render('admin/dashboard',{
+       totals, 
+       dateRange,
+       startDate, 
+       endDate,
+       paymentMethod,
+       status  ,
+       chartData,
+       topSellingProducts,
+       topSellingCategories,
+       topSellingBrands,
+       recentOrders
+      });
+
+  }catch(err){
+    res.status(500).json({message: err.message})
+  }
 }
 
 const getAdminLoginPage = async (req,res) =>{
@@ -55,6 +76,21 @@ const getEditUserPage = async (req,res) => {
     res.render('admin/editUser', { user: user, error: null})
   }catch(err){
     res.render('admin/editUser',{user: null, error: err.message})
+  }
+}
+
+
+const logoutAdmin = async (req,res) => {
+    try {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict'
+    });
+
+    return res.redirect('/admin/login');
+  } catch (err) {
+    return res.redirect('/admin/login');
   }
 }
 
@@ -139,4 +175,4 @@ const createNewUserAccount = async (req,res) =>{
 
 
 
-module.exports = { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount };
+module.exports = { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount, logoutAdmin };

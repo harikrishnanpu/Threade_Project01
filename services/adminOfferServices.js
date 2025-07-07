@@ -7,58 +7,66 @@ const Product= require('../models/productModel');
 const updateAllProductSalePrices = async () => {
   try {
     const offers = await Offer.find({ isActive: true });
-
     // console.log(offers.map(o => o));
-    
+
     const products = await Product.find({ isActive: true }).populate('category');
 
     let updatedCount = 0;
 
     for (const product of products) {
-      const productCategoryId = product.category?._id?.toString();
-      const parentCategoryId = product.category?.parentCategory?.toString();
 
+      const productCategoryId = product.category._id.toString();
+      const parentCategoryId = product.category.parentCategory?.toString();
       const productId = product._id.toString();
 
       const matchedOffers = offers.filter(offer => {
-        const matchProduct = offer.products.some(id => id.toString() === productId);
+        const matchProduct = offer.products.some(prod => prod.toString() == productId);
 
-        const matchCategory = offer.categories.some(id => { const cid = id.toString();
-          return cid === productCategoryId || cid === parentCategoryId;
+        const matchCategory = offer.categories.some(id => {
+          const cid = id.toString();
+          return cid == productCategoryId || cid == parentCategoryId;
         });
 
-
         return matchProduct || matchCategory;
-
       });
+
+      console.log(matchedOffers);
+      
 
       let isUpdated = false;
 
       for (const variant of product.variants) {
+
         if (!variant.isActive) continue;
 
         let bestDiscountAmount = 0;
 
         if (matchedOffers.length > 0) {
+
           for (const offer of matchedOffers) {
 
-            const discountPercent = offer.discount;
+            const maxDiscount = offer.maxDiscountAmount || 0;
 
-            const maxDiscount = offer.maxDiscountAmount;
+            const discountAmount = (variant.price * offer.discount) / 100;
 
-            const discountAmount = (variant.price * discountPercent) / 100;
-            
-            const finalDiscount = Math.min(discountAmount, maxDiscount);
+            let finalDiscount = discountAmount;
+
+            if(maxDiscount !== 0){  
+             finalDiscount = Math.min(discountAmount , maxDiscount);
+            }
 
             if (finalDiscount > bestDiscountAmount) {
               bestDiscountAmount = finalDiscount;
             }
+
           }
+
         }
 
         const newSalePrice = bestDiscountAmount > 0 ? variant.price - bestDiscountAmount : variant.price;
 
-        if (variant.salePrice !== newSalePrice){  variant.salePrice = newSalePrice;
+        if (variant.salePrice !== newSalePrice){  
+          variant.salePrice = newSalePrice;
           isUpdated = true;
         }
 
@@ -68,7 +76,11 @@ const updateAllProductSalePrices = async () => {
         await product.save();
         updatedCount++;
       }
+
     }
+
+    console.log("UPDATEDCOUNT",updatedCount);
+    
 
     return { success: true, updatedCount };
   } catch (err) {
@@ -82,24 +94,83 @@ const updateAllProductSalePrices = async () => {
 
 const createOffer = async (data) => {
   try {
-
     console.log(data);
-    
-    const offer = await Offer.create({...data,isActive: data.isActive == "on" ? true : false});
-    return offer;
+
+ const { title, description, discount, maxDiscountAmount, applicableOn, startDate, endDate, isActive, products, categories   } = data;
+
+    if(!title || !discount || !applicableOn){
+      throw new Error('all fields are required')
+    }
+
+    if(parseInt(discount) > 90){
+      throw new Error('discont not greater than 90')
+    }
+
+
+    const offer = await Offer.create({
+        title,
+        description,
+        discount,
+        maxDiscountAmount,
+        applicableOn,
+        startDate,
+        endDate,
+        products,
+        categories,        
+        isActive: isActive == "on" ? true : false
+
+       });
+
+
+       return offer
+
   } catch (err) {
     throw new Error(err.message);
   }
+
+
 };
 
 const updateOffer = async (id, data) => {
   try {
-    const offer = await Offer.findByIdAndUpdate(id, {...data,isActive: data.isActive == "on" ? true : false}, { new: true });
+    console.log(data);
+
+    const { title, description, discount, maxDiscountAmount, applicableOn, startDate, endDate, isActive, products, categories   } = data;
+
+    if(!title || !discount || !applicableOn){
+      throw new Error('all fields are required')
+    }
+
+    if(parseInt(discount) > 90){
+      throw new Error('discont not greater than 90')
+    }
+
+
+    const offer = await Offer.findByIdAndUpdate(id,
+       {
+        title,
+        description,
+        discount,
+        maxDiscountAmount,
+        applicableOn,
+        startDate,
+        endDate,
+        products,
+        categories,        
+        isActive: isActive == "on" ? true : false
+
+       }, { new: true });
+
+
+      //  console.log("Updfated", updatedCount)
+
     return offer;
   } catch (err) {
     throw new Error(err.message);
   }
 };
+
+
 
 const toggleOfferStatus = async (id, active) => {
   try {

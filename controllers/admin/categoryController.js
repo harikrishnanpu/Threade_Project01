@@ -91,8 +91,7 @@ const createNewCategory = async (req, res) => {
     
 
     const createCategory = await insertOneCategory(req.body);
-    res.status(201).json({
-      message: 'Category created successfully', 
+    res.status(201).json({message: 'created successfully', 
       success: true, 
       data: createCategory
     });
@@ -109,17 +108,15 @@ const updateCategoryById = async (req, res) => {
     if (Object.keys(errors).length > 0) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Validation failed', 
+        message: 'validation failed', 
         errors 
       });
     }
 
     const updatedCategory = await editCategoryById(id, req.body);
-    res.status(200).json({
-      message: 'Category updated successfully', 
-      success: true, 
-      data: updatedCategory
+    res.status(200).json({message: 'updated successfully', success: true, data: updatedCategory
     });
+
   } catch (err) {
     res.status(500).json({ message: err.message, success: false });
   }
@@ -130,14 +127,13 @@ const updateCategoryById = async (req, res) => {
 const toggleCategoryStatus = async (req, res) => {
   const { id } = req.params;
   const { active } = req.body;
+
+  console.log(active);
   
+
   try {
     const updatedCategory = await toggleCategoryStatusById(id, active);
-    res.status(200).json({
-      message: `Category ${active ? 'activated' : 'deactivated'} successfully`,
-      success: true,
-      data: updatedCategory
-    });
+    res.status(200).json({message: 'success', success: true,data: updatedCategory});
   } catch (err) {
     res.status(500).json({ message: err.message, success: false });
   }

@@ -3797,10 +3797,14 @@ h6 {
   border-radius: 16px;
   font-size: 13px;
   font-weight: 800;
-  padding: 4px 12px;
+  padding: 2px 10px;
   margin-inline: 10px;
   display: inline-block;
   cursor: pointer;
+  font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .shop__active__filters .filter-badge:hover {
   background: #111111bc;
@@ -3810,7 +3814,7 @@ h6 {
   border: 1px solid #b7b7b7;
   color: #111;
   font-size: 13px;
-  padding: 4px 18px;
+  padding: 2px 10px;
   border-radius: 16px;
   cursor: pointer;
 }

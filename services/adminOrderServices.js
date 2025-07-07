@@ -99,7 +99,7 @@ const updateOrderStatus = async (data) => {
   try {
 
 
-    const { orderId, status, trackingNumber, notes } = data;
+    const { orderId, status, trackingNumber, notes, deliveryDate } = data;
 
     const now = new Date();
 
@@ -118,6 +118,9 @@ const updateOrderStatus = async (data) => {
       return item;
     });
 
+    if(status == 'confirmed' && deliveryDate){
+      order.deliveryDate = new Date(deliveryDate);
+    }
 
 
     if (status === 'shipped' && trackingNumber) {
@@ -259,15 +262,14 @@ const quickStatusUpdate = async (orderId, {
   trackingNumber,
   reason,
   notes,
+  deliveryDate,
   updatedBy = 'admin'
 }) => {
   try {
 
-
-
-    const allowed = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'return-complete'];
+  const allowed = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'return-complete'];
     if (!allowed.includes(newStatus)) {
-      return { success: false, message: 'Invalid status' };
+      return { success: false, message: 'invalid status' };
     }
 
     const now = new Date();
@@ -285,7 +287,10 @@ const quickStatusUpdate = async (orderId, {
         }
       }
     };
-
+    
+    if(newStatus == 'confirmed' && deliveryDate){
+      update.$set.deliveryDate = new Date(deliveryDate);
+    }
 
     if (trackingNumber) {
       update.$set.trackingNumber = trackingNumber;
@@ -296,6 +301,7 @@ const quickStatusUpdate = async (orderId, {
       update.$set.cancelledAt = now;
       update.$set.cancellationReason = reason;
     }
+
 
     if (reason && newStatus === 'return-complete') {
       update.$set.returnReason = reason;
@@ -320,19 +326,17 @@ const quickStatusUpdate = async (orderId, {
         if (!product) continue;
 
         console.log(product.name);
-        
-
-
-
 
         const variant = product.variants.find(
           v => v.size === item.variant.size && v.color === item.variant.color
         );
+
+
         if (!variant) continue;
 
         const previousStock = variant.stock;
         const newStock = previousStock - item.quantity;
-        if (newStock < 0) continue;
+        if (newStock == 0) continue;
 
         variant.stock = newStock;
         await product.save();
@@ -413,7 +417,7 @@ if (actionType === 'return-approved') {
 
       order.timeline.push({
         status: 'return-pickup',
-        note: `return pickup for item ${item.productName} scheduled` + `${notes ? ' remark:'+notes : ''}`
+        note: `return pickup for item ${item.productName} scheduled`
       })
 
 
@@ -424,7 +428,7 @@ if (actionType === 'return-approved') {
       item.status = 'return-processing';
       order.timeline.push({
         status: 'return-processing',
-        note: `return processing started for item ${item.productName}` + `${notes ? ' remark:'+notes : ''}`
+        note: `return processing started for item ${item.productName}`
       })
 
 
@@ -440,12 +444,11 @@ if (actionType === 'return-approved') {
 
       order.timeline.push({
         status: 'return-complete',
-        note: `Return completed for item ${item.productName}` + (notes ? ' – ' + notes : '')
+        note: `Return completed for item ${item.productName}`
       });
 
       const product = await Product.findById(item.productId);
       if (product) {
-
 
         const variant = product.variants.find(
           v => v.size === item.variant.size && v.color === item.variant.color
@@ -471,8 +474,7 @@ if (actionType === 'return-approved') {
         }
       }
 
-      const perItemPrice = item.price / item.quantity;
-      const itemTotal = perItemPrice * item.quantity;
+      const itemTotal = item.price * item.quantity;
 
       const totalAmount = order.totalAmount;
       const discount = order?.coupon?.discountAmount || 0;
@@ -485,16 +487,19 @@ if (actionType === 'return-approved') {
         wallet = await UserWallet.create({ user: order.user, transactions: [] });
       }
 
-      wallet.transactions.push({
-        type: 'credit',
-        amount: refund,
-        description: 'refund for returned item',
-        reference: order._id.toString(),
-        note: `refunded for ${item.productName}`
-      });
-
-      await wallet.save();
-
+      if(refund > 0 && order.paymentStatus == 'paid') {
+        
+        wallet.transactions.push({
+          type: 'credit',
+          amount: refund,
+          description: 'refund for returned item',
+          reference: order._id.toString(),
+          note: `refunded for ${item.productName}`
+        });
+        
+        await wallet.save();
+        
+      }
 
       order.timeline.push({
         status: 'return-complete',

@@ -9,6 +9,9 @@ const { hashPassword, comparePassword } = require("../../utils/bcrypt")
 const { getUserOrders, getUserOrderById } = require("../../services/userOrderServices")
 const walletService = require('../../services/userWalletServices');
 const crypto = require('crypto');
+const Orders = require("../../models/orderModel")
+
+
 
 const renderProfilePage = async (req, res) => {
   const userId = req.user._id
@@ -23,6 +26,14 @@ const renderProfilePage = async (req, res) => {
       user.referralCode = generatedCode
     }
 
+    const referredUsers = await Users.find({ isBlocked: false, isVerified: true, referredBy: user._id });
+    const profileOrders = await Orders.find({ user: user._id, orderStatus: { $nin: [ 'cancelled' , 'pending', 'return-requested' , 'return-processing', 'return-pickup', 'return-complete', 'return-rejected' ]  }  });
+
+    profileOrders.filter((ord)=> {
+      return ord.items.every(itm => itm.status !== 'cancelled' || itm.status !== 'pending')
+    });
+    
+
     res.render("user/profile", {
       user,
       addresses: addresses,
@@ -31,7 +42,10 @@ const renderProfilePage = async (req, res) => {
       orders: [],
       coupons: [],
       success: true,
-      error: null
+      error: null,
+      ordersCount: profileOrders.length || 0,
+      referredUsers: referredUsers || [],
+
     })
   } catch (err) {
     res.status(500).render("error", { message: err.message })
@@ -87,7 +101,7 @@ const renderOrdersPage = async (req, res) => {
       page = 1
     } = req.query;
 
-    const limit = 1;
+    const limit = 2;
     const filters = { status, dateRange, paymentMethod, search, sortBy };
     const currentPage = parseInt(page) || 1;
 
@@ -115,9 +129,11 @@ const renderOrdersPage = async (req, res) => {
       filters,
       cancelledOrders: []
     });
+
   } catch (err) {
-    console.error('Error rendering orders page:', err);
-    res.status(500).render('error', { message: 'Failed to load orders page.' });
+    console.log(err);
+
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -166,36 +182,40 @@ const updateProfile = async (req, res) => {
 
   console.log(req.body);
 
-  const nameRE   = /^[A-Za-z\s]{2,}$/;                      
+  console.log(req.file);
+  
+
+const nameRE   = /^[A-Za-z\s]{2,}$/;                      
 const emailRE  = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;         
 const phoneRE  = /^[6-9]\d{9}$/;                           
 const dobRE    = /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
   
 
-  if (!name.trim() || !email.trim() || !phone.trim()) {
-  return res.status(400).json({ message: 'Name, email, phone are required.' });
+if (!name.trim() || !email.trim() || !phone.trim()) {
+  return res.status(400).json({ message: 'name, email, phone are required' });
 }
 
   try {
 
 if (!nameRE.test(name.trim())) {
-  return res.status(400).json({ message: 'Name must contain only letters & spaces (min 2 characters).' });
+  return res.status(400).json({ message: 'name must contain only letters and length < 5' });
 }
 
 if (!emailRE.test(email.trim())) {
-  return res.status(400).json({ message: 'Invalid email address.' });
+  return res.status(400).json({ message: 'invalid email address.' });
 }
 
 if (!phoneRE.test(phone.trim())) {
-  return res.status(400).json({ message: 'Phone must be a 10-digit Indian mobile number (starts 6-9).' });
+  return res.status(400).json({ message: 'phone must be a 10-digit' });
 }
 
 if (dateOfBirth && !dobRE.test(dateOfBirth.trim())) {
-  return res.status(400).json({ message: 'Date of birth must be in YYYY-MM-DD format.' });
+  return res.status(400).json({ message: 'date of birth is required' });
 }
 
-    const existingUser = await userProfileService.findUserByEmail(email.trim(), userId);
-    if (existingUser) {
+const existingUser = await userProfileService.findUserByEmail(email.trim(), userId);
+    
+if (existingUser) {
       return res.status(400).json({ message: "This email is already taken by another user." });
     }
 
@@ -214,25 +234,39 @@ if (dateOfBirth && !dobRE.test(dateOfBirth.trim())) {
       updatedData.dateOfBirth = new Date(dateOfBirth);
     }
 
+    if(req.file){ 
+       updatedData.profileImage = `/uploads/profiles/${req.file.filename}`
+    }
+
     await Users.findByIdAndUpdate(userId, updatedData);
+
         const otp = generateOtp();
         console.log(otp);
 
         await otpModel.deleteOne({ email });
-            await otpModel.create({
+
+        await otpModel.create({
             email,
             otp,
-            expiresAt: Date.now() +  2 * 60 * 1000, // 2 mins expiry
-            });
+            expiresAt: Date.now() +  2 * 60 * 1000
+          });
       
           await sendOtpToEmail(email,otp);
-         return res.status(200).json({ message: 'successfully send code', verifyEmail: true, oldEmail: currentUser.email,  email })
+         return res.status(200).json({ message: 'successfully send code', verifyEmail: true, oldEmail: currentUser.email,  email });
+
+
     }
 
     const updatedData = {
       name: name.trim(),
       email: email.trim(),
     };
+
+    if(req.file){ 
+      console.log(req.file);
+      
+       updatedData.profileImage = `/uploads/profiles/${req.file.filename}`
+    }
 
     if (phone) {
       updatedData.phone = phone.trim();
@@ -247,6 +281,8 @@ if (dateOfBirth && !dobRE.test(dateOfBirth.trim())) {
     return res.status(200).json({ success: true, message: "Profile updated successfully." , verifyEmail: false});
 
   } catch (err) {
+    console.log(err);
+    
     return res.status(500).json({ message: err.message});
   }
 
@@ -377,33 +413,47 @@ const renderAddressBookPage = async (req, res) => {
 const addAddress = async (req, res) => {
   const userId = req.user._id
   try {
+
     const newAddress = await userProfileService.insertOneUserAddressById(userId, req.body)
+
     res.status(201).json({
       message: "Address added successfully",
       address: newAddress,
     })
+
+
   } catch (err) {
-    console.error("Add address error:", err)
+    // console.log(err)
+
+    console.log(err.message);
+    
+
     res.status(400).json({ message: err.message })
   }
 }
 
 const editAddress = async (req, res) => {
+
   const userId = req.user._id
   const addressId = req.params.id
 
   try {
     const updatedAddress = await userProfileService.updateUserAddressById(userId, addressId, req.body)
+
     if (!updatedAddress) {
-      return res.status(404).json({ message: "Address not found" })
+      return res.status(404).json({ message: "address not found" })
     }
-    res.json({
-      message: "Address updated successfully",
+
+    res.status(200).json({
+      message: "address updated successfully",
       address: updatedAddress,
     })
+
   } catch (err) {
-    console.error("Edit address error:", err)
+
+    console.log(err)
     res.status(400).json({ message: err.message })
+
   }
 }
 

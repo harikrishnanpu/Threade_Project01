@@ -5,7 +5,7 @@ const UserSchema = mongoose.Schema({
     email: { type: String, trim: true, required: true, unique: true },
     phone: { type: String, trim: true },
     password: { type: String, trim: true, },
-
+    profileImage: { type: String , default: null },
 
     googleId: {type: String, trim: true},
     dateOfBirth: {type: Date},
@@ -14,6 +14,7 @@ const UserSchema = mongoose.Schema({
     isBlocked: { type: Boolean, default: false },
 
     isListed: { type: Boolean, default: true },
+    
 referralCode: {
     type: String,
     unique: true,

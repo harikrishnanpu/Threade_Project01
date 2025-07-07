@@ -1,3 +1,6 @@
+const  puppeteer  = require('puppeteer');
+const moment = require('moment');
+const Orders = require('../../models/orderModel');
 const orderService = require('../../services/userOrderServices');
 const paymentService = require('../../services/userPaymentServices');
 
@@ -6,8 +9,23 @@ const placeOrder = async (req, res) => {
     const userId = req.user._id;
     const { paymentMethod } = req.body;
 
+
+    if(paymentMethod && !['cod', 'online','wallet'].includes(paymentMethod)){
+     return res.status(400).json({ message: 'payment method is requored', success: false }) 
+    }
+
+
     if (paymentMethod === 'cod') {
       const order = await orderService.createCodOrder(userId);
+      return res.status(201).json({
+        success: true,
+        message: 'Order placed successfully',
+        redirectUrl: `/user/orders/success/${order._id}`
+      });
+    }
+
+  if (paymentMethod === 'wallet') {
+      const order = await orderService.createWalletOrder(userId);
       return res.status(201).json({
         success: true,
         message: 'Order placed successfully',
@@ -151,6 +169,8 @@ const cancelFullOrder = async (req, res) => {
     })
     res.json({ success: true, data })
   } catch (err) {
+    console.log(err);
+    
     res.status(500).json({ message: err.message })
   }
 }
@@ -228,6 +248,62 @@ const returnSingleItem = async (req, res) => {
 }
 
 
+const getOrderPdf = async (req,res) => {
+
+  try{
+  const order = await Orders.findOne({ user: req.user?._id , _id: req.params.orderId });
+
+    if(!order){
+      throw new Error('order not found')
+    }
+
+        res.locals.layout = './layout/invoiceLayout'
+
+     const html = await new Promise((resolve, reject) => {
+          res.render('user/order-pdf', {
+            order,
+            moment,
+            generatedDate: moment().format('YYYY-MM-DD'),
+            noFooter: true,
+            noSidebar: true
+          }, (err, html) => {
+            if (err) reject(err);
+            else resolve(html);
+          });
+        });
+    
+    
+        const browser = await puppeteer.launch({
+          headless: 'new',
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+    
+        const page = await browser.newPage();
+        await page.setContent(html, {
+          waitUntil: 'networkidle0',
+        });
+    
+        const pdfBuffer = await page.pdf({
+          format: 'A4',
+          printBackground: true
+        });
+    
+        await browser.close();
+    
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename="sales_report.pdf"');
+        res.send(pdfBuffer);
+
+  }catch(err){
+    console.log(err);
+    
+    res.status(500).json({message: err.message, success: false})
+
+  }
+
+}
+
+
 
 
 module.exports = { placeOrder ,   renderOrderSuccessPage, cancelFullOrder, cancelSingleItem,
@@ -236,5 +312,6 @@ module.exports = { placeOrder ,   renderOrderSuccessPage, cancelFullOrder, cance
   renderOrderFailurePage,
   renderOrderPyamentSuccessPage,
   retryOrderPayment,
-  verifyRazorpayPayment
+  verifyRazorpayPayment,
+  getOrderPdf
 };

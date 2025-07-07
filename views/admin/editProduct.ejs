@@ -788,7 +788,7 @@
                 <div class="form-group">
                   <label class="form-label">Name <span class="required">*</span></label>
                   <input type="text" id="product-name" name="name" class="form-input"
-                         value="<%= product.name %>" required>
+                         value="<%= product.name %>" >
                   <div class="form-error" id="name-error"></div>
                 </div>
                 <div class="form-group">
@@ -800,7 +800,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="form-label">Category <span class="required">*</span></label>
-                    <select id="product-category" name="category" class="form-select" required>
+                    <select id="product-category" name="category" class="form-select" >
                       <option value="">Select category</option>
                       <% categories.forEach(cat => { %>
                         <option value="<%= cat._id %>"
@@ -834,41 +834,15 @@
                   Pricing & Stock
                 </h4>
                 <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label">Regular Price <span class="required">*</span></label>
-                    <div class="input-group">
-                      <span class="input-prefix">$</span>
-                      <input type="number" id="product-regular-price" name="regularPrice"
-                             class="form-input" step="0.01" min="0"
-                             value="<%= product.regularPrice %>" required>
-                    </div>
-                    <div class="form-error" id="regularPrice-error"></div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Sale Price</label>
-                    <div class="input-group">
-                      <span class="input-prefix">$</span>
-                      <input type="number" id="product-sale-price" name="salePrice"
-                             class="form-input" step="0.01" min="0"
-                             value="<%= product.salePrice %>">
-                    </div>
-                    <div class="form-error" id="salePrice-error"></div>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Stock Quantity</label>
-                  <input type="number" id="product-stock" name="stock" class="form-input"
-                         min="0" value="<%= product.stock %>">
-                  <div class="form-error" id="stock-error"></div>
-                </div>
+
 
                 <div class="form-group">
   <label class="form-label">Max Cart Quantity <span class="required">*</span></label>
   <input type="number" id="product-max-cart-qty" name="maxCartQuantity" class="form-input"
-         min="1" value="<%= product.maxCartQuantity || 5 %>" required>
+         min="1" value="<%= product.maxCartQuantity || 5 %>" >
   <div class="form-error" id="maxCartQuantity-error"></div>
 </div>
-
+</div>
 
               </div>
 
@@ -925,7 +899,7 @@
                       <div class="form-row">
                         <div class="form-group">
                           <label class="form-label">Size <span class="required">*</span></label>
-                          <select name="variants[<%=idx%>][size]" class="form-select" required>
+                          <select name="variants[<%=idx%>][size]" class="form-select" >
                             <option value="">Select size</option>
                             <% ['xs','sm','md','lg','xl','xxl'].forEach(s => { %>
                               <option value="<%=s%>" <%=v.size===s?'selected':''%>><%=s.toUpperCase()%></option>
@@ -935,14 +909,14 @@
                         <div class="form-group">
                           <label class="form-label">Color <span class="required">*</span></label>
                           <input type="text" name="variants[<%=idx%>][color]" class="form-input"
-                                 value="<%=v.color%>" required>
+                                 value="<%=v.color%>" >
                         </div>
                       </div>
                       <div class="form-row">
                         <div class="form-group">
                           <label class="form-label">Price <span class="required">*</span></label>
                           <div class="input-group">
-                            <span class="input-prefix">$</span>
+                            <span class="input-prefix">₹</span>
                             <input type="number" name="variants[<%=idx%>][price]" class="form-input"
                                    step="0.01" min="0" value="<%=v.price%>" required>
                           </div>
@@ -950,7 +924,7 @@
                         <div class="form-group">
                           <label class="form-label">Sale Price</label>
                           <div class="input-group">
-                            <span class="input-prefix">$</span>
+                            <span class="input-prefix">₹</span>
                             <input type="number" name="variants[<%=idx%>][salePrice]" class="form-input"
                                    step="0.01" min="0" value="<%=v.salePrice%>">
                           </div>
@@ -1280,7 +1254,7 @@
             <div class="form-group">
               <label class="form-label">Price *</label>
               <div class="input-group">
-                <span class="input-prefix">$</span>
+                <span class="input-prefix">₹</span>
                 <input type="number" name="variants[${idx}][price]"
                        class="form-input" step="0.01" min="0" required>
               </div>
@@ -1288,7 +1262,7 @@
             <div class="form-group">
               <label class="form-label">Sale Price</label>
               <div class="input-group">
-                <span class="input-prefix">$</span>
+                <span class="input-prefix">₹</span>
                 <input type="number" name="variants[${idx}][salePrice]"
                        class="form-input" step="0.01" min="0">
               </div>
@@ -1340,8 +1314,13 @@
       clearFormErrors();
 
       // basic validation
-      if (!document.getElementById('product-name').value.trim())
-        return showFormError('name-error','Name is required');
+      const name = document.getElementById('product-name').value.trim();
+      const category = document.getElementById('product-category').value.trim();
+      const brand = document.getElementById('product-brand').value.trim();
+      if (!name) return showFormError('name-error', 'Product name is required');
+      if(!category) return showFormError('category-error', 'Category is required');
+      if(!brand) return showFormError('brand-error', 'Brand is required');
+
       if (STATE.uploadedImages.length < MIN_IMAGES)
         return showFormError('images-error',`At least ${MIN_IMAGES} images`);
 
@@ -1354,11 +1333,16 @@
         const size  = block.querySelector(`[name="variants[${idx}][size]"]`).value;
         const color = block.querySelector(`[name="variants[${idx}][color]"]`).value;
         const price = block.querySelector(`[name="variants[${idx}][price]"]`).value;
+        const salePrice = block.querySelector(`[name="variants[${idx}][salePrice]"]`).value;
         const stock = block.querySelector(`[name="variants[${idx}][stock]"]`).value;
         if (!size||!color||!price||!stock)
           return showFormError('variants-error','All variant fields are required');
         if (STATE.variants[idx].images.length < MIN_IMAGES)
           return showFormError('variants-error',`Each variant needs ${MIN_IMAGES} images`);
+
+                  if(price < salePrice){
+          return showFormError('variants-error', 'sale price cannot be grater than price')
+        }
       }
 
       const maxQty = document.getElementById('product-max-cart-qty').value;
@@ -1372,9 +1356,6 @@ if (!maxQty || parseInt(maxQty) < 1) {
         description: document.getElementById('product-description').value.trim(),
         category:    document.getElementById('product-category').value,
         brand:       document.getElementById('product-brand').value || null,
-        regularPrice: parseFloat(document.getElementById('product-regular-price').value),
-        salePrice:    parseFloat(document.getElementById('product-sale-price').value)||0,
-        stock:        parseInt(document.getElementById('product-stock').value)||0,
         maxCartQuantity: parseInt(document.getElementById('product-max-cart-qty').value) || 5,
         images:      STATE.uploadedImages,
         isActive:    document.getElementById('product-active').checked,

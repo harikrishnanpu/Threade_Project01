@@ -9,6 +9,8 @@ const getProducts = async (filters = {}, sortOptions = { createdAt: -1 }, page =
   try {
     const skip = (page - 1) * limit;
     filters.isActive = true;
+    filters.isCategoryActive = true;
+    filters.isBrandActive = true;
     
     const totalProducts = await Product.countDocuments(filters);
     
@@ -44,8 +46,8 @@ if (!product) {
   throw new Error('Product not found');
 }
 
-if (!product.isActive) {
-  throw new Error('Product is currently unavailable');
+if (!product.isActive || !product.isCategoryActive || !product.isBrandActive) {
+  throw new Error('product is currently unavailable');
 }
 
 product.variants = product.variants.filter(v => v.isActive);
@@ -64,7 +66,7 @@ const getAllTags = async () => {
   
   try {
     const tagsArray = await Product.aggregate([
-      { $match: { isActive: true } },
+      { $match: { isActive: true , isCategoryActive: true, isBrandActive: true } },
       { $unwind: '$tags' },
       { $group: { _id: '$tags' } },
       { $sort: { _id: 1 } }
@@ -86,7 +88,7 @@ const getAllVariants = async (mainCat) => {
   try{
 
     const allVariants = await Product.aggregate([
-      {$match: { isActive: true, category: new mongoose.Types.ObjectId(mainCat) }},
+      {$match: { isActive: true, isCategoryActive: true, isBrandActive: true  , category: new mongoose.Types.ObjectId(mainCat) }},
       {$unwind: '$variants'},
       {
         $facet: {
@@ -120,7 +122,7 @@ const getAllVariants = async (mainCat) => {
 
 const getFeaturedProducts = async (limit = 10) => {
   try {
-    const products = await Product.find({ isFeatured: true, isActive: true })
+    const products = await Product.find({ isFeatured: true, isActive: true, isCategoryActive: true, isBrandActive: true  })
       .sort({ createdAt: -1 })
       .limit(limit)
       .populate('category', 'name')
@@ -139,7 +141,7 @@ const getHotProducts = async (limit = 5) => {
   try {
 
     const products = await Product.aggregate([
-      {$match: { isActive: true }},
+      {$match: { isActive: true, isCategoryActive: true, isBrandActive: true }},
       {$addFields: { discountPercentage: { $round: [ { $multiply: [
         {$divide: [ {$subtract: ['$regularPrice', '$salePrice' ] } , '$regularPrice']},
         100
@@ -167,7 +169,7 @@ const getHotProducts = async (limit = 5) => {
 const getTopRatedProducts = async (limit = 5) => {
   try{
 
-    const result = Product.find({ isActive: true }).sort({ rating: -1 }).populate('category','name').lean().limit(limit)
+    const result = Product.find({ isActive: true, isCategoryActive: true, isBrandActive: true }).sort({ rating: -1 }).populate('category','name').lean().limit(limit)
     return result
   }catch(err){
     throw new Error(err.message)
@@ -215,7 +217,7 @@ const result = await Category.aggregate([
       }
     }
   },
-  {$sort: {'products.discountPercentage': -1 }},
+  { $sort: { 'products.discountPercentage' : -1 } },
   {
     $group: {
       _id: '$_id',
@@ -254,7 +256,7 @@ const result = await Category.aggregate([
 
 const getNewProducts = async (limit = 8) => {
   try {
-    const products = await Product.find({ isNew: true, isActive: true })
+    const products = await Product.find({ isActive: true, isCategoryActive: true, isBrandActive: true })
       .sort({ createdAt: -1 })
       .limit(limit)
       .populate('category', 'name')
@@ -291,7 +293,8 @@ const getRelatedProducts = async (productId, categoryId, limit = 4) => {
     const products = await Product.find({
       _id: { $ne: productId },
       category: categoryId,
-      isActive: true
+      isActive: true,
+      isCategoryActive: true, isBrandActive: true
     })
       .limit(limit)
       .populate('category', 'name')
@@ -312,7 +315,9 @@ const getLowStockProducts = async (stockLimit = 5) => {
   try {
     const products = await Product.find({
       stock: { $gt: 0, $lte: stockLimit },
-      isActive: true
+      isActive: true,
+      isCategoryActive: true,
+       isBrandActive: true
     })
       .sort({ stock: 1 })
       .populate('category', 'name')
@@ -331,7 +336,7 @@ const getAllProductsByCategory  =  async (limit= 5) => {
   try{
 
     const result = await Product.aggregate([
-      {$match: { isActive: true }},
+      {$match: { isActive: true, isCategoryActive: true, isBrandActive: true }},
       {$lookup: { from: 'categories' , localField: 'category' , foreignField: '_id', as: 'categoryData' }},
       {$unwind: '$categoryData'},
       { $match: { 'categoryData.isActive': true } },
@@ -351,7 +356,7 @@ const getAllProductsByCategory  =  async (limit= 5) => {
 
 const getAllNewArrivals  =  async (limit= 5) => {
   try{
-    const result = await Product.find({}).sort({createdAt: -1}).limit(limit).populate('category','name');
+    const result = await Product.find({isActive: true, isCategoryActive: true, isBrandActive: true}).sort({createdAt: -1}).limit(limit).populate('category','name');
     return result;
   }catch(err){
     throw new Error(err.message);
@@ -429,12 +434,14 @@ if (!Array.isArray(orderIds)) {
 
       if (orderedProductIds.length > 0) {
 
-        const OrderProducts = await Product.find({ _id: { $in: orderedProductIds } }).lean();
+        const OrderProducts = await Product.find({ _id: { $in: orderedProductIds } , isCategoryActive: true, isBrandActive: true, isActive: true }).lean();
 
         const categories = OrderProducts.map(p => p.category?.toString());
         const brands = OrderProducts.map(p => p.brand?.toString());
 
         const suggestions = await Product.find({
+          isActive: true,
+          isCategoryActive: true, isBrandActive: true,
           _id: { $nin: orderedProductIds },
           $or: [
             { category: { $in: categories } },
@@ -451,8 +458,8 @@ if (!Array.isArray(orderIds)) {
       result = Product.find({ isActive: true}).sort({ createdAt: -1 }).lean().limit(limit)
 
     }
-
     console.log(result);
+
     
 
     return result;
@@ -468,7 +475,7 @@ if (!Array.isArray(orderIds)) {
 const getDealOfTheDayProducts = async(limit = 5) => {
   try{
 
-    const result = await Product.find({ isActive: true, tags: { $in: [ 'deal-of-the-day', 'top-seller' ] } })
+    const result = await Product.find({ isActive: true, isCategoryActive: true, isBrandActive: true, tags: { $in: [ 'deal-of-the-day', 'top-seller' ] } })
 
     return result;
 

@@ -10,9 +10,6 @@ const { validateBrandIdParam } = require('../../validators/ParamValidator');
 const { validateBrandBody } = require('../../validators/bodyValidator');
 
 const uploadDir = 'uploads/brands';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -34,7 +31,7 @@ const fileFilter = (req, file, cb) => {
   if (extname && mimetype) {
     return cb(null, true);
   }
-  cb(new Error('Invalid file type. Only JPG, PNG, and WebP are allowed.'));
+  cb(new Error('invalid file type. Only JPG, PNG, and WebP are allowed.'));
 };
 
 
@@ -42,7 +39,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 },
   onError: (err, next) => {
     console.error('Multer error:', err);
     next(err);

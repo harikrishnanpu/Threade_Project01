@@ -7,7 +7,9 @@ const getSalesReport = async (req,res) => {
 
     try{
 
+        const result = await Order.find({}).populate('user' , 'name email').populate()
 
+        console.log(result);
         
         return false;
 
@@ -17,5 +19,8 @@ const getSalesReport = async (req,res) => {
 
 
 }
+
+
+getSalesReport();
 
 module.exports = { getSalesReport };

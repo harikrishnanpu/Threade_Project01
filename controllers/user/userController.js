@@ -53,11 +53,11 @@ const getUserHomePage = async (req, res) => {
   getAllBrands(),
   getHotProducts(),
   getTopRatedProducts(),
-  getHotProductsByMainCategory(6),
-  getAllProductsByCategory(6),
-  getAllNewArrivals(5),
-  getAllCategoriesBySubCategories(8),
-  productSuggestions(req.user._id,5),
+  getHotProductsByMainCategory(10),
+  getAllProductsByCategory(10),
+  getAllNewArrivals(10),
+  getAllCategoriesBySubCategories(10),
+  productSuggestions(req.user._id,10),
   getDealOfTheDayProducts(),
 ]);
 
@@ -392,7 +392,7 @@ const logoutUser = async (req, res) => {
   try {
     res.clearCookie('token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'strict'
     });
 

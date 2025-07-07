@@ -352,7 +352,7 @@
                    name="title" 
                    class="form-control" 
                    placeholder="Enter offer title"
-                   required>
+                   >
             <div class="form-error" id="title-error"></div>
           </div>
         </div>
@@ -401,8 +401,8 @@
                      class="form-control" 
                      placeholder="Enter discount value"
                      min="1"
-                     max="100"
-                     required>
+                     max="90"
+                     >
               <span class="input-group-text">%</span>
             </div>
             <div class="form-error" id="discountValue-error"></div>
@@ -427,7 +427,7 @@
         <div class="form-row mt-2">
           <div class="form-group">
             <label for="applicable-on" class="form-label">Applicable On <span class="required">*</span></label>
-            <select id="applicable-on" name="applicableOn" class="form-control" onchange="toggleApplicableFields()" required>
+            <select id="applicable-on" name="applicableOn" class="form-control" onchange="toggleApplicableFields()" >
               <option value="">Select applicable type</option>
               <option value="product">Products</option>
               <option value="category">Categories</option>
@@ -531,7 +531,7 @@
                    id="start-date" 
                    name="startDate" 
                    class="form-control"
-                   required>
+                   >
             <div class="form-error" id="startDate-error"></div>
           </div>
           <div class="form-group col-md-6">
@@ -540,7 +540,7 @@
                    id="end-date" 
                    name="endDate" 
                    class="form-control"
-                   required>
+                   >
             <div class="form-error" id="endDate-error"></div>
           </div>
         </div>
@@ -2032,8 +2032,8 @@ if (offer.applicableOn === 'category' && offer.categories) {
       isValid = false;
     }
     
-    if (!discountValue) {
-      showFormError('discountValue', 'Discount value is required');
+    if (!discountValue || discountValue > 90) {
+      showFormError('discountValue', 'Discount value is required and not > 90');
       isValid = false;
     } else if (discountValue < 1 || discountValue > 100) {
       showFormError('discountValue', 'Discount must be between 1% and 100%');
@@ -2290,7 +2290,7 @@ if (applicableOn === 'product') {
 
     document.getElementById('reset-filters').addEventListener('click', resetFilters);
 
-    // Modal event listeners
+
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         if (document.getElementById('offer-modal-overlay').classList.contains('active')) {
@@ -2336,6 +2336,8 @@ document.getElementById('category-search-input').addEventListener('keypress', fu
     searchCategories();
   }
 });
+
+
   });
 
   window.addEventListener('popstate', function() {

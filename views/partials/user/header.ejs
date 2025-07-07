@@ -52,7 +52,13 @@
 
   <div class="header-search">
     <input type="text" placeholder="Search products..." />
-    <button type="submit"><i class="fa fa-search"></i></button>
+    <button type="submit">
+      <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M11.2498 5.75037C10.8356 5.75037 10.4998 6.08615 10.4998 6.50037C10.4998 6.91458 10.8356 7.25037 11.2498 7.25037C13.874 7.25037 16.0011 9.37718 16.0011 12.0004C16.0011 12.4146 16.3369 12.7504 16.7511 12.7504C17.1653 12.7504 17.5011 12.4146 17.5011 12.0004C17.5011 8.54842 14.7021 5.75037 11.2498 5.75037Z" fill="#fff"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2 11.9989C2 6.89126 6.14154 2.75098 11.25 2.75098C16.3585 2.75098 20.5 6.89126 20.5 11.9989C20.5 14.2836 19.6714 16.3747 18.2983 17.9883L21.7791 21.4695C22.072 21.7624 22.072 22.2372 21.7791 22.5301C21.4862 22.823 21.0113 22.823 20.7184 22.5301L17.2372 19.0486C15.6237 20.4197 13.5334 21.2469 11.25 21.2469C6.14154 21.2469 2 17.1066 2 11.9989ZM11.25 4.25098C6.96962 4.25098 3.5 7.72003 3.5 11.9989C3.5 16.2779 6.96962 19.7469 11.25 19.7469C15.5304 19.7469 19 16.2779 19 11.9989C19 7.72003 15.5304 4.25098 11.25 4.25098Z" fill="#fff"/>
+</svg>
+
+    </button>
   </div>
 
               <% if(user){ %>   <div class="header__nav__option">
@@ -62,6 +68,29 @@
                                         <span>Hi, <%= user.name%></span>
                                         <a href="/user/logout" class="logout bold">Logout</a>
                                     </div>
+
+
+                                <div class="ml-2 header-user-actions">
+
+                                          <div class="d-flex">
+
+            <button onclick="location.href='/user/profile'" class="action-btn">
+              <ion-icon name="person-outline"></ion-icon>
+            </button>
+            
+            <button onclick="location.href='/user/wishlist'" class="action-btn">
+              <ion-icon name="heart-outline"></ion-icon>
+              <span class="count HeaderwishCount" id="HeaderwishCount"><%= wishlistCount %></span>
+            </button>
+            
+            <button onclick="location.href='/user/cart'" class="action-btn">
+              <ion-icon name="bag-handle-outline"></ion-icon>
+              <span class="count HeadercartCount" id="HeadercartCount"><%= cartCount %></span>
+            </button>
+            
+          </div>
+
+                                </div>
                                     </div>
 
                 </div> <% }else{ %>
@@ -74,29 +103,21 @@
         <div class="header__bottom_links">
                       <% if(user){ %>   <div class="header__bottom__right">
                             <div class="header__bottom_links">
+                                <div class="mr-4 align-items-center">
+                                    <a href="/user/profile/orders"> 
+                                      <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 11.5645C9.58579 11.5645 9.25 11.9002 9.25 12.3145C9.25 12.7287 9.58579 13.0645 10 13.0645H14C14.4142 13.0645 14.75 12.7287 14.75 12.3145C14.75 11.9002 14.4142 11.5645 14 11.5645H10Z" fill="#323544"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2 6.06445C2 4.82181 3.00736 3.81445 4.25 3.81445H19.75C20.9926 3.81445 22 4.82181 22 6.06445V7.06445C22 7.94788 21.4909 8.7124 20.75 9.08057V19.0645C20.75 20.3071 19.7426 21.3145 18.5 21.3145H5.5C4.25736 21.3145 3.25 20.3071 3.25 19.0645V9.08057C2.50914 8.7124 2 7.94788 2 7.06445V6.06445ZM4.75 9.31445H19.25V19.0645C19.25 19.4787 18.9142 19.8145 18.5 19.8145H5.5C5.08579 19.8145 4.75 19.4787 4.75 19.0645V9.31445ZM20.5 7.06445C20.5 7.47867 20.1642 7.81445 19.75 7.81445H4.25C3.83579 7.81445 3.5 7.47867 3.5 7.06445V6.06445C3.5 5.65024 3.83579 5.31445 4.25 5.31445H19.75C20.1642 5.31445 20.5 5.65024 20.5 6.06445V7.06445Z" fill="#323544"/>
+</svg>
 
-                                <div>
-
-                                    <a href="#"> <i class="fa fa-location"></i> Current Location</a>
+                                      My Orders</a>
                                 </div>
-
-                                    <div style="cursor: pointer;" class="icon-group">
-                                        <i class="fa-regular fa-heart"></i>
-                                    <div onclick="location.href = '/user/wishlist'" class="icon-group-inline">
-                                        <span>Wishlist</span>
-                                        <span class="count"><span id="HeaderwishCount"><%= wishlistCount %></span> items</span>
-                                    </div>
-                                    </div>
-
-
-                                    <div style="cursor: pointer;" class="icon-group">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                    <div onclick="gotoCartPage(`<%= user?._id %>`)" class="icon-group-inline">
-                                        <span>Cart</span>
-                                        <span class="count"><span id="HeadercartCount"><%= cartCount %></span> items</span>
-                                    </div>
+                                  <div class="mr-2 d-flex">
+                                    <a href="/user/profile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M16.4107 6.35C16.4107 8.74 14.4707 10.69 12.0707 10.69L12.0607 10.68C9.6707 10.68 7.7207 8.73 7.7207 6.34C7.7207 3.95 9.6807 2 12.0707 2C14.4607 2 16.4107 3.96 16.4107 6.35ZM14.9107 6.34C14.9107 4.78 13.6407 3.5 12.0707 3.5C10.5107 3.5 9.2307 4.78 9.2307 6.34C9.2307 7.9 10.5107 9.18 12.0707 9.18C13.6307 9.18 14.9107 7.9 14.9107 6.34Z" fill="#323544"/>
+<path opacity="0.4" d="M12 12.1895C14.67 12.1895 16.76 12.9395 18.21 14.4195V14.4095C20.2567 16.4956 20.2504 19.2563 20.25 19.4344L20.25 19.4395C20.24 19.8495 19.91 20.1795 19.5 20.1795H19.49C19.07 20.1695 18.75 19.8295 18.75 19.4195C18.75 19.3695 18.75 17.0895 17.13 15.4495C15.97 14.2795 14.24 13.6795 12 13.6795C9.76002 13.6795 8.03002 14.2795 6.87002 15.4495C5.25002 17.0995 5.25002 19.3995 5.25002 19.4195C5.25002 19.8295 4.92002 20.1795 4.51002 20.1795C4.15002 20.1995 3.75002 19.8595 3.75002 19.4495L3.75002 19.4448C3.74962 19.2771 3.74302 16.506 5.79002 14.4195C7.24002 12.9395 9.33002 12.1895 12 12.1895Z" fill="#323544"/>
+</svg> profile</a>
                                 </div>
-
 
                             </div> 
                     </div> <% }else{ %>  <div class="header__bottom__right">
@@ -198,24 +219,6 @@
 
         </ul>
           </div>
-
-          <div class="d-flex">
-
-            <button onclick="location.href='/user/profile'" class="action-btn">
-              <ion-icon name="person-outline"></ion-icon>
-            </button>
-            
-            <button class="action-btn">
-              <ion-icon name="heart-outline"></ion-icon>
-              <span class="count">0</span>
-            </button>
-            
-            <button class="action-btn">
-              <ion-icon name="bag-handle-outline"></ion-icon>
-              <span class="count">0</span>
-            </button>
-            
-          </div>
         </div>
 
       </div>
@@ -238,20 +241,20 @@
         <ion-icon name="menu-outline"></ion-icon>
       </button>
 
-      <button class="action-btn">
+      <button onclick="location.href = '/user/cart'" class="action-btn">
         <ion-icon name="bag-handle-outline"></ion-icon>
+              <span class="count HeadercartCount"><%= cartCount %></span>
 
-        <span class="count">0</span>
       </button>
 
-      <button class="action-btn">
+      <button onclick="location.href = '/user/home'" class="action-btn">
         <ion-icon name="home-outline"></ion-icon>
       </button>
 
-      <button class="action-btn">
+      <button onclick="location.href = '/user/wishlist'" class="action-btn">
         <ion-icon name="heart-outline"></ion-icon>
+<span class="count HeaderwishCount" ><%= wishlistCount %></span>
 
-        <span class="count">0</span>
       </button>
 
       <button class="action-btn" data-mobile-menu-open-btn>
@@ -371,6 +374,10 @@
     </nav>
 
   </header>
+
+
+
+  
 
   <% } %>
 

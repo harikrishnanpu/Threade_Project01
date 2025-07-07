@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount } = require('../../controllers/admin/adminController');
+const { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount, logoutAdmin } = require('../../controllers/admin/adminController');
 const { checkIsAdminExists, checkIsAdminAuthenticated } = require('../../middlewares/adminMiddleWare');
 const { handleValidationErrors } = require('../../validators/validator');
 const { createAdmin } = require('../../services/adminServices');
@@ -20,12 +20,14 @@ const adminRouter = express.Router();
 
 
 
-adminRouter.use((req,res,next)=>{
+adminRouter.use((req,res,next)=> {
+
         res.locals.layout = './layout/adminLayout'
         res.locals.noSidebar = false;
         res.locals.noFooter = true;
         res.locals.admin = null;
         next();
+
 });
 
 adminRouter.use('/categories',checkIsAdminAuthenticated, categoryRouter);
@@ -38,16 +40,14 @@ adminRouter.use('/inventory', checkIsAdminAuthenticated, adminInventoryRouter);
 adminRouter.use('/offers', checkIsAdminAuthenticated, offerRouter);
 adminRouter.use('/reports', checkIsAdminAuthenticated, adminReportRouter);
 
-
 adminRouter.get('/login',checkIsAdminExists, getAdminLoginPage);
 adminRouter.get('/dashboard', checkIsAdminAuthenticated, getAdminDashboardPage);
 adminRouter.get('/users/all', validateUserListQuery, handleValidationErrors, checkIsAdminAuthenticated, getAdminAllUsersPage );
 adminRouter.get('/users/edit/:id', validateUserIdParam, handleValidationErrors, checkIsAdminAuthenticated , getEditUserPage);
 adminRouter.get('/users/create',checkIsAdminAuthenticated, handleValidationErrors, getCreateUserPage);
-
+adminRouter.get('/logout', checkIsAdminAuthenticated, logoutAdmin);
 
 adminRouter.get('/create/admin', createAdmin); // admin account
-
 
 adminRouter.post('/login',validateLogin, handleValidationErrors, checkIsAdminExists , loginAdminAccount );
 adminRouter.patch('/users/toggle-status/:id',validateUserIdParam,handleValidationErrors, toggleUserStatusById);

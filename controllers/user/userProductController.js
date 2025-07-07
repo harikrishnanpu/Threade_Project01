@@ -10,12 +10,13 @@ const { getUserProductFiltersAndSort } = require('../../utils/queries/getAllProd
 
 const renderShopPage = async (req, res) => {
   try {
+    
     const { filters, sortOptions, pageNum, limitNum, queryOptions } = await getUserProductFiltersAndSort(req.query)
     const allVariants            = await productService.getAllVariants(queryOptions.mainCat)
     const result                 = await productService.getProducts(filters, sortOptions, pageNum, limitNum)
     const allMainCatsbySub       = await productService.getAllCategoriesBySubCategories(8)
     const userProductSuggestions = await productService.productSuggestions(5)
-    const userWishlist           = await Wishlist.findOne({ user: req.user._id }).lean()
+    const userWishlist           = await Wishlist.findOne({ user: req.user?._id }).lean()
     const wishlistItemIds        = userWishlist?.items.map(i => i.product.toString()) || []
     const dealsOfTheDayProducts = await productService.getDealOfTheDayProducts();
 

@@ -33,17 +33,13 @@ const addToWishlist = async (userId, productId, size, color) => {
     wishlist = new Wishlist({ user: userId, items: [] });
   }
 
-  const already = wishlist.items.some(
-    item =>
-      item.product.toString() == productId &&
-      item.variant.size == size &&
-      item.variant.color == color
-  );
+  const already = wishlist.items.some(item => item.product.toString() == productId );
 
 
   if (already) throw new Error('Item already in wishlist');
 
   wishlist.items.push({ product: productId, variant: { size, color } });
+  
   await wishlist.save();
   return wishlist;
 };

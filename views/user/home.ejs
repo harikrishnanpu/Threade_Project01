@@ -7,11 +7,111 @@
   <link rel="stylesheet" href="/landing/css/style-prefix.css">
 
 
+  <style>
+
+/* —— product tabs —— */
+.product-tabs{
+  display:flex;
+  justify-content: start;
+  gap:1rem;
+  margin:1.5rem 0;
+  flex-wrap:wrap;
+
+  @media (max-width: 600px){
+    justify-content: center;
+  }
+
+}
+
+.tab-btn{
+  padding: 5px 10px ;
+  border:2px solid var(--border-color);
+  background:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .25s ease;
+  font-size: 1rem;
+}
+
+.tab-btn:hover,
+.tab-btn.active{
+  border-bottom: 4px solid #000;
+  border-radius: 0px;
+  color:#000;
+  border-color: #000;
+}
+/* hide inactive groups */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+
+/* ==== grid-style layout for each showcase ===== */
+
+.tab-content .showcase-wrapper{
+  /* stop the old horizontal scroll */
+  overflow-x: visible;
+}
+
+.tab-content .showcase-container{
+  /* turn the strip into a wrapping row */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;          /* space between cards */
+}
+
+/* default: 4 cards per row on large screens */
+.tab-content .showcase{
+  flex: 1 1 calc(33.333% - 1.25rem);
+}
+
+/* ≥992px already covered; now step down gracefully */
+@media (max-width: 991.98px){
+  .tab-content .showcase{
+    flex: 1 1 calc(33.333% - 1.25rem);   /* 3-per-row */
+  }
+}
+@media (max-width: 767.98px){
+  .tab-content .showcase{
+    flex: 1 1 calc(33% - 1.25rem);        /* 2-per-row */
+  }
+}
+@media (max-width: 575.98px){
+  .tab-content .showcase{
+    flex: 1 1 100%;                       /* full-width on phones */
+  }
+}
+
+
+.product-actions .action-btn{
+  font-size: 16px !important;
+  align-items: center;
+}
+
+
+.btn-dark:focus{
+  border: none;
+  box-shadow: none;
+}
+
+.disabled{
+  background-color: #eee !important;
+  cursor: not-allowed;
+}
+
+.stock-details p{
+  font-weight: 800;
+  font-size: .8rem;
+}
+
+
+  </style>
+
+
 
 <body>
 
 
-    <div class="notification-toast" data-toast>
+    <!-- <div class="notification-toast" data-toast>
 
     <button class="toast-close-btn" data-toast-close>
       <ion-icon name="close-outline"></ion-icon>
@@ -37,9 +137,7 @@
 
     </div>
 
-  </div>
-
-  <div class="overlay" data-overlay></div>
+  </div> -->
 
  
 
@@ -215,9 +313,13 @@
                     </div>
 
                     <div class="price-box">
-                      <del>₹<%= product.regularPrice %></del>
                       <p class="price">₹<%= product.salePrice %></p>
+                      <del>₹<%= product.regularPrice %></del>
                     </div>
+
+                                          <div class="stock-details">
+                        <p style="<%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'color: #af0202;' :  'color:green;'  %>" ><%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'out of stock' : 'in stock'  %></p>
+                      </div>
 
                   </div>
 
@@ -278,16 +380,23 @@
             - PRODUCT MINIMAL
           -->
 
+          <div class="product-tabs text-center">
+  <button class="tab-btn active" data-target="newArrivals">New&nbsp;Arrivals</button>
+  <button class="tab-btn" data-target="trending">Trending</button>
+  <button class="tab-btn" data-target="topRated">Top&nbsp;Rated</button>
+</div>
+
           <div class="product-minimal">
 
-            <div class="product-showcase">
+            <!-- ✨ Product filter tabs -->
 
-              <h2 class="title">New Arrivals</h2>
+
+
+            <div class="product-showcase tab-content active" id="newArrivals">
 
               <div class="showcase-wrapper has-scrollbar">
 
                 <div class="showcase-container">
-
                   <% if(newArrivals && newArrivals.length > 0) { %>
 
                     <% newArrivals.forEach((product)=> { %>
@@ -306,20 +415,33 @@
                       <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
 
                       <div class="price-box">
-                        <p class="price">₹<%= product.regularPrice %></p>
-                        <del>₹<%= product.salePrice %></del>
+                      <p class="price">₹<%= product.salePrice %></p>
+                      <del>₹<%= product.regularPrice %></del>
+                      </div>
+                      <div class="stock-details">
+                        <p style="<%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'color: #af0202;' :  'color:green;'  %>" ><%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'out of stock' : 'in stock'  %></p>
                       </div>
 
                                             					<div class="product-actions d-flex">
 									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark" href="javascript:void(0);">Add to cart 
-											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
-												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
-												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
-												<path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
-											</svg>
+                    
+										<a  onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff" class="action-btn btn-dark <%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'disabled' : ''  %>" href="javascript:void(0);">
+                      
+
+                      <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1.56641 4.48242C1.56641 4.06821 1.90219 3.73242 2.31641 3.73242H3.49696C4.37456 3.73242 5.14722 4.23809 5.51674 4.99023H21.0662C21.3045 4.99023 21.5287 5.10354 21.6701 5.29548C21.8114 5.48741 21.8531 5.7351 21.7824 5.96274L19.8601 12.1504C19.5678 13.0915 18.6969 13.7329 17.7114 13.7329H6.85901L6.9791 14.5869C7.03116 14.9571 7.34793 15.2324 7.72179 15.2324L18.0664 15.2324C18.4806 15.2324 18.8164 15.5682 18.8164 15.9824C18.8164 16.3966 18.4806 16.7324 18.0664 16.7324L7.72179 16.7324C6.60021 16.7324 5.6499 15.9064 5.49371 14.7957L4.23965 5.87799L4.23709 5.86111C4.17805 5.49955 3.86513 5.23242 3.49696 5.23242H2.31641C1.90219 5.23242 1.56641 4.89664 1.56641 4.48242Z" fill="#fff"/>
+<g opacity="0.4">
+<path d="M7.7832 18.2324C6.8167 18.2324 6.0332 19.0159 6.0332 19.9824C6.0332 20.9489 6.8167 21.7324 7.7832 21.7324H7.7932C8.7597 21.7324 9.5432 20.9489 9.5432 19.9824C9.5432 19.0159 8.7597 18.2324 7.7932 18.2324H7.7832Z" fill="#fff"/>
+<path d="M16.3203 18.2324C15.3538 18.2324 14.5703 19.0159 14.5703 19.9824C14.5703 20.9489 15.3538 21.7324 16.3203 21.7324H16.3303C17.2968 21.7324 18.0803 20.9489 18.0803 19.9824C18.0803 19.0159 17.2968 18.2324 16.3303 18.2324H16.3203Z" fill="#fff"/>
+</g>
+</svg>
+                      
+                      Add to Cart 
+
+
 										</a>	
 																</div>
+
 <div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
      data-product-id="<%= product._id %>">
   <svg width="24" height="24" viewBox="0 0 24 24">
@@ -339,17 +461,13 @@
                   </div>
 
                   <% }) } %>
-
-
                 </div>
 
               </div>
-
             </div>
 
-            <div class="product-showcase">
+            <div class="product-showcase tab-content" id="trending">
             
-              <h2 class="title">Trending</h2>
             
               <div class="showcase-wrapper  has-scrollbar">
             
@@ -375,13 +493,17 @@
                       <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
             
                       <div class="price-box">
-                        <p class="price">₹<%= product.regularPrice %></p>
-                        <del>₹<%= product.salePrice  %></del>
+                           <p class="price">₹<%= product.salePrice %></p>
+                      <del>₹<%= product.regularPrice %></del>
+                      </div>
+
+                                            <div class="stock-details">
+                        <p style="<%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'color: #af0202;' :  'color:green;'  %>" ><%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'out of stock' : 'in stock'  %></p>
                       </div>
 
                       					<div class="product-actions d-flex">
 									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark" href="javascript:void(0);">Add to cart 
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark <%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'disabled' : ''  %>" href="javascript:void(0);">Add to cart 
 											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
 												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
 												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
@@ -416,9 +538,8 @@
             
             </div>
 
-            <div class="product-showcase">
+            <div class="product-showcase tab-content" id="topRated">
             
-              <h2 class="title">Top Rated</h2>
             
               <div class="showcase-wrapper  has-scrollbar">
             
@@ -443,13 +564,17 @@
                       <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
             
                       <div class="price-box">
-                        <p class="price">₹<%= product.regularPrice %></p>
-                        <del>₹<%= product.salePrice %></del>
+                      <p class="price">₹<%= product.salePrice %></p>
+                      <del>₹<%= product.regularPrice %></del>
+                      </div>
+
+                                            <div class="stock-details">
+                        <p style="<%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'color: #af0202;' :  'color:green;'  %>" ><%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'out of stock' : 'in stock'  %></p>
                       </div>
 
 					<div class="product-actions d-flex">
 									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark" href="javascript:void(0);">Add to cart 
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark <%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'disabled' : ''  %>" href="javascript:void(0);">Add to cart 
 											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
 												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
 												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
@@ -529,14 +654,17 @@
                     </p>
 
                     <div class="price-box">
-                      <p class="price">₹<%= product.regularPrice %></p>
-
-                      <del>₹<%= product.salePrice %></del>
+                      <p class="price">₹<%= product.salePrice %></p>
+                      <del>₹<%= product.regularPrice %></del>
                     </div>
+
+                                          <div class="stock-details">
+                        <p style="<%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'color: #af0202;' :  'color:green;'  %>" ><%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'out of stock' : 'in stock'  %></p>
+                      </div>
 
 	<div class="product-actions d-flex mb-5">
 									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">Add to cart 
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark py-2 px-4 <%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'disabled' : ''  %>" href="javascript:void(0);">Add to cart 
 											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
 												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
 												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
@@ -673,18 +801,23 @@
                   </div>
 
                   <div class="price-box">
-                    <p class="price">₹<%= product.regularPrice %></p>
-                    <del>₹<%= product.salePrice %></del>
+                      <p class="price">₹<%= product.salePrice %></p>
+                      <del>₹<%= product.regularPrice %></del>
                   </div>
+
+                                        <div class="stock-details">
+                        <p style="<%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'color: #af0202;' :  'color:green;'  %>" ><%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'out of stock' : 'in stock'  %></p>
+                      </div>
 
                   	<div class="product-actions d-flex mb-2">
 									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark text-truncate" href="javascript:void(0);">Add to cart 
-											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
+										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark text-truncate <%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'disabled' : ''  %>" href="javascript:void(0);">
+                      											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
 												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
 												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
 												<path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
 											</svg>
+                      Add to cart 
 										</a>	
 																</div>
 <div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
@@ -747,40 +880,6 @@
 
 
 
- 
-	<!-- Jquery -->
-    <script src="/landing/js/jquery.min.js"></script>
-    <script src="/landing/js/jquery-migrate-3.0.0.js"></script>
-	<script src="/landing/js/jquery-ui.min.js"></script>
-	<!-- Popper JS -->
-	<script src="/landing/js/popper.min.js"></script>
-	<!-- Bootstrap JS -->
-	<script src="/landing/js/bootstrap.min.js"></script>
-	<!-- Color JS -->
-	<script src="/landing/js/colors.js"></script>
-	<!-- Slicknav JS -->
-	<script src="/landing/js/slicknav.min.js"></script>
-	<!-- Owl Carousel JS -->
-	<script src="/landing/js/owl-carousel.js"></script>
-	<!-- Magnific Popup JS -->
-	<script src="/landing/js/magnific-popup.js"></script>
-	<!-- Waypoints JS -->
-	<script src="/landing/js/waypoints.min.js"></script>
-	<!-- Countdown JS -->
-	<script src="/landing/js/finalcountdown.min.js"></script>
-	<!-- Nice Select JS -->
-	<script src="/landing/js/nicesellect.js"></script>
-	<!-- Flex Slider JS -->
-	<script src="/landing/js/flex-slider.js"></script>
-	<!-- ScrollUp JS -->
-	<script src="/landing/js/scrollup.js"></script>
-	<!-- Onepage Nav JS -->
-	<script src="/landing/js/onepage-nav.min.js"></script>
-	<!-- Easing JS -->
-	<script src="/landing/js/easing.js"></script>
-	<!-- Active JS -->
-	<script src="/landing/js/active.js"></script>
-
 	<!-- Swiper JS -->
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
@@ -812,15 +911,18 @@ async function addToCart(productId, variant, quantity = 1) {
 
 }
 
-async function updateCartCount() {
-  try {
-    const res = await fetch('/user/cart/count');
-    const data = await res.json();
-    document.getElementById('cartCount').innerText = data.count;
-  } catch (err) {
-    console.error('Failed to fetch cart count');
+  async function updateCartCount() {
+    try {
+      const r = await fetch("/user/cart/api/count");
+      const d = await r.json();
+document.querySelectorAll(".HeaderCartCount").forEach(el => {
+  if (r.ok && el) el.innerText = d.count;
+})
+      
+    } catch (e) {
+      console.error(e);
+    }
   }
-}
 	
   const swiper = new Swiper('.myBrandSwiper', {
     slidesPerView: 4,
@@ -879,6 +981,23 @@ async function updateCartCount() {
     document.getElementById('minutes').textContent = minutes;
     document.getElementById('seconds').textContent = seconds;
   }, 1000);
+
+
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // toggle active button
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const target = btn.dataset.target;
+      // show / hide showcases
+      document.querySelectorAll('.tab-content').forEach(tc => {
+        tc.classList.toggle('active', tc.id === target);
+      });
+    });
+  });
+
 </script>
 
 

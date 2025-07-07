@@ -1,5 +1,7 @@
+const puppeteer = require('puppeteer');
 const Orders = require('../../models/orderModel');
 const orderService = require('../../services/adminOrderServices');
+const moment = require('moment');
 
 const getAllOrders = async (req, res) => {
   try {
@@ -199,6 +201,62 @@ const renderInvoice = async (req, res) => {
   }
 };
 
+
+const getOrderPdf = async (req,res) =>{ 
+
+  try{
+    const order = await Orders.findOne({ _id: req.params.orderId });
+  
+      if(!order){
+        throw new Error('order not found')
+      }
+  
+          res.locals.layout = './layout/invoiceLayout'
+  
+       const html = await new Promise((resolve, reject) => {
+            res.render('user/order-pdf', {
+              order,
+              moment,
+              generatedDate: moment().format('YYYY-MM-DD'),
+              noFooter: true,
+              noSidebar: true
+            }, (err, html) => {
+              if (err) reject(err);
+              else resolve(html);
+            });
+          });
+      
+      
+          const browser = await puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+          });
+      
+          const page = await browser.newPage();
+          await page.setContent(html, {
+            waitUntil: 'networkidle0',
+          });
+      
+          const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true
+          });
+      
+          await browser.close();
+      
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', 'attachment; filename="sales_report.pdf"');
+          res.send(pdfBuffer);
+  
+    }catch(err){
+      console.log(err);
+      
+      res.status(500).json({message: err.message, success: false})
+  
+    }
+
+}
+
 module.exports = {
   getAllOrders,
   getOneOrder,
@@ -209,4 +267,5 @@ module.exports = {
   bulkUpdateOrders,
   returnRequestAction,
   renderInvoice,
+  getOrderPdf
 };

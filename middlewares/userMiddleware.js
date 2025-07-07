@@ -138,6 +138,8 @@ const checkAndRedirect = async (req, res) => {
 
  const token = req.cookies?.token;
 
+ res.locals.cartCount = 0;
+ res.locals.wishlistCount = 0;
 
  try{
 

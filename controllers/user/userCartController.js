@@ -2,6 +2,7 @@ const Addresses = require('../../models/addressModel');
 const cartModel = require('../../models/cartModel');
 const CheckoutSession = require('../../models/checkoutSessionModel');
 const coupounModel = require('../../models/coupounModel');
+const UserWallet = require('../../models/userWalletModel');
 const cartService = require('../../services/userCartService');
 const userProductService = require('../../services/userproductServices');
 const { findOneUserById } = require('../../services/userServices');
@@ -10,6 +11,7 @@ const { findOneUserById } = require('../../services/userServices');
 
 const renderCartPage = async (req,res) =>{
   try{
+
     const userId = req.user._id;
     const cartItems = await cartService.getCartItems(userId);   
     const cartItemIds = cartItems.items.map(item => item.product);
@@ -31,17 +33,18 @@ const updatedCartItems = cartItems.items.map(item => {
   }
 
   const matchedVariant = matchedProduct.variants.find(
-    v => v.size === item.variant.size && v.color === item.variant.color
+    v => v.size === item.variant.size && v.color === item.variant.color 
   );
 
   return {
     ...item,
-    isActive: true,
+    isActive: matchedProduct.isActive && matchedVariant.isActive,
     price: matchedVariant?.price || item.price, 
     salePrice: matchedVariant?.salePrice || 0,
     stock: matchedVariant?.stock || 0,
     maxCartQuantity: matchedProduct.maxCartQuantity || 0
   };
+
 });
 
 
@@ -85,7 +88,6 @@ const renderCheckout = async (req, res) => {
     const userId = req.user._id;
     const cart = await cartModel.findOne({ userId }).populate('items.product').lean();
     
-    
     // console.log(cart);
     
     const productIds = cart.items.map(item => item.product._id.toString());
@@ -98,7 +100,6 @@ const renderCheckout = async (req, res) => {
       return res.redirect('/cart?error=cartisempty'); 
     }
 
-
     const activeItems = cart.items.map(item => {
 
         const product = productMap.get(item.product._id.toString());
@@ -106,7 +107,7 @@ const renderCheckout = async (req, res) => {
 
       
         const variant = product.variants.find(
-          v => v.color === item.variant.color && v.size === item.variant.size
+          v => v.color == item.variant.color && v.size == item.variant.size && v.isActive
         );
 
         if (!variant || !product.isActive || variant.stock < item.quantity) return null;
@@ -115,44 +116,38 @@ const renderCheckout = async (req, res) => {
           ...item,
           salePrice: variant?.salePrice || 0,
           stock: variant?.stock ||  0,
-          isActive: true
+          isActive: product.isActive && variant.isActive
         };
 
 
       })
 
-    if (activeItems.length === 0) {
-      return res.render('user/checkout', {
-        user: req.user,
-        cartItems: [],
-        addresses: [],
-        subtotal: 0,
-        shippingCost: 0,
-        grandTotal: 0,
-        error: 'All items in your cart are currently unavailable.'
-      });
+    if (activeItems.length <= 0 ) {
+      return res.redirect('/user/cart?error=cartempyt')
     }
 
-    const subtotal = activeItems.reduce(
-      (sum, item) => sum + item.salePrice * item.quantity,
-      0
-    );
+    const subtotal = activeItems?.reduce((sum, item) =>{
+       return sum + item.salePrice * item.quantity
+      },0);
 
-    const shippingCost = subtotal === 0 ? 0 : 100;
+    const shippingCost = 100;
     const grandTotal = subtotal + shippingCost;
 
-    const addresses = await Addresses.find({ user: userId , isActive: true }).lean();
+    const addresses = await Addresses.find({ user: userId , isActive: true }).sort({ createdAt: -1 }).lean().limit(3);
+
 
     res.render('user/checkout', {
-      user: req.user,
       cartItems: activeItems,
       addresses,
       subtotal,
       shippingCost,
-      grandTotal
+      grandTotal,
+      user: req.user
     });
 
   } catch (err) {
+    console.log(err);
+    
     res.redirect(`/user/cart?error=${err.message}`)
     // res.status(500).json({ message: err.message });
   }
@@ -170,6 +165,7 @@ const verifyAndRedirectCheckout = async (req, res) => {
     const cartItems = cart.items.map(item => item);
     const cartItemIds = cartItems.map(item => item.product._id);
     const products = await userProductService.getProductByIds(cartItemIds);
+
     const productsMap = new Map(products.map(item => [item._id.toString(), item]));
     
     console.log(productsMap);
@@ -189,10 +185,10 @@ for (const item of cartItems) {
   }
 
   const variantMatch = product.variants.find(v =>
-    v.color === item.variant.color && v.size === item.variant.size
+    v.color == item.variant.color && v.size == item.variant.size && v.isActive
   );
 
-  console.log("VARIANT MATCH",variantMatch);
+  console.log("VARIANTKJNJHBHJB",variantMatch);
   
 
   if (!variantMatch || !product.isActive) {
@@ -247,7 +243,7 @@ const renderPaymentPage = async (req, res) => {
       const product = item.product.variants.find(v => v.size == item.variant.size && v.color == item.variant.color  );
       const price = product.salePrice;
       return {
-        name: product.name,
+        name: item.name,
         image: item.image,
         variant: item.variant,
         quantity: item.quantity,
@@ -286,13 +282,16 @@ if (coupon) {
 
 const grandTotal = subtotal + shippingCost - discount;
 
+const wallet = await UserWallet.findOne({ user: userId  });
+
 res.render('user/payment', {
   orderItems,
   subtotal,
   discount,
   shippingCost,
   grandTotal,
-  appliedCoupon: {...coupon?.toObject() , appliedDiscount: discount || 0} || null
+  appliedCoupon: {...coupon?.toObject() , appliedDiscount: discount || 0} || null,
+  walletBalance:  wallet?.balance  || 0
 });
 
 
@@ -383,8 +382,6 @@ const applyCoupon = async (req, res) => {
     const { code, subTotal } = req.body;
 
     console.log(req.body);
-    
-
 
     if (!code || !userId || !subTotal) {
       return res.status(400).json({ success: false, message: 'all fieldws required' });
@@ -404,7 +401,7 @@ const applyCoupon = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Coupon applied successfully',
+      message: 'coupon applied successfully',
       data: result
     });
 

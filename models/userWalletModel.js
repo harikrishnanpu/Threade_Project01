@@ -23,13 +23,25 @@ const UserWalletSchema = new mongoose.Schema({
 
 UserWalletSchema.pre('save', function (next) {
   try {
-    this.balance = this.transactions.reduce((sum, t) => {
-      const sign = t.type === 'credit' ? 1 : -1
-      return sum + sign * t.amount
+   const totalIn = this.transactions.reduce((sum, trans) => {
+    if(trans.type == 'credit'){
+      return sum + trans.amount
+    }
+    return sum + 0;
     }, 0)
-    next()
+
+  const totalOut = this.transactions.reduce((sum, trans) => {
+    if(trans.type == 'debit'){
+      return sum + trans.amount
+    }
+    return sum + 0;
+    }, 0)
+
+    this.balance = totalIn - totalOut;
+
+    next();
   } catch (err) {
-    next(err)
+    next(err);
   }
 })
 

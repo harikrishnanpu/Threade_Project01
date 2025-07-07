@@ -825,18 +825,24 @@
       <div class="modal-body">
         <div id="status-modal-messages"></div>
         
-        <div class="form-group" id="tracking-group" style="display: none;">
+        <div class="form-group mb-2" id="tracking-group" style="display: none;">
           <label for="modal-tracking-number" class="form-label">Tracking Number</label>
           <input type="text" id="modal-tracking-number" name="trackingNumber" class="form-control" 
                  placeholder="Enter tracking number">
         </div>
         
-        <div class="form-group" id="reason-group" style="display: none;">
+        <div class="form-group mb-2" id="reason-group" style="display: none;">
           <label for="modal-reason" class="form-label">Reason</label>
           <textarea id="modal-reason" name="reason" class="form-control" rows="3"
                     placeholder="Please provide a reason..."></textarea>
         </div>
+
+        <div class="form-group mb-2" id="confirm-group">
+                              <label for="deliveryDate" class="form-label mt-2">Delivery Date</label>
+          <input type="date" name="deliveryDate" id="deliveryDate" class="form-control mb-2">
+        </div>
         
+
         <div class="form-group">
           <label for="modal-notes" class="form-label">Timeline Notes (Optional)</label>
           <textarea id="modal-notes" name="notes" class="form-control" rows="3"
@@ -2227,18 +2233,22 @@ function updateOrderSummary(){
 
     const trackingGrp = document.getElementById('tracking-group');
     const reasonGrp   = document.getElementById('reason-group');
+    const confirmGrp   = document.getElementById('confirm-group');
     const reasonLbl   = document.querySelector('#reason-group label');
 
     if (newStatus === 'shipped') {
       trackingGrp.style.display = 'block';
       reasonGrp.style.display   = 'none';
+      confirmGrp.style.display = 'none';
     } else if (['cancelled', 'return-requested'].includes(newStatus)) {
       trackingGrp.style.display = 'none';
       reasonGrp.style.display   = 'block';
+      confirmGrp.style.display = 'none';
       reasonLbl.textContent     = (newStatus === 'cancelled')
         ? 'Cancellation Reason'
         : 'Return Reason';
     } else {
+      confirmGrp.style.display = 'block';
       trackingGrp.style.display = 'none';
       reasonGrp.style.display   = 'none';
     }

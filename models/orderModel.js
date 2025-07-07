@@ -80,17 +80,20 @@ const orderSchema = new Schema({
     state: { type: String, required: true },
     pincode: {type: String, required: true }
   },
+  shippingMethod: {type: String, enum: ['free','regular','express'] , required: true},
+  shippingCharge: { type: Number, required: true },
+
 
   coupon: {
     code: String,
     discountAmount: Number
   },
-  subtotal:    { type: Number, required: true },
+  subtotal: { type: Number, required: true },
   totalAmount: { type: Number, required: true },
 
   paymentMethod: {
     type: String,
-    enum: ['cod', 'online'],
+    enum: ['cod', 'online','wallet'],
     required: true
   },
   paymentStatus: {
@@ -110,6 +113,8 @@ const orderSchema = new Schema({
   },
 
   paymentId: String,
+
+  deliveryDate: Date,
 
   isDelivered: { type: Boolean, default: false },
   deliveredAt: Date,

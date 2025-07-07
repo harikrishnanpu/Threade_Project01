@@ -148,9 +148,9 @@ async function updateBrand(req, res, next) {
   }
 }
 
-// Toggle brand status (API)
 async function toggleBrandStatus(req, res, next) {
   try {
+    
     const { id } = req.params;
     const { active } = req.body;
     
@@ -175,9 +175,13 @@ async function toggleBrandStatus(req, res, next) {
       data: updatedBrand, 
       message: `Brand ${active ? 'activated' : 'deactivated'} successfully` 
     });
+
+
   } catch (error) {
-    console.error('Error toggling brand status:', error);
+
+    console.log(error);
     
+
     if (error.message === 'Brand not found') {
       return res.status(404).json({
         success: false,
@@ -196,6 +200,8 @@ async function toggleBrandStatus(req, res, next) {
       success: false,
       message: 'Failed to update brand status'
     });
+
+
   }
 }
 

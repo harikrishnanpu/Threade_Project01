@@ -35,23 +35,40 @@ const listInventory = async (q = {}) => {
 
     productArr = productArr.filter(r => {
       const s = r.currentStock;
-      if (status === 'in_stock')     return s > 5;
-      if (status === 'low_stock')    return s > 0 && s <= 5;
+      if (status === 'in_stock')   
+        return s > 5;
+      if (status === 'low_stock')    
+    return s > 0 && s <= 5;
       if (status === 'out_of_stock') return s === 0;
-      return true;                  
+      return true;  
+
     });
 
-    const sortKey = q.sortField || 'name';
-    const dir     = q.sortOrder === 'desc' ? -1 : 1;
+    const sortKey = q.sortField || 'lastUpdated';
+
+    let sortOrder = -1;
+
+    if(q.sortOrder?.trim() !== ''){
+      sortOrder =  q.sortOrder == 'desc' ? -1 : 1;
+    }
+  
+    console.log(sortOrder);
+    
+    const dir = sortOrder;
 
     productArr.sort((a, b) => (a[sortKey] > b[sortKey] ? dir : -dir));
 
     const total = productArr.length;
     const start = (page - 1) * limit;
-    const items = productArr.slice(start, start + limit);
+
+
+    const items = productArr.slice(start, start + limit) || [];
 
     return { success: true, data: { items, total } };
+
   } catch (err) {
+    console.log(err);
+    
     return { success: false, message: err.message };
   }
 };

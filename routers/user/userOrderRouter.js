@@ -22,10 +22,12 @@ orderRouter.post('/payment/retry/:orderId', orderController.retryOrderPayment);
 orderRouter.post('/payment/verify', orderController.verifyRazorpayPayment);
 
 
-orderRouter.post('/:orderId/cancel',  orderController.cancelFullOrder)
-orderRouter.post('/:orderId/cancel-item',  orderController.cancelSingleItem)
+orderRouter.post('/:orderId/cancel',  orderController.cancelFullOrder);
+orderRouter.post('/:orderId/cancel-item',  orderController.cancelSingleItem);
 
-orderRouter.post('/:orderId/return', orderController.returnFullOrder)
-orderRouter.post('/:orderId/return-item', orderController.returnSingleItem)
+orderRouter.post('/:orderId/return', orderController.returnFullOrder);
+orderRouter.post('/:orderId/return-item', orderController.returnSingleItem);
+
+orderRouter.get('/:orderId/pdf', orderController.getOrderPdf)
 
 module.exports = orderRouter;

@@ -24,10 +24,14 @@ const notificationToast = document.querySelector('[data-toast]');
 const toastCloseBtn = document.querySelector('[data-toast-close]');
 
 // notification toast eventListener
-toastCloseBtn.addEventListener('click', function () {
-  notificationToast.classList.add('closed');
-});
 
+if(toastCloseBtn){
+
+  toastCloseBtn.addEventListener('click', function () {
+    notificationToast.classList.add('closed');
+  });
+  
+}
 
 
 

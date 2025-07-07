@@ -2526,12 +2526,12 @@ footer {
     gap: 20px;
   }
 
-  .product-minimal .product-showcase {
+  /* .product-minimal .product-showcase {
     min-width: -webkit-calc(50% - 10px);
     min-width: calc(50% - 10px);
     width: -webkit-calc(50% - 10px);
     width: calc(50% - 10px);
-  }
+  } */
 
   .product-minimal .showcase-container { min-width: 100%; }
   

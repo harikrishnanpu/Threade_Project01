@@ -2070,11 +2070,11 @@ footer {
     justify-content: center;
     gap: 20px;
   }
-
+/* 
   .product-minimal .product-showcase {
     min-width: calc(50% - 10px);
     width: calc(50% - 10px);
-  }
+  } */
 
   .product-minimal .showcase-container { min-width: 100%; }
   

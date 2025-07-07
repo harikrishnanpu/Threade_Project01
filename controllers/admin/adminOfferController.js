@@ -14,20 +14,20 @@ const getOffersPage = async (req, res) => {
       showExpired: false,
     };
 
-    const query = {
-      ...defaults,
+    const query = {...defaults,
       ...req.query,
     };
 
     query.page = parseInt(query.page) || 1;
     query.limit = parseInt(query.limit) || 10;
-    query.showExpired = query.showExpired === 'true' || query.showExpired === true;
+    query.showExpired = query.showExpired == 'true' || query.showExpired == true;
 
     const data = await offerService.listOffers(query);
 
     res.render('admin/allOffers', { ...query, ...data });
+    
   } catch (err) {
-    res.status(500).render('error', { message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -61,17 +61,22 @@ const getOffer = async (req, res) => {
 
 const createOffer = async (req, res) => {
   try {
-
-
     console.log(path.join(__dirname, '../../uploads/offers'))
-
     const body = req.body;
 
     if (req.file) body.image = `/uploads/offers/${req.file.filename}`;
     const offer = await offerService.createOffer(body);
     const updated = await offerService.updateAllProductSalePrices();
+    
+    console.log(updated.updatedCount);
+
+
     res.status(200).json({ success: true });
+
+    
   } catch (err) {
+    console.log(err);
+    
     res.status(400).json({ success: false, message: err.message });
   }
 };
@@ -103,6 +108,8 @@ const toggleOfferStatus = async (req, res) => {
      const updated = await offerService.updateAllProductSalePrices();
     res.status(200).json({ success: true, message: 'Status updated' });
   } catch (err) {
+
+
     res.status(400).json({ success: false, message: err.message });
   }
 };

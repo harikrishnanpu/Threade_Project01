@@ -99,6 +99,7 @@ const findOneCategoryById = async (catId) => {
 };
 
 const editCategoryById = async (catId, body) => {
+
   const {
     name,
     description,
@@ -109,21 +110,30 @@ const editCategoryById = async (catId, body) => {
   } = body;
 
   try {
+
     const cat = await Category.findById(catId);
-    if (!cat) throw new Error("Category not found");
+
+    if (!cat) throw new Error("category not found");
 
     const trimmedDescription = description?.trim();
 
     if (name &&  name !== cat.name) {
-      const existingCategory = await Category.findOne({
-        name: name,
-        _id: { $ne: catId },
-        ...(parentCategory && { parentCategory }),
-      });
+
+      let query = {
+        name: name.trim(),
+        _id: { $ne: catId }
+      };
+
+if (parentCategory) {
+  query.parentCategory = parentCategory;
+}
+
+      const existingCategory = await Category.findOne(query);
 
       if (existingCategory) {
-        throw new Error("nnother category with this name already exists");
+        throw new Error("another category with this name already exists");
       }
+
     }
 
     if (parentCategory && parentCategory.toString() === catId.toString()) {
@@ -134,29 +144,67 @@ const editCategoryById = async (catId, body) => {
 
     if (name !== undefined) updateData.name = name;
     if (trimmedDescription !== undefined) updateData.description = trimmedDescription;
-    if (parentCategory !== undefined)
-      updateData.parentCategory = parentCategory || null;
+    if (parentCategory !== undefined)updateData.parentCategory = parentCategory || null;
 
     if (isActive !== undefined) {
-      const isActiveCat = isActive === 'on' || isActive === true;
+
+
+      const isActiveCat = isActive == 'on';
+
       updateData.isActive = isActiveCat;
 
       if (!isActiveCat) {
+
+        const subCategoiries = await Category.find({ parentCategory: cat._id });
+
+        const subCategoiryIds = subCategoiries.map(cat => cat._id);
+
        const updatedProds = await productModel.updateMany(
-          { category: cat._id },
-          { $set: { isActive: false , 'variants.$[].isActive': false } }
-        );
+
+        {category: {$in: [  cat._id, ...subCategoiryIds   ] } },
+        {$set: {isActive: false,'variants.$[].isActive': false}}
+      );
+
+
+for (let subCat of subCategoiries) {
+  subCat.isActive = false;
+  await subCat.save();
+}
+
 
         console.log("jknfck f");
         
 
         console.log(updatedProds);
         
+      }else{
+
+
+        const subCategoiries = await Category.find({ parentCategory: cat._id  });
+
+        const subCategoryIds = subCategoiries.map(cat =>  cat._id);
+
+        const updateProds = await productModel.updateMany(
+          { category: { $in: [cat._id, ...subCategoryIds ] } },
+          { $set: { isActive: true, 'variants.$[].isActive' : true } }
+        )
+
+
+for (let subCat of subCategoiries) {
+  subCat.isActive = true;
+  await subCat.save();
+}
+
+
+
       }
+
+
+
     }
 
     if (isFeatured !== undefined) {
-      updateData.isFeatured = isFeatured === 'on' || isFeatured === true;
+      updateData.isFeatured = isFeatured == 'on';
     }
 
     if (createdBy !== undefined) updateData.createdBy = createdBy;
@@ -164,19 +212,69 @@ const editCategoryById = async (catId, body) => {
     Object.assign(cat, updateData);
     return await cat.save();
   } catch (err) {
-    throw new Error(err.message || "Failed to edit category");
+    throw new Error(err.message);
   }
 };
 
 
 const toggleCategoryStatusById = async (catId, isActive) => {
+
+
   try {
+
     const category = await Category.findById(catId);
+
+
     if (!category) {
-      throw new Error("Category not found");
+      throw new Error("category not found");
+    }
+    
+    isActive = isActive == "true" ? false : true;
+
+
+    if(isActive){
+
+
+  const subCategoiries = await Category.find({ parentCategory: category._id  });
+
+  const subCategoryIds = subCategoiries.map(cat =>  cat._id);
+
+  const updateProds = await productModel.updateMany(
+          { category: { $in: [category._id, ...subCategoryIds ] } },
+          { $set: { isActive: true, 'variants.$[].isActive' : true } }
+        )
+
+
+for (let subCat of subCategoiries) {
+  subCat.isActive = true;
+  await subCat.save();
+}
+
+    }else{
+
+
+
+  const subCategoiries = await Category.find({ parentCategory: category._id  });
+
+  const subCategoryIds = subCategoiries.map(cat =>  cat._id);
+
+  const updateProds = await productModel.updateMany(
+          { category: { $in: [category._id, ...subCategoryIds ] } },
+          { $set: { isActive: false, 'variants.$[].isActive' : false } }
+        )
+
+
+for (let subCat of subCategoiries) {
+  subCat.isActive = false;
+  await subCat.save();
+}
+
+
+
     }
 
-    category.isActive = isActive == "true" ? false : true;
+    category.isActive = isActive;
+
     return await category.save();
   } catch (err) {
     throw new Error(err.message);

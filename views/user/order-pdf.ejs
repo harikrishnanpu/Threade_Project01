@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice - <%= order.orderNumber %></title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      color: #333;
+      padding: 20px;
+    }
+    h2, h4 {
+      margin: 0;
+    }
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .section {
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: left;
+    }
+    .right {
+      text-align: right;
+    }
+    .summary td {
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 10px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="invoice-header">
+    <div>
+      <h2>Order Invoice</h2>
+      <p><strong>Invoice Date:</strong> <%= generatedDate %></p>
+      <p><strong>Order Number:</strong> <%= order.orderNumber %></p>
+      <p><strong>Payment Method:</strong> <%= order.paymentMethod.toUpperCase() %></p>
+      <p><strong>Payment Status:</strong> <%= order.paymentStatus %></p>
+    </div>
+
+    <div>
+      <h4>Shipping Address</h4>
+      <p><%= order.shippingAddress.fullName %></p>
+      <p><%= order.shippingAddress.phone %></p>
+      <p><%= order.shippingAddress.street %></p>
+      <p><%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> - <%= order.shippingAddress.pincode %></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h4>Order Items</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Variant</th>
+          <th>Quantity</th>
+          <th>Price (₹)</th>
+          <th>Total (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% order.items.forEach(item => { %>
+          <tr>
+            <td>
+              <%= item.productName %><br>
+              <small><%= item.brand %></small>
+            </td>
+            <td><%= item.variant.size %>, <%= item.variant.color %></td>
+            <td><%= item.quantity %></td>
+            <td><%= item.price.toFixed(2) %></td>
+            <td><%= (item.quantity * item.price).toFixed(2) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <table class="summary">
+      <tr>
+        <td class="right" colspan="4">Subtotal:</td>
+        <td>₹<%= order.subtotal.toFixed(2) %></td>
+      </tr>
+      <tr>
+        <td class="right" colspan="4">Shipping:</td>
+        <td>₹<%= order.shippingCharge.toFixed(2) %></td>
+      </tr>
+      <% if(order.coupon && order.coupon.discountAmount > 0) { %>
+        <tr>
+          <td class="right" colspan="4">Coupon (<%= order.coupon.code %>) Discount:</td>
+          <td>- ₹<%= order.coupon.discountAmount.toFixed(2) %></td>
+        </tr>
+      <% } %>
+      <tr>
+        <td class="right" colspan="4">Total Amount:</td>
+        <td><strong>₹<%= order.totalAmount.toFixed(2) %></strong></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    Thank you for shopping with us.
+  </div>
+</body>
+</html>

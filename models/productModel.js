@@ -66,11 +66,21 @@ const ProductSchema = new Schema({
     }
   },
 
+  
+
   tags:  { type: [String], enum: ['deal-of-the-day','top-seller','new-arrival'], default: [] },
   rating: { type: Number, default: 0, min: 0, max: 5 },
   maxCartQuantity: {type: Number, default: 5 },
   isFeatured: { type: Boolean, default: false },
+
+
+
   isActive: { type: Boolean, default: true },
+  isCategoryActive: { type: Boolean, default: true },
+  isBrandActive: { type: Boolean, default: true },
+
+
+
   createdBy: { type: Schema.Types.ObjectId, ref: 'users' }
 }, { timestamps: true , toJSON: { virtuals: true }});
 
