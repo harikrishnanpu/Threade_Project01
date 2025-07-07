@@ -55,20 +55,41 @@ const getFilteredCoupons = async (filters, pagination, sortOptions) => {
 
 const createCoupon = async (data) => {
   try {
+    
+    const { code, discount, maxDiscount, minOrderAmount, maxUsuage, onlyFor, expiresAt, isActive  } = data;
+
+    console.log(data);
+    
+    if(code.trim() == ""  || !discount || !maxDiscount){
+      throw new Error('all fields are required')
+    }
+
+    if(parseInt(discount) > 90){
+      throw new Error('max discount is 90%')
+    }
+
+    const existingcoupon = await Coupon.findOne({ code: data.code  });
+
+    if(existingcoupon){
+      throw new Error('coupon already exists')
+    }
+    
     const coupon = await Coupon.create(data);
     return coupon;
-  } catch (error) {
-    throw new Error('Error creating coupon: ' + error.message);
+  } catch (err) {
+    console.log(err);
+    
+    throw new Error(err.message);
   }
 };
 
 const getCouponById = async (id) => {
   try {
     const coupon = await Coupon.findById(id);
-    if (!coupon) throw new Error('Coupon not found');
+    if (!coupon) throw new Error('coupon not found');
     return coupon;
   } catch (error) {
-    throw new Error('Error fetching coupon: ' + error.message);
+    throw new Error(error.message);
   }
 };
 
@@ -80,8 +101,8 @@ const updateCoupon = async (id, updatedData) => {
     });
     if (!coupon) throw new Error('Coupon not found');
     return coupon;
-  } catch (error) {
-    throw new Error('Error updating coupon: ' + error.message);
+  } catch (err) {
+    throw new Error(err.message);
   }
 };
 

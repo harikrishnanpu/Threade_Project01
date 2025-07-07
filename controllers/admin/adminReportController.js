@@ -34,7 +34,6 @@ const getSalesReport = async (req, res) => {
     if (dateRange && dateRange !== 'custom') {
       to = new Date();
 
-
       switch (dateRange) {
         case 'today':
           from = new Date(now.setHours(0, 0, 0, 0));
@@ -87,18 +86,13 @@ const getSalesReport = async (req, res) => {
 
     const totalOrderDateWise = await Order.find(filters).populate('user','name email').populate('items.productId').lean();    
 
-    const orders = await Order.find(filters)
-      .sort({ [sortField]: sortOrder === 'asc' ? 1 : -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .populate('user', 'name email')
-      .lean();
+    const orders = await Order.find(filters).sort({ [sortField]: sortOrder === 'asc' ? 1 : -1 }).skip((page - 1) * limit)
+    .limit(limit).populate('user', 'name email').lean();
 
     const totalRecords = totalOrderDateWise.length;
     const totalSales = totalOrderDateWise.reduce((sum, o) => sum + o.totalAmount, 0);
     const totalOrders = totalOrderDateWise.length;
     const totalDiscounts = totalOrderDateWise.reduce((sum, o) =>  sum + (o?.coupon?.discountAmount || 0), 0);
-    const avgOrderValue = totalOrders ? totalSales / totalOrders : 0;
 
 
     const salesTrendMap = new Map();
@@ -132,7 +126,6 @@ const getSalesReport = async (req, res) => {
       totalSales,
       totalOrders,
       totalDiscounts,
-      avgOrderValue,
       chartData: {
         salesTrend,
         paymentMethods

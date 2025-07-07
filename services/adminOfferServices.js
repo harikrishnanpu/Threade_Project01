@@ -23,8 +23,8 @@ const updateAllProductSalePrices = async () => {
         const matchProduct = offer.products.some(prod => prod.toString() == productId);
 
         const matchCategory = offer.categories.some(id => {
-          const cid = id.toString();
-          return cid == productCategoryId || cid == parentCategoryId;
+          const categoryid = id.toString();
+          return categoryid == productCategoryId || categoryid == parentCategoryId;
         });
 
         return matchProduct || matchCategory;
@@ -45,6 +45,8 @@ const updateAllProductSalePrices = async () => {
 
           for (const offer of matchedOffers) {
 
+            console.log("MAX",offer.maxDiscountAmount);
+            
             const maxDiscount = offer.maxDiscountAmount || 0;
 
             const discountAmount = (variant.price * offer.discount) / 100;
@@ -84,7 +86,10 @@ const updateAllProductSalePrices = async () => {
 
     return { success: true, updatedCount };
   } catch (err) {
-    // console.log(err);
+    console.log(err.message);
+    
+
+    console.log(err);
 
     throw new Error(err.message);
   }

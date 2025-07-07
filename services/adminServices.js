@@ -448,7 +448,7 @@ const topSellingBrands = topSellingProducts.sort((a,b) =>  b.itemSold - a.itemSo
 },[]);
 
 
-const recentOrders = await Orders.find({ createdAt: filters.createdAt }).lean().limit(6);
+const recentOrders = await Orders.find({ createdAt: filters.createdAt }).sort({ createdAt: -1  }).lean().limit(6);
 
 
 

@@ -790,7 +790,7 @@
                   
                   <div class="action-divider"></div>
                   
-                  <button class="btn btn-outline-primary btn-block mb-2" onclick="printInvoice()">
+                  <button class="btn btn-outline-primary btn-block mb-2" onclick="printInvoice(`<%= order._id %>`)">
                     <i class="lni lni-printer"></i>
                     Print Invoice
                   </button>
@@ -798,10 +798,10 @@
                     <i class="lni lni-envelope"></i>
                     Send Email Update
                   </button>
-                  <button class="btn btn-outline-info btn-block" onclick="exportOrder()">
+                  <!-- <button class="btn btn-outline-info btn-block" onclick="exportOrder()">
                     <i class="lni lni-download"></i>
                     Export Order
-                  </button>
+                  </button> -->
                 </div>
               </div>
             </div>
@@ -2266,6 +2266,32 @@ function updateOrderSummary(){
     document.getElementById('status-update-form').reset();
   }
 
+  async function printInvoice(orderId) {
+    const BASE_URL = window.location.origin;
+    try{
+
+      const response = await fetch(`${BASE_URL}/admin/orders/${orderId}/pdf`)
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `invoice-${new Date().toISOString().split('T')[0]}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+        } else {
+          throw new Error(response.message);
+        }
+
+    }catch(err){
+      console.log(err);
+      
+    }
+  }
+
   // Order-level return request functions
   function acceptOrderReturnRequest() {
     document.getElementById('order-return-request-action-type').value = 'return-approved';
@@ -2347,9 +2373,7 @@ function updateOrderSummary(){
     }
   }
 
-  function printInvoice() {
-    window.open(`${BASE_URL}/admin/orders/${ORDER_ID}/invoice`, '_blank');
-  }
+
 
   function sendEmail() {
     alert('Email functionality to be implemented');

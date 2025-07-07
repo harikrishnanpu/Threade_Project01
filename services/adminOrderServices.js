@@ -503,7 +503,7 @@ if (actionType === 'return-approved') {
 
       order.timeline.push({
         status: 'return-complete',
-        note: `return completed for item ${item.productName}` + `${notes ? ' remark:'+notes : ''}`
+        note: `return completed for item ${item.productName}`
       });
 
 
@@ -514,7 +514,7 @@ if (actionType === 'return-approved') {
       item.returnNote = notes || '';
       order.timeline.push({
         status: 'return-rejected',
-        note: `return rejected for item ${item.productName}` + `${notes ? ' remark:'+notes : ''}`
+        note: `return rejected for item ${item.productName}`
       })
     }
 

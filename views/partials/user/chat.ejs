@@ -5,7 +5,7 @@
 .harry-chat {
   position: fixed;
   bottom: 0;
-  right: 1rem;
+  left: .4rem;
   width: 100%;
   max-width: 420px;
   background: #ffffff;
@@ -13,6 +13,17 @@
   font-family: "Open Sans", sans-serif;
   z-index: 9999;
   transition: transform 0.25s ease;
+
+  @media (max-width: 900px) {
+    display: none ;
+  }
+
+}
+
+
+
+.header-chat p{
+  color: white !important;
 }
 
 .harry-chat--closed {
@@ -27,7 +38,7 @@
   height: 54px;
   padding: 0 20px;
   background: #292460;
-  color: #fff;
+  color: #fff !important;
   cursor: pointer;
 }
 .harry-chat__header:hover { background: #393285; }
@@ -118,7 +129,7 @@
 <div class="harry-chat harry-chat--closed">
   <!-- ===== Header ===== -->
   <div class="harry-chat__header">
-    <p><strong>Got a question?</strong> <span class="u-text-highlight">Ask Harry</span></p>
+    <p style="color: white;"><strong>Got a question?</strong> <span class="u-text-highlight">Ask Hari</span></p>
 
     <!-- toggle buttons -->
     <svg class="harry-chat__toggle harry-chat__toggle--speech" viewBox="0 0 32 32">

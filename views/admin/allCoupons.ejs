@@ -341,7 +341,7 @@
                    class="form-control" 
                    placeholder="Enter coupon code (e.g., SAVE20)"
                    style="text-transform: uppercase;"
-                   required>
+                   >
             <div class="form-error" id="code-error"></div>
             <small class="form-help">Code will be automatically converted to uppercase</small>
           </div>
@@ -358,7 +358,7 @@
                      placeholder="Enter discount percentage"
                      min="1"
                      max="100"
-                     required>
+                     >
               <span class="input-group-text">%</span>
             </div>
             <div class="form-error" id="discount-error"></div>
@@ -375,7 +375,7 @@
                      class="form-control" 
                      placeholder="Enter max discount percentage"
                      min="0"
-                     required>
+                     >
                           </div>
             <div class="form-error" id="discount-error"></div>
           </div>
@@ -409,7 +409,7 @@
                    placeholder="Enter maximum usage count"
                    min="1"
                    value="1"
-                   required>
+                   >
             <div class="form-error" id="maxUsage-error"></div>
           </div>
         </div>
@@ -1097,24 +1097,24 @@
     const expiresAt = document.getElementById('expires-at').value;
     
     if (!code) {
-      showFormError('code', 'Coupon code is required');
+      showFormError('code', 'coupon code is required');
       isValid = false;
     } else if (code.length < 3) {
-      showFormError('code', 'Coupon code must be at least 3 characters');
+      showFormError('code', 'coupon code must be at least 3 characters');
       isValid = false;
     } else if (code.length > 20) {
-      showFormError('code', 'Coupon code cannot exceed 20 characters');
+      showFormError('code', 'coupon code cannot exceed 20 characters');
       isValid = false;
     } else if (!/^[A-Z0-9]+$/.test(code.toUpperCase())) {
-      showFormError('code', 'Coupon code can only contain letters and numbers');
+      showFormError('code', 'coupon code can only contain letters and numbers');
       isValid = false;
     }
     
     if (!discount || !maxDiscount) {
-      showFormError('discount', 'Discount percentage is required');
+      showFormError('discount', 'Discount percentage AND MAX Discount is required');
       isValid = false;
-    } else if (discount < 1 || discount > 100) {
-      showFormError('discount', 'Discount must be between 1% and 100%');
+    } else if (discount < 1 || discount > 90) {
+      showFormError('discount', 'Discount must be between 1% and 90%');
       isValid = false;
     }
     

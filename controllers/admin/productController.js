@@ -217,28 +217,24 @@ const toggleProductFeatured = async (req, res) => {
 
 
 const uploadProductImage = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No image file provided'
-      });
-    }
 
+  try {
+
+    if (!req.file) {
+      return res.status(400).json({success: false,message: 'no image file provided' });
+    }
+    
     const imageUrl = `/uploads/products/${req.file.filename}`;
     
-    res.status(200).json({
-      success: true,
-      message: 'Image uploaded successfully',
-      imageUrl: imageUrl
-    });
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error uploading image'
-    });
+    res.status(200).json({success: true,message:'sucess',imageUrl: imageUrl});
+
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({success: false, message: err.message});
   }
+
+
 };
 
 
