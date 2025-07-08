@@ -1,64 +1,85 @@
+<!-- views/user/profile/wallet.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Wallet – <%= user.name %></title>
+
+  <!-- Icons & Font -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 
   <style>
+    /* ---------- Tokens ---------- */
     :root{
-      --bg:#f7f9fc;--white:#fff;--primary:#000;
-      --text:#374151;--muted:#6b7280;--radius:12px;--tr:.25s;
+      --bg:#fafafa;--white:#ffffff;
+      --primary:#111827;--muted:#6b7280;
+      --accent:#000;--accent-dark:#000;
+      --radius:12px;--tr:.25s;--shadow:0 2px 6px rgba(0,0,0,.05);
       --credit:#10b981;--debit:#ef4444;
     }
-    *{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",sans-serif}
-    body{background:var(--bg);color:var(--text);line-height:1.5}
 
-    /* layout */
-    .wrapper{display:flex;min-height:100dvh;max-width:1300px;margin:auto}
+    /* ---------- Reset ---------- */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:var(--primary);line-height:1.45}
 
-    /* sidebar */
-    .sidebar{
-      width:250px;background:var(--white);border-right:1px solid #e5e7eb;
-      display:flex;flex-direction:column;padding:1.5rem 0;transition:transform var(--tr)
+    /* ---------- Layout ---------- */
+    .profile-wrapper{display:flex;min-height:100dvh;max-width:1300px;margin:auto}
+    main.profile-main{flex:1;padding:2rem 2rem 4rem}
+
+    /* ---------- Sidebar (shared) ---------- */
+    .profile-sidebar{
+      width:290px;background:var(--white);border-right:1px solid #e5e7eb;
+      display:flex;flex-direction:column;padding:2rem 0;transition:transform var(--tr);z-index:850
     }
-    .avatar-box{display:flex;align-items:center;gap:.9rem;padding-inline:1.5rem;margin-bottom:1.6rem}
-    .avatar{
-      padding:5px 10px;border-radius:50%;background:#e8f0ff;
-      display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:600;color:var(--primary)
+    .profile-sidebar-header{display:flex;align-items:center;gap:.8rem;padding:0 20px;margin-bottom:2rem}
+    .profile-avatar-mini{inline-size:46px;block-size:46px;border-radius:50%;background:#dbeafe;display:grid;place-items:center;font-weight:600;overflow:hidden}
+    .profile-avatar-mini img{width:100%;height:100%;object-fit:cover}
+    nav.profile-nav ul{list-style:none}
+    nav.profile-nav a{
+      display:flex;align-items:center;gap:.7rem;padding:.8rem 1.6rem;text-decoration:none;
+      color:inherit;border-left:3px solid transparent;transition:background var(--tr)
     }
-    nav ul{list-style:none}
-    nav li a{display:flex;align-items:center;gap:.75rem;padding:.85rem 1.5rem;text-decoration:none;color:inherit;border-left:3px solid transparent;transition:background var(--tr)}
-    nav li a:hover{background:#f1f5f9}
-    nav li a.active{border-color:var(--primary);background:#eef4ff}
-    nav li i{width:18px;text-align:center}
-    .logout{margin-top:auto;padding:.9rem 1.5rem;background:none;border:none;color:#ef4444;display:flex;gap:.6rem;cursor:pointer}
+    nav.profile-nav a i{width:18px;text-align:center;font-size:.9rem}
+    nav.profile-nav a:hover{background:#f3f4f6}
+    nav.profile-nav a.active{border-color:var(--accent);background:#eef4ff;color:var(--accent-dark);font-weight:500}
+    .profile-logout{margin-top:auto;padding:.8rem 1.6rem;background:none;border:none;font:inherit;text-align:left;color:var(--muted);cursor:pointer}
+    .profile-logout i{margin-right:.5rem}
+    .profile-logout:hover{color:var(--accent-dark)}
 
-    /* mobile header */
-    .mobile-top{display:none;background:var(--white);border-bottom:1px solid #e5e7eb;padding:1rem 1.25rem;align-items:center;justify-content:space-between;position:sticky;top:0}
-    .mobile-btn{background:none;border:none;font-size:1.3rem}
-    .overlay{display:none;position:fixed;inset:0;background:#0005;z-index:800}
+    /* ---------- Mobile Header ---------- */
+    .profile-mobile-top{display:none;position:sticky;top:0;z-index:1;background:var(--white);border-bottom:1px solid #e5e7eb;padding:1rem 1.25rem;align-items:center;justify-content:space-between}
+    .profile-burger{background:none;border:none;font-size:1.3rem;cursor:pointer}
 
-    /* main */
-    main{flex:1;padding:2rem 2.5rem}
-    h1{font-size:1.4rem;margin-bottom:1.4rem}
-    .crumb{font-size:.85rem;color:var(--muted);margin-bottom:1.2rem}
-    .crumb i{margin-inline:.25rem}
+    /* ---------- Overlay (mobile) ---------- */
+    .profile-overlay{display:none;position:fixed;inset:0;background:#0005;z-index:800}
+    .profile-overlay.show{display:block}
 
-    /* wallet cards */
+    /* ---------- Breadcrumb ---------- */
+    .profile-crumb{font-size:.85rem;color:var(--muted);margin-bottom:1.2rem !important}
+    .profile-crumb i{margin-inline:.25rem}
+
+    /* ---------- Cards ---------- */
     .card{background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);overflow:hidden}
     .card-header{padding:1.25rem;border-bottom:1px solid #f3f4f6;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:.6rem}
     .card-body{padding:1.25rem}
 
+    /* Balance visuals */
     .balance-display{font-size:2rem;font-weight:700;margin-bottom:.2rem}
-    .balance-sub{color:var(--muted);font-size:.9rem}
+    .balance-sub{color:var(--muted);font-size:.87rem}
 
-    /* transaction list */
-    .txn-list{display:flex;flex-direction:column;gap:.9rem}
+    /* Action buttons */
+    .wallet-actions{display:flex;gap:.8rem;margin-top:1.4rem}
+    .wallet-btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;border:none;padding:.6rem 1.1rem;border-radius:var(--radius);font-size:.85rem;cursor:pointer;transition:background var(--tr)}
+    .wallet-btn:hover{background:var(--accent-dark)}
+    .wallet-btn i{font-size:.8rem}
+
+    /* Transaction list */
+    .txn-list{display:flex;flex-direction:column;gap:1rem}
     .txn-item{display:flex;gap:1rem;border:1px solid #f3f4f6;border-radius:8px;padding:1rem;align-items:center;background:var(--white);transition:background var(--tr)}
     .txn-item:hover{background:#fafbfc}
-    .txn-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;flex-shrink:0}
+    .txn-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;color:#fff;flex-shrink:0}
     .txn-icon.credit{background:var(--credit)}
     .txn-icon.debit{background:var(--debit)}
     .txn-info{flex:1}
@@ -68,88 +89,109 @@
     .txn-amt.credit{color:var(--credit)}
     .txn-amt.debit{color:var(--debit)}
 
-    /* responsive */
+    /* ---------- WALLET MODAL (conflict-free) ---------- */
+    .wallet-modal{display:none;position:fixed;inset:0;background:#0005;z-index:900;align-items:center;justify-content:center}
+    .wallet-modal.show{display:flex}
+    .wallet-dialog{background:var(--white);border-radius:var(--radius);padding:1.5rem;max-width:320px;width:90%;box-shadow:var(--shadow);animation:walletFade .25s ease}
+    .wallet-dialog h3{font-size:1.05rem;margin-bottom:1rem}
+    .wallet-dialog label{font-size:.75rem;font-weight:600;color:var(--muted)}
+    .wallet-dialog input{width:100%;padding:.65rem 1rem;border:1px solid #d1d5db;border-radius:var(--radius);margin-block:.6rem 1rem;font-size:.95rem}
+    .wallet-modal-actions{display:flex;justify-content:flex-end;gap:.8rem}
+    .wallet-modal-btn{padding:.55rem 1.1rem;font-size:.85rem;border:none;border-radius:var(--radius);cursor:pointer}
+    .wallet-modal-btn.primary{background:var(--accent);color:#fff}
+    .wallet-modal-btn.secondary{background:#f3f4f6}
+    .wallet-modal-btn.primary:disabled{opacity:.6;cursor:not-allowed}
+    @keyframes walletFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    /* ---------- Responsive ---------- */
     @media(max-width:768px){
-      .sidebar{position:fixed;inset:0 50% 0 0;transform:translateX(-100%);z-index:850}
-      .sidebar.open{transform:none}
-      .mobile-top{display:flex}
-      .wrapper{flex-direction:column}
-      main{padding:1.25rem;margin-top:64px}
-      .overlay.show{display:block}
+      .profile-wrapper{flex-direction:column}
+      main.profile-main{padding:1.5rem 1.25rem 4rem}
+      .profile-sidebar{position:fixed;inset:0 50% 0 0;transform:translateX(-100%);box-shadow:var(--shadow)}
+      .profile-sidebar.open{transform:translateX(0)}
+      .profile-mobile-top{display:flex}
       .txn-item{flex-direction:column;align-items:flex-start}
-      .txn-amt{margin-top:.4rem}
+      .txn-amt{margin-top:.35rem}
     }
   </style>
 </head>
 <body>
 
-  <!-- mobile header -->
-  <div class="mobile-top">
-    <button class="mobile-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+  <!-- Mobile Header -->
+  <header class="profile-mobile-top">
+    <button class="profile-burger" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
     <span>Wallet</span><span></span>
-  </div>
-  <div class="overlay" onclick="toggleMenu()"></div>
+  </header>
 
-  <div class="wrapper">
-    <!-- sidebar -->
-    <aside class="sidebar" id="side">
-      <div class="avatar-box">
-        <div class="avatar"><%= user.name[0].toUpperCase() %></div>
+  <!-- Dim overlay -->
+  <div class="profile-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Main wrapper -->
+  <div class="profile-wrapper">
+    <!-- Sidebar -->
+    <aside class="profile-sidebar" id="profileSide">
+      <div class="profile-sidebar-header">
+        <div class="profile-avatar-mini">
+          <% if(user.profileImage){ %><img src="<%= user.profileImage %>" alt="profile"/><% }else{ %><%= user.name[0].toUpperCase() %><% } %>
+        </div>
         <div>
-          <strong><%= user.name %></strong><br>
-          <span style="font-size:.8rem;color:var(--muted)"><%= user.email %></span>
+          <strong><%= user.name %></strong><br/>
+          <span style="font-size:.75rem;color:var(--muted)"><%= user.email %></span>
         </div>
       </div>
-      <nav>
+
+      <nav class="profile-nav">
         <ul>
           <li><a href="/user/profile"><i class="fas fa-user"></i>Personal data</a></li>
           <li><a href="/user/profile/address"><i class="fas fa-map-marker-alt"></i>Addresses</a></li>
           <li><a href="/user/profile/orders"><i class="fas fa-box"></i>Orders</a></li>
-          <li><a class="active" href="/user/profile/wallet"><i class="fas fa-wallet"></i>Wallet</a></li>
+          <li><a href="/user/profile/wallet" class="active"><i class="fas fa-wallet"></i>Wallet</a></li>
           <li><a href="/contact-us"><i class="fas fa-phone"></i>Contact us</a></li>
         </ul>
       </nav>
-      <button class="logout" onclick="location.href='/logout'"><i class="fas fa-right-from-bracket"></i> Log out</button>
+
+      <button class="profile-logout" onclick="location.href='/logout'"><i class="fas fa-sign-out-alt"></i>Log out</button>
     </aside>
 
-    <!-- main -->
-    <main>
-      <div class="crumb"><i class="fas fa-house"></i> Home › Account › Wallet</div>
-      <h1>Wallet</h1>
+    <!-- Main -->
+    <main class="profile-main">
+      <p class="profile-crumb"><i class="fas fa-house"></i> Home <i class="fas fa-angle-right"></i> Account <i class="fas fa-angle-right"></i> Wallet</p>
+      <h2 style="font-size:1.35rem;margin-bottom:.4rem">Wallet</h2>
 
-      <!-- balance card -->
-      <div class="card" style="margin-bottom:1.5rem">
+      <!-- Balance card -->
+      <div class="card" style="margin-bottom:1.6rem">
         <div class="card-header"><i class="fas fa-wallet"></i> Current Balance</div>
         <div class="card-body">
           <div class="balance-display">₹<%= wallet.balance.toFixed(2) %></div>
           <div class="balance-sub">Updated on <%= new Date(wallet.updatedAt).toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'}) %></div>
+
+          <!-- Actions -->
+          <div class="wallet-actions">
+            <button class="wallet-btn" onclick="openModal('deposit')"><i class="fas fa-plus-circle"></i>Add funds</button>
+            <button class="wallet-btn" onclick="openModal('withdraw')"><i class="fas fa-arrow-up"></i>Withdraw</button>
+          </div>
         </div>
       </div>
 
-      <!-- transactions card -->
+      <!-- Transactions card -->
       <div class="card">
         <div class="card-header"><i class="fas fa-receipt"></i> Transactions</div>
         <div class="card-body">
           <% if(wallet.transactions.length){ %>
-            <div class="txn-list">
-              <% wallet.transactions.slice().reverse().forEach(txn=>{ %>
-                <div class="txn-item">
-                  <div class="txn-icon <%= txn.type %>">
-                    <i class="fas <%= txn.type==='credit'?'fa-arrow-down':'fa-arrow-up' %>"></i>
-                  </div>
-                  <div class="txn-info">
-                    <div class="txn-desc"><%= txn.description %></div>
-                    <div class="txn-meta">
-                      <%= new Date(txn.createdAt).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'}) %> •
-                      Ref: <%= txn.reference || '—' %>
-                    </div>
-                  </div>
-                  <div class="txn-amt <%= txn.type %>">
-                    <%= txn.type==='credit' ? '+' : '-' %>₹<%= txn.amount.toFixed(2) %>
-                  </div>
+          <div class="txn-list">
+            <% wallet.transactions.slice().reverse().forEach(txn=>{ %>
+              <div class="txn-item">
+                <div class="txn-icon <%= txn.type %>"><i class="fas <%= txn.type==='credit'?'fa-arrow-down':'fa-arrow-up' %>"></i></div>
+                <div class="txn-info">
+                  <div class="txn-desc"><%= txn.description %></div>
+                  <div class="txn-meta"><%= new Date(txn.createdAt).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'}) %> • Ref: <%= txn.reference || '—' %></div>
                 </div>
-              <% }) %>
-            </div>
+                <div class="txn-amt <%= txn.type %>"><%= txn.type==='credit'?'+':'-' %>₹<%= txn.amount.toFixed(2) %></div>
+              </div>
+            <% }) %>
+          </div>
           <% } else { %>
             <p style="color:var(--muted);text-align:center">No transactions yet.</p>
           <% } %>
@@ -158,11 +200,128 @@
     </main>
   </div>
 
+  <!-- Wallet Modal -->
+  <div class="wallet-modal" id="walletModal">
+    <div class="wallet-dialog">
+      <h3 id="modalTitle"></h3>
+      <label for="amtInput">Amount (₹)</label>
+      <input id="amtInput" type="number" min="1" placeholder="Enter amount"/>
+      <div class="wallet-modal-actions">
+        <button class="wallet-modal-btn secondary" onclick="closeModal()">Cancel</button>
+        <button id="modalPrimary" class="wallet-modal-btn primary" disabled>Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
-    function toggleMenu(){
-      document.getElementById('side').classList.toggle('open');
-      document.querySelector('.overlay').classList.toggle('show');
+    /* Sidebar toggle */
+    const sidebar = document.getElementById('profileSide');
+    const overlay  = document.querySelector('.profile-overlay');
+    function toggleSidebar(){ sidebar.classList.toggle('open'); overlay.classList.toggle('show'); }
+
+    /* ---- Wallet modal helpers ---- */
+    const modal        = document.getElementById('walletModal');
+    const amtInput     = document.getElementById('amtInput');
+    const modalPrimary = document.getElementById('modalPrimary');
+    const modalTitle   = document.getElementById('modalTitle');
+    let currentAction  = null;
+
+    function openModal(action){
+      currentAction          = action;
+      amtInput.value         = '';
+      modalPrimary.disabled  = true;
+      modalTitle.textContent = action==='deposit' ? 'Add funds to wallet' : 'Withdraw from wallet';
+      modalPrimary.textContent = action==='deposit' ? 'Add' : 'Withdraw';
+      modal.classList.add('show');
+      amtInput.focus();
     }
+    function closeModal(){ modal.classList.remove('show'); }
+
+    amtInput.addEventListener('input',()=> modalPrimary.disabled = !amtInput.value.trim() || Number(amtInput.value)<=0);
+
+    modalPrimary.addEventListener('click',async () => {
+
+      const amount = Number(amtInput.value);
+      if(!amount) return;
+      modalPrimary.disabled = true; modalPrimary.textContent = 'Processing...';
+      try{
+        const res = await fetch(`/user/profile/api/wallet/${currentAction}`,{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ amount })
+        });
+
+        const {razorpay, customer, success, message } = await res.json();
+        if(!res.ok) alert(message||'request failed');
+
+      const options = {
+        key: razorpay.key,
+        amount: razorpay.amount,
+        currency: razorpay.currency,
+        name: "Threade",
+        description: "Wallet Payment",
+        order_id: razorpay.razorpayOrderId,
+handler: async function (response) {
+  try {
+    const verify = await fetch(`/user/profile/wallet/payment/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_signature: response.razorpay_signature,
+        orderId: razorpay.orderId
+      })
+    });
+
+    const result = await verify.json();
+
+    console.log(result);
+    
+    if (result.success) {
+      alert('success')
+    } else {
+      alert('failed')
+        }
+  
+   }catch(err){
+ alert('failed')
+   } },
+        modal: {
+          ondismiss: function () {
+            alert('failed')
+          }
+        },
+        prefill: {
+          name: customer.name || "User",
+          email: customer.email,
+          contact: customer.phone
+        },
+        theme: {
+          color: "#000"
+        }
+      };
+
+      const rzp = new Razorpay(options);
+
+      rzp.on('payment.failed', function () {
+        alert('failed')
+      });
+
+      rzp.open();
+      return;
+  }catch(err){ alert(err.message||'Request failed'); 
+
+  }finally{
+        modalPrimary.disabled=false;
+        modalPrimary.textContent = currentAction === 'deposit' ? 'Add': 'Withdraw';
+      }
+    });
+
+    /* Close modal on Esc or outside click */
+    window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+    modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
   </script>
 </body>
 </html>

@@ -16,6 +16,8 @@ const {
   renderOrdersPage,
   renderOrderDetailsPage,
   renderWalletPage,
+  addMoneyToWallet,
+  verifyWalletPayment,
 } = require("../../controllers/user/userProfileController")
 
 
@@ -61,17 +63,20 @@ userProfileRouter.get("/edit", renderEditProfilePage)
 userProfileRouter.get("/password", renderChangePasswordPage);
 userProfileRouter.get('/orders', renderOrdersPage);
 userProfileRouter.get('/orders/:id', renderOrderDetailsPage);
-userProfileRouter.get('/wallet', renderWalletPage)
+userProfileRouter.get('/wallet', renderWalletPage);
 
 
 userProfileRouter.put("/api/edit", upload.single('avatar'),updateProfile);
 userProfileRouter.post('/api/verify/email/otp', verifyUserProfileEmail);
-userProfileRouter.post('/api/change-password', changePassword)
-userProfileRouter.post("/password", changePassword)
+userProfileRouter.post('/api/change-password', changePassword);
+userProfileRouter.post("/password", changePassword);
 
-userProfileRouter.get("/address", renderAddressBookPage)
-userProfileRouter.post("/address/add", addAddress)
-userProfileRouter.put("/address/:id/edit", editAddress)
-userProfileRouter.delete("/address/:id/delete", deleteAddress)
+userProfileRouter.get("/address", renderAddressBookPage);
+userProfileRouter.post("/address/add", addAddress);
+userProfileRouter.put("/address/:id/edit", editAddress);
+userProfileRouter.delete("/address/:id/delete", deleteAddress);
+
+userProfileRouter.post('/api/wallet/deposit', addMoneyToWallet);
+userProfileRouter.post('/wallet/payment/verify', verifyWalletPayment)
 
 module.exports = userProfileRouter

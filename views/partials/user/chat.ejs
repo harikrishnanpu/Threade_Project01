@@ -1,184 +1,189 @@
+<!-- ✨ Floating Chat Component ✨  -->
+<!-- Put this at the very end of <body> (or in an EJS partial) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
 <style>
-
-    @import url("https://fonts.googleapis.com/css?family=Open+Sans:300,600");
-
-.harry-chat {
-  position: fixed;
-  bottom: 0;
-  left: .4rem;
-  width: 100%;
-  max-width: 420px;
-  background: #ffffff;
-  box-shadow: 0 -6px 60px -20px rgba(0, 0, 0, 0.5);
-  font-family: "Open Sans", sans-serif;
-  z-index: 9999;
-  transition: transform 0.25s ease;
-
-  @media (max-width: 900px) {
-    display: none ;
+  /* ---------- design tokens ---------- */
+  :root {
+    --accent: #000;               /* brand */
+    --accent-dark: #000;          /* hover */
+    --bg-chat: #ffffff;
+    --shadow: 0 4px 12px rgba(0,0,0,.12);
+    --radius: 12px;
   }
 
-}
+  /* ---------- floating fab ---------- */
+  #chatFab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 1.35rem;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    outline: none;
+    border: none;
+    z-index: 990;
+    transition: transform .25s;
+  }
+  #chatFab:hover { transform: scale(1.05); }
 
+  /* pulse ring */
+  #chatFab::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: .45;
+    animation: pulse 2.2s infinite;
+    z-index: -1;
+  }
+  @keyframes pulse {
+    0%   { transform: scale(1);   opacity:.45; }
+    50%  { transform: scale(1.7); opacity:0;   }
+    100% { transform: scale(1.7); opacity:0;   }
+  }
 
+  /* ---------- chat window ---------- */
+  #chatWindow {
+    position: fixed;
+    right: 24px;
+    bottom: 90px;           /* fab height + gap */
+    width: 320px;
+    max-height: 440px;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-chat);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: opacity .25s, transform .25s, visibility .25s;
+    z-index: 980;
+  }
+  #chatWindow.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
 
-.header-chat p{
-  color: white !important;
-}
+  .chat-header {
+    background: var(--accent);
+    color: #fff;
+    padding: .9rem 1.1rem;
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .chat-body {
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    background: #f9fafb;
+  }
+  .chat-msg {
+    max-width: 75%;
+    padding: .55rem .85rem;
+    border-radius: var(--radius);
+    font-size: .9rem;
+    line-height: 1.4;
+    box-shadow: var(--shadow);
+    word-break: break-word;
+  }
+  .me    { align-self: flex-end; background: var(--accent); color:#fff; }
+  .other { align-self: flex-start; background: #fff; }
 
-.harry-chat--closed {
-  transform: translateY(calc(100% - 54px)); /* keep only header visible */
-}
-
-/* ---------- Header ---------- */
-.harry-chat__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 54px;
-  padding: 0 20px;
-  background: #292460;
-  color: #fff !important;
-  cursor: pointer;
-}
-.harry-chat__header:hover { background: #393285; }
-
-.u-text-highlight { color: #7ee0d2; }
-
-/* toggle icons */
-.harry-chat__toggle { fill: #fff; width: 20px; cursor: pointer; }
-.harry-chat__toggle--close { display: none; }               /* default state */
-.harry-chat--open .harry-chat__toggle--close { display: block; }
-.harry-chat--open .harry-chat__toggle--speech { display: none; }
-
-/* ---------- Window ---------- */
-.harry-chat__window {
-  height: 360px;
-  padding: 40px 20px 20px;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-.harry-chat__window::-webkit-scrollbar { display: none; }
-
-.harry-chat__messages {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.harry-chat__bubble {
-  display: inline-flex;
-  padding: 12px 20px;
-  border-radius: 6px;
-  margin-bottom: 18px;
-  max-width: 75%;
-  word-break: break-word;
-  line-height: 1.45;
-  animation: fadeIn 0.25s ease-out;
-}
-.harry-chat__bubble--ai {
-  background: #f0f0ff;
-  color: #000;
-  margin-right: 30px;
-}
-.harry-chat__bubble--user {
-  background: #7ee0d2;
-  color: #000;
-  align-self: flex-end;
-  margin-left: 30px;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0);  }
-}
-
-/* ---------- Entry ---------- */
-.harry-chat__entry {
-  display: flex;
-  align-items: center;
-  border-top: 1px solid #e6eaee;
-  height: 60px;
-  padding: 0 20px;
-}
-.harry-chat__input {
-  flex: 1;
-  height: 38px;
-  border: none;
-  font-size: 1rem;
-}
-.harry-chat__input:focus { outline: none; }
-.harry-chat__send {
-  fill: #7226e0;
-  width: 24px;
-  cursor: pointer;
-  transition: fill 0.2s ease;
-}
-.harry-chat__send:hover { fill: #45148c; }
-
-/* ---------- Utility ---------- */
-* { box-sizing: border-box; }
-
-
+  .chat-footer {
+    padding: .75rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: .5rem;
+  }
+  #chatInput {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius);
+    padding: .55rem .8rem;
+    font-size: .9rem;
+  }
+  #chatSend {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: .55rem .9rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+  }
 </style>
 
-
-<!-- Re-usable partial: include it once in your main layout -->
-<div class="harry-chat harry-chat--closed">
-  <!-- ===== Header ===== -->
-  <div class="harry-chat__header">
-    <p style="color: white;"><strong>Got a question?</strong> <span class="u-text-highlight">Ask Hari</span></p>
-
-    <!-- toggle buttons -->
-    <svg class="harry-chat__toggle harry-chat__toggle--speech" viewBox="0 0 32 32">
-      <use xlink:href="#icon-speech"/>
-    </svg>
-    <svg class="harry-chat__toggle harry-chat__toggle--close" viewBox="0 0 32 32">
-      <use xlink:href="#icon-close"/>
-    </svg>
+<button id="chatFab"><i class="fas fa-comments"></i></button>
+<div id="chatWindow">
+  <div class="chat-header"><i class="fas fa-headset"></i> Support</div>
+  <div class="chat-body" id="chatBody">
+    <div class="chat-msg other">Hi! How can we help?</div>
   </div>
-
-  <!-- ===== Messages ===== -->
-  <div class="harry-chat__window">
-    <ul class="harry-chat__messages"><!-- bubbles appear here --></ul>
-  </div>
-
-  <!-- ===== Entry ===== -->
-  <div class="harry-chat__entry">
-    <input
-      id="harryChatInput"
-      type="text"
-      class="harry-chat__input"
-      placeholder="Write a message…"
-      autocomplete="off"
-    />
-    <svg id="harryChatSend" class="harry-chat__send" viewBox="0 0 23.97 21.9">
-      <use xlink:href="#icon-send"/>
-    </svg>
+  <div class="chat-footer">
+    <input id="chatInput" type="text" placeholder="Type a message…">
+    <button id="chatSend"><i class="fas fa-paper-plane"></i></button>
   </div>
 </div>
 
-<!-- ==== Symbols sprite (put once in <body>) ==== -->
-<svg style="display:none">
-  <!-- icon-close -->
-  <symbol id="icon-close" viewBox="0 0 32 32">
-    <path d="M2.624 8.297l2.963-2.963 23.704 23.704-2.963 2.963-23.704-23.704z"/>
-    <path d="M2.624 29.037l23.704-23.704 2.963 2.963-23.704 23.704-2.963-2.963z"/>
-  </symbol>
-  <!-- icon-speech -->
-  <symbol id="icon-speech" viewBox="0 0 32 32">
-    <path d="M21.8 5.3H10.4C6 5.3 3 8 3 13.8c0 6.7 4.2 10.5 11.8 10.5h2.8l2.5 5.7h2.6l-2-4.5h2
-             c7.6 0 11.8-3.7 11.8-10.5 0-8.6-7.3-10.4-9.9-10.4z"/>
-  </symbol>
-  <!-- icon-send -->
-  <symbol id="icon-send" viewBox="0 0 24 22">
-    <path d="M.3 9.4a.5.5 0 0 0 0 .9l8.3 3.3L23.2 0z"/>
-    <path d="M9 14.6v6.8a.5.5 0 0 0 .93.25L13.2 16l6 3.3a.5.5 0 0 0 .8-.46L24 1l-15 13.6z"/>
-  </symbol>
-</svg>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
 
-<!-- ==== Client script ==== -->
-<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js"></script>
-<script src="/js/harry-chat-client.js"></script>
+<script>
+  const socket = io();                              // same origin
+  const userId = "<%= user._id %>";
+  const userName = "<%= user.name %>";
+
+  socket.emit('register', { id: userId, name: userName });
+
+  const fab=document.getElementById('chatFab'),
+        win=document.getElementById('chatWindow'),
+        body=document.getElementById('chatBody'),
+        inp=document.getElementById('chatInput'),
+        send=document.getElementById('chatSend');
+
+  fab.onclick = () => win.classList.toggle('open');
+
+  const append = ({ from, text })=>{
+    const div=document.createElement('div');
+    div.className='chat-msg '+(from===userId?'me':'other');
+    div.textContent=text;
+    body.appendChild(div);
+    body.scrollTop=body.scrollHeight;
+  };
+
+  socket.on('chatMessage', msg=>{
+    if(msg.from===userId || msg.to===userId) append(msg);
+  });
+
+  const push=()=>{
+    const text=inp.value.trim();
+    if(!text) return;
+    const msg={from:userId,to:'admin',text,ts:Date.now()};
+    socket.emit('chatMessage',msg);
+    append(msg);
+    inp.value='';
+  };
+
+  
+  send.onclick=push;
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') push(); });
+</script>

@@ -80,6 +80,11 @@ const getEditUserPage = async (req,res) => {
 }
 
 
+const renderAdminChatPage = async (req,res) => {
+  res.render('admin/chat')
+}
+
+
 const logoutAdmin = async (req,res) => {
     try {
     res.clearCookie('token', {
@@ -175,4 +180,4 @@ const createNewUserAccount = async (req,res) =>{
 
 
 
-module.exports = { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount, logoutAdmin };
+module.exports = { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount, logoutAdmin, renderAdminChatPage };

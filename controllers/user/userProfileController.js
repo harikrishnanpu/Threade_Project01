@@ -8,6 +8,7 @@ const Users = require("../../models/userModel")
 const { hashPassword, comparePassword } = require("../../utils/bcrypt")
 const { getUserOrders, getUserOrderById } = require("../../services/userOrderServices")
 const walletService = require('../../services/userWalletServices');
+const paymentService = require('../../services/userPaymentServices');
 const crypto = require('crypto');
 const Orders = require("../../models/orderModel")
 
@@ -162,18 +163,62 @@ const renderOrderDetailsPage = async (req, res) => {
 
 const renderWalletPage = async (req, res) => {
   try {
-
     const wallet = await walletService.getWallet(req.user._id)
-
     res.render('user/wallet', {
       wallet,
       transactions: wallet.transactions
     })
 
   } catch (err) {
-    // console.error(err.message)
+    console.log(err.message)
     res.status(500).render('error', { message: err.message })
   }
+}
+
+
+
+const addMoneyToWallet = async (req,res) => {
+
+  try{
+    
+    const { amount } = req.body;
+
+    if(!amount || amount < 0) {
+      throw new Error('enter valid amount');
+    }
+
+    const razorpayOrder = await paymentService.addToWallet(amount,req.user?._id);
+
+  return res.status(200).json({
+    success: true,
+    razorpay: razorpayOrder,
+    customer: razorpayOrder.customer
+  });
+
+
+  }catch(err){
+    res.status(500).json({ message: err.message })
+  }
+
+}
+
+
+
+const verifyWalletPayment = async (req,res) => {
+
+  try{
+    const {    razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        orderId   } = req.body;
+
+    const result = await paymentService.verifyWalletPayment(req.body)
+
+  }catch(err){
+    res.status(500).json({ message: err.message})
+  }
+
+
 }
 
 const updateProfile = async (req, res) => {
@@ -487,5 +532,7 @@ module.exports = {
   editAddress,
   deleteAddress,
   renderOrdersPage,
-  renderOrderDetailsPage
+  renderOrderDetailsPage,
+  addMoneyToWallet,
+  verifyWalletPayment
 }
