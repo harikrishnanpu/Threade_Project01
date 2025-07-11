@@ -169,9 +169,9 @@ const [
   getDealOfTheDayProducts()
 ]);
 
-console.log(allMainCatsbySub);
+// console.log(allMainCatsbySub);
 
-console.log(userProductSuggestions);
+// console.log(userProductSuggestions);
 
 
 
@@ -198,6 +198,9 @@ console.log(userProductSuggestions);
       userProductSuggestions,
       dealsOfTheDayProducts });
   } catch (err) {
+
+    console.log(err);
+    
     res.locals.user = null;
     return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, wishlistItemIds:[], isSubheaderHidden: false,       data,
       banners,
@@ -214,6 +217,8 @@ console.log(userProductSuggestions);
 
 
 }catch(err){
+  console.log(err);
+  
   return res.status(500).json({message: err.message})
 }
 

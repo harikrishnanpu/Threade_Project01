@@ -16,7 +16,8 @@ const { Server } = require('socket.io');
 const MONGODB_URI = process.env.MONGODB_URI;
  
 
-connectDb(MONGODB_URI);
+connectDb(MONGODB_URI)
+
 const app = express();
 
 
