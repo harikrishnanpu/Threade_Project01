@@ -1,0 +1,2352 @@
+<section class="table-components">
+  <div class="container-fluid">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="tables-wrapper">
+      <div class="card-style mb-30">
+        <div class="page-header">
+          <h6 class="page-title">Offer Management</h6>
+          <div class="header-stats">
+            <span class="stat-item">
+              Showing: <span id="result-count"><%= offers.length %></span> / <span id="total-count"><%= totalOffers %></span>
+            </span>
+          </div>
+        </div>
+        
+        <p class="error-msg" id="error-msg"></p>
+        <p class="success-msg" id="success-msg"></p>
+        
+        <div class="table-controls">
+          <div class="controls-row">
+
+            <div class="filters-section">
+              <div class="filter-group">
+                <label class="filter-label">Status:</label>
+                <select class="filter form-select" id="status-filter">
+                  <option value="all" <%= status==='all' ? 'selected' : '' %>>All Offers</option>
+                  <option value="active" <%= status==='active' ? 'selected' : '' %>>Active</option>
+                  <option value="inactive" <%= status==='inactive' ? 'selected' : '' %>>Inactive</option>
+                  <option value="expired" <%= status==='expired' ? 'selected' : '' %>>Expired</option>
+                  <option value="upcoming" <%= status==='upcoming' ? 'selected' : '' %>>Upcoming</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label">Applicable On:</label>
+                <select class="filter form-select" id="applicable-filter">
+                  <option value="all" <%= applicableFilter==='all' ? 'selected' : '' %>>All Types</option>
+                  <option value="product" <%= applicableFilter==='product' ? 'selected' : '' %>>Products</option>
+                  <option value="category" <%= applicableFilter==='category' ? 'selected' : '' %>>Categories</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="toggle-group">
+              <label class="toggle-switch">
+                <input type="checkbox" id="show-expired" <%= showExpired == 'true' ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label"> Show Expired </span>
+              </label>
+            </div>
+
+            <div class="search-section">
+              <form class="search-form" id="search-form">
+                <div class="search-input-group">
+                  <input type="text"
+                         id="search-input"
+                         name="search"
+                         class="form-control search-input"
+                         placeholder="Search offers..."
+                         value="<%= search || '' %>">
+                  <button type="submit" class="btn btn-primary search-btn">
+                    <i class="lni lni-search"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="sort-section">
+              <div class="sort-group">
+                <label class="sort-label">Sort by:</label>
+                <select class="sort-field form-select" id="sort-field">
+                  <option value="title" <%= sortField==='title' ? 'selected' : '' %>>Title</option>
+                  <option value="discountValue" <%= sortField==='discountValue' ? 'selected' : '' %>>Discount</option>
+                  <option value="startDate" <%= sortField==='startDate' ? 'selected' : '' %>>Start Date</option>
+                  <option value="endDate" <%= sortField==='endDate' ? 'selected' : '' %>>End Date</option>
+                  <option value="createdAt" <%= sortField==='createdAt' ? 'selected' : '' %>>Created Date</option>
+                </select>
+                
+                <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
+                  <span class="sort-icon"><%= sortOrder==='asc' ? '↑' : '↓' %></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions-section">
+              <button class="btn btn-secondary reset-btn" id="reset-filters" type="button">
+                <i class="lni lni-reload"></i>
+                <span class="btn-text">Reset</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Navigator -->
+        <div class="table-navigator">
+          <button class="btn btn-primary" onclick="openOfferModal('create')">
+            <i class="lni lni-plus"></i>
+            <span class="btn-text">Add Offer</span>
+          </button>
+          
+          <div class="pagination-controls">
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="prev-btn"
+                    <%= currentPage<=1 ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage-1 %>)">
+              <i class="lni lni-chevron-left"></i>
+              <span class="btn-text">Prev</span>
+            </button>
+            
+            <div class="page-info">
+              <span class="page-label">Page</span>
+              <input type="number" 
+                     min="1" 
+                     max="<%= totalPages %>"
+                     id="page-number"
+                     class="page-input" 
+                     value="<%= currentPage %>"
+                     onchange="goToPage(this.value)" />
+              <span class="page-total">of <%= totalPages %></span>
+            </div>
+            
+            <button class="btn btn-outline-primary nav-btn" 
+                    id="next-btn"
+                    <%= currentPage>=totalPages ? 'disabled' : '' %>
+                    onclick="goToPage(<%= currentPage+1 %>)">
+              <span class="btn-text">Next</span>
+              <i class="lni lni-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <div class="table-container">
+            <table class="table" id="offers-table">
+              <% if (offers && offers.length > 0) { %>
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th class="sortable-header" onclick="setSortField('title')">
+                    <div class="header-content">
+                      <span>Title</span>
+                      <% if (sortField === 'title') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th class="sortable-header" onclick="setSortField('discountValue')">
+                    <div class="header-content">
+                      <span>Discount</span>
+                      <% if (sortField === 'discountValue') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th>Applicable On</th>
+                  <th>Max Discount</th>
+                  <th class="sortable-header" onclick="setSortField('startDate')">
+                    <div class="header-content">
+                      <span>Start Date</span>
+                      <% if (sortField === 'startDate') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th class="sortable-header" onclick="setSortField('endDate')">
+                    <div class="header-content">
+                      <span>End Date</span>
+                      <% if (sortField === 'endDate') { %>
+                        <span class="sort-indicator">
+                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
+                        </span>
+                      <% } %>
+                    </div>
+                  </th>
+                  <th>Status</th>
+                  <th class="actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% offers.forEach((offer) => { 
+                  const now = new Date();
+                  const startDate = new Date(offer.startDate);
+                  const endDate = new Date(offer.endDate);
+                  const isExpired = endDate < now;
+                  const isUpcoming = startDate > now;
+                  const isActive = offer.isActive && !isExpired && !isUpcoming;
+                %>
+                <tr class="offer-row <%= (!offer.isActive || isExpired) && 'inactive-offer' %>" data-offer-id="<%= offer._id %>">
+                  <td class="offer-image">
+                    <div class="image-container">
+                      <% if (offer.image) { %>
+                        <img src="<%= offer.image %>" alt="<%= offer.title %>" class="offer-img">
+                      <% } else { %>
+                        <div class="no-image">
+                          <i class="lni lni-image"></i>
+                        </div>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="offer-title">
+                    <div class="title-info">
+                      <span class="title-text"><%= offer.title %></span>
+                      <% if (offer.description) { %>
+                        <small class="description-text"><%= offer.description.substring(0, 50) %><%= offer.description.length > 50 ? '...' : '' %></small>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="offer-discount">
+                    <span class="discount-value"><%= offer.discount %>% OFF</span>
+                  </td>
+                  <td class="applicable-on">
+                    <span class="applicable-badge <%= offer.applicableOn %>">
+                      <%= offer.applicableOn === 'product' ? 'Products' : 'Categories' %>
+                    </span>
+                    <% if (offer.applicableOn === 'product' && offer.products && offer.products.length > 0) { %>
+                      <small class="count-text"><%= offer.products.length %> product(s)</small>
+                    <% } else if (offer.applicableOn === 'category' && offer.categories && offer.categories.length > 0) { %>
+                      <small class="count-text"><%= offer.categories.length %> category(s)</small>
+                    <% } %>
+                  </td>
+                  <td class="max-discount">
+                    <% if (offer.maxDiscountAmount > 0) { %>
+                      ₹<%= offer.maxDiscountAmount.toFixed(2) %>
+                    <% } else { %>
+                      <span class="text-muted">No limit</span>
+                    <% } %>
+                  </td>
+                  <td class="start-date">
+                    <span class="date-text <%= isUpcoming ? 'upcoming' : '' %>">
+                      <%= startDate.toLocaleDateString() %>
+                    </span>
+                  </td>
+                  <td class="end-date">
+                    <span class="date-text <%= isExpired ? 'expired' : '' %>">
+                      <%= endDate.toLocaleDateString() %>
+                    </span>
+                    <% if (isExpired) { %>
+                      <span class="expired-badge">EXPIRED</span>
+                    <% } %>
+                  </td>
+                  <td class="offer-status">
+                    <div class="status-badges">
+                      <span class="status-badge <%= isActive ? 'active' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'inactive' %>">
+                        <%= isActive ? 'Active' : 
+                            isExpired ? 'Expired' : 
+                            isUpcoming ? 'Upcoming' : 'Inactive' %>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="offer-actions">
+                    <div class="action-buttons">
+                      <button class="btn btn-sm btn-outline-primary edit-btn" 
+                              onclick="openOfferModal('edit', '<%= offer._id %>')"
+                              title="Edit Offer">
+                        <i class="lni lni-pencil"></i>
+                        <span class="btn-text">Edit</span>
+                      </button>
+
+                      <button class="btn btn-sm <%= offer.isActive ? 'btn-outline-danger' : 'btn-outline-success' %> toggle-status-btn" 
+                              onclick="toggleStatus('<%= offer._id %>', '<%= offer.title %>', '<%= offer.isActive %>')"
+                              title="<%= offer.isActive ? 'Deactivate' : 'Activate' %> Offer">
+                        <i class="lni lni-<%= offer.isActive ? 'lock' : 'unlock' %>"></i>
+                        <span class="btn-text"><%= offer.isActive ? 'Deactivate' : 'Activate' %></span>
+                      </button>
+
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+              <% } else { %>
+              <tbody>
+                <tr class="no-data-row">
+                  <td colspan="9" class="no-data-cell">
+                    <div class="no-data-content">
+                      <div class="no-data-icon">
+                        <i class="lni lni-offer"></i>
+                      </div>
+                      <p>No offers found</p>
+                      <% if (search || status !== 'all' || applicableFilter !== 'all') { %>
+                        <button class="btn btn-link" onclick="resetFilters()">Clear filters</button>
+                      <% } else { %>
+                        <button class="btn btn-primary" onclick="openOfferModal('create')">
+                          <i class="lni lni-plus"></i>
+                          Create First Offer
+                        </button>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+              <% } %>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirm-modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="confirm-modal-title">Confirm Action</h5>
+      <button class="modal-close" onclick="closeConfirmModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-modal-message">Are you sure you want to perform this action?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-modal-confirm" onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Offer Form Modal -->
+<div class="modal-overlay" id="offer-modal-overlay">
+  <div class="modal-content modal-xl">
+    <div class="modal-header">
+      <h5 class="modal-title" id="offer-modal-title">Add Offer</h5>
+      <button class="modal-close" onclick="closeOfferModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="offer-form" enctype="multipart/form-data">
+      <div class="modal-body">
+        <div id="modal-messages"></div>
+        
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="offer-title" class="form-label">Offer Title <span class="required">*</span></label>
+            <input type="text" 
+                   id="offer-title" 
+                   name="title" 
+                   class="form-control" 
+                   placeholder="Enter offer title"
+                   >
+            <div class="form-error" id="title-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="offer-description" class="form-label">Description</label>
+            <textarea id="offer-description" 
+                      name="description" 
+                      class="form-control" 
+                      rows="3"
+                      placeholder="Enter offer description"></textarea>
+            <div class="form-error" id="description-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="offer-image" class="form-label">Offer Image</label>
+            <div class="image-upload-container">
+              <input type="file" 
+                     id="offer-image" 
+                     name="image" 
+                     class="form-control" 
+                     accept="image/*"
+                     onchange="handleImageUpload(this)">
+              <div class="image-preview" id="image-preview" style="display: none;">
+                <img id="preview-img" src="/placeholder.svg" alt="Preview">
+                <button type="button" class="btn btn-sm btn-danger remove-image" onclick="removeImage()">
+                  <i class="lni lni-close"></i>
+                </button>
+              </div>
+            </div>
+            <div class="form-error" id="image-error"></div>
+            <small class="form-help">Supported formats: JPG, PNG, GIF. Max size: 5MB</small>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group col-md-6">
+            <label for="offer-discount" class="form-label">Discount Value <span class="required">*</span></label>
+            <div class="input-group">
+              <input type="number" 
+                     id="offer-discount" 
+                     name="discount" 
+                     class="form-control" 
+                     placeholder="Enter discount value"
+                     min="1"
+                     max="90"
+                     >
+              <span class="input-group-text">%</span>
+            </div>
+            <div class="form-error" id="discountValue-error"></div>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="max-discount-amount" class="form-label">Max Discount Amount</label>
+            <div class="input-group">
+              <span class="input-group-text">₹</span>
+              <input type="number" 
+                     id="max-discount-amount" 
+                     name="maxDiscountAmount" 
+                     class="form-control" 
+                     placeholder="0"
+                     min="0"
+                     step="0.01">
+            </div>
+            <div class="form-error" id="maxDiscountAmount-error"></div>
+            <small class="form-help">Leave 0 for no maximum limit</small>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group">
+            <label for="applicable-on" class="form-label">Applicable On <span class="required">*</span></label>
+            <select id="applicable-on" name="applicableOn" class="form-control" onchange="toggleApplicableFields()" >
+              <option value="">Select applicable type</option>
+              <option value="product">Products</option>
+              <option value="category">Categories</option>
+            </select>
+            <div class="form-error" id="applicableOn-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2" id="products-section" style="display: none;">
+  <div class="form-group">
+    <label for="offer-products" class="form-label">Select Products</label>
+    
+    <!-- Search input for products -->
+    <div class="search-container mb-2">
+      <div class="search-input-group">
+        <input type="text" 
+               id="product-search-input" 
+               class="form-control search-input" 
+               placeholder="Search products..."
+               value="">
+        <button type="button" class="btn btn-outline-primary search-btn" onclick="searchProducts()">
+          <i class="lni lni-search"></i>
+        </button>
+        <button type="button" class="btn btn-outline-secondary clear-btn" onclick="clearProductSearch()" style="display: none;">
+          <i class="lni lni-close"></i>
+        </button>
+      </div>
+      <div class="search-loading" id="product-search-loading" style="display: none;">
+        <small class="text-muted">Searching...</small>
+      </div>
+    </div>
+    
+    <!-- Products list container -->
+    <div class="products-list-container">
+      <div class="products-checkboxes" id="products-checkboxes">
+        <!-- Products will be loaded here -->
+      </div>
+      <div class="load-more-container" id="products-load-more" style="display: none;">
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadMoreProducts()">
+          Load More Products
+        </button>
+      </div>
+      <div class="no-results" id="products-no-results" style="display: none;">
+        <small class="text-muted">No products found</small>
+      </div>
+    </div>
+    
+    <div class="form-error" id="products-error"></div>
+    <small class="form-help">Search and select products for this offer</small>
+  </div>
+</div>
+
+<div class="form-row mt-2" id="categories-section" style="display: none;">
+  <div class="form-group">
+    <label for="offer-categories" class="form-label">Select Categories</label>
+    
+    <!-- Search input for categories -->
+    <div class="search-container mb-2">
+      <div class="search-input-group">
+        <input type="text" 
+               id="category-search-input" 
+               class="form-control search-input" 
+               placeholder="Search categories..."
+               value="">
+        <button type="button" class="btn btn-outline-primary search-btn" onclick="searchCategories()">
+          <i class="lni lni-search"></i>
+        </button>
+        <button type="button" class="btn btn-outline-secondary clear-btn" onclick="clearCategorySearch()" style="display: none;">
+          <i class="lni lni-close"></i>
+        </button>
+      </div>
+      <div class="search-loading" id="category-search-loading" style="display: none;">
+        <small class="text-muted">Searching...</small>
+      </div>
+    </div>
+    
+    <!-- Categories list container -->
+    <div class="categories-list-container">
+      <div class="categories-checkboxes" id="categories-checkboxes">
+        <!-- Categories will be loaded here -->
+      </div>
+      <div class="load-more-container" id="categories-load-more" style="display: none;">
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadMoreCategories()">
+          Load More Categories
+        </button>
+      </div>
+      <div class="no-results" id="categories-no-results" style="display: none;">
+        <small class="text-muted">No categories found</small>
+      </div>
+    </div>
+    
+    <div class="form-error" id="categories-error"></div>
+    <small class="form-help">Search and select categories for this offer</small>
+  </div>
+</div>
+
+        <div class="form-row mt-2">
+          <div class="form-group col-md-6">
+            <label for="start-date" class="form-label">Start Date <span class="required">*</span></label>
+            <input type="datetime-local" 
+                   id="start-date" 
+                   name="startDate" 
+                   class="form-control"
+                   >
+            <div class="form-error" id="startDate-error"></div>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="end-date" class="form-label">End Date <span class="required">*</span></label>
+            <input type="datetime-local" 
+                   id="end-date" 
+                   name="endDate" 
+                   class="form-control"
+                   >
+            <div class="form-error" id="endDate-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row mt-2">
+          <div class="form-group-inline">
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="offer-active" name="isActive" checked>
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">Active</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" id="offer-id" name="id">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeOfferModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="offer-submit-btn">
+          <span class="btn-spinner" id="offer-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="offer-submit-text">Save Offer</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Image Crop Modal -->
+<div class="modal-overlay" id="crop-modal-overlay">
+  <div class="modal-content modal-lg">
+    <div class="modal-header">
+      <h5 class="modal-title">Crop Image</h5>
+      <button class="modal-close" onclick="closeCropModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="crop-container">
+        <img id="crop-image" src="/placeholder.svg" alt="Crop">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="closeCropModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="applyCrop()">Apply Crop</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-content.modal-lg {
+  max-width: 700px;
+}
+
+.modal-content.modal-xl {
+  max-width: 900px;
+}
+
+.modal-overlay.active .modal-content {
+  transform: scale(1);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6c757d;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.modal-body {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #f8f9fa;
+}
+
+/* Offer-specific styles */
+.offer-image .image-container {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.offer-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  background: #f8f9fa;
+  color: #6c757d;
+  font-size: 24px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title-text {
+  font-weight: 600;
+  color: #212529;
+}
+
+.description-text {
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.discount-value {
+  font-weight: bold;
+  color: #28a745;
+  font-size: 14px;
+}
+
+.applicable-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.applicable-badge.product {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.applicable-badge.category {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.count-text {
+  color: #6c757d;
+  font-size: 11px;
+  display: block;
+  margin-top: 2px;
+}
+
+.date-text.expired {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.date-text.upcoming {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.expired-badge {
+  font-size: 10px;
+  background: #dc3545;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.status-badge.active {
+  background: #d4edda;
+  color: #155724;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.inactive {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.expired {
+  background: #dc3545;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.upcoming {
+  background: #fff3cd;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.inactive-offer {
+  opacity: 0.6;
+  background-color: #f8f9fa;
+}
+
+/* Form styles */
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-row .col-md-6 {
+  flex: 0 0 calc(50% - 8px);
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+}
+
+.input-group-text {
+  background: #f8f9fa;
+  border: 1px solid #ced4da;
+  border-right: none;
+  padding: 0.375rem 0.75rem;
+  font-size: 14px;
+  color: #6c757d;
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.input-group .form-control {
+  border-left: none;
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.form-help {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 4px;
+  display: block;
+}
+
+.required {
+  color: #dc3545;
+}
+
+/* Image upload styles */
+.image-upload-container {
+  position: relative;
+}
+
+.image-preview {
+  margin-top: 12px;
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview img {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.remove-image {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Crop modal styles */
+.crop-container {
+  max-width: 100%;
+  max-height: 400px;
+  overflow: hidden;
+}
+
+#crop-image {
+  max-width: 100%;
+  display: block;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.loading-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error and success messages */
+.error-msg, .success-msg {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  transform: translateY(-10px);
+}
+
+.error-msg.show, .success-msg.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.error-msg {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.success-msg {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+/* Form error styles */
+.form-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.form-error.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.form-control.error {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Toggle switch styles */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background-color: #ccc;
+  border-radius: 24px;
+  transition: 0.3s;
+  margin-right: 8px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #007bff;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-size: 14px;
+  color: #495057;
+}
+
+/* Checkbox styles */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkbox-custom {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  background-color: white;
+  border: 2px solid #ced4da;
+  border-radius: 3px;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.checkbox-label input:checked + .checkbox-custom {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.checkbox-label input:checked + .checkbox-custom:after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-text {
+  font-size: 14px;
+  color: #495057;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+  
+  .modal-header, .modal-footer {
+    padding: 16px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .btn-text {
+    display: none;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .controls-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .form-row .col-md-6 {
+    flex: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .table-navigator {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .pagination-controls {
+    justify-content: center;
+  }
+}
+
+/* Search container styles */
+.search-container {
+  margin-bottom: 12px;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.search-input-group .search-input {
+  flex: 1;
+}
+
+.search-input-group .search-btn,
+.search-input-group .clear-btn {
+  padding: 0.375rem 0.75rem;
+  white-space: nowrap;
+}
+
+.search-loading {
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Products and categories list styles */
+.products-list-container,
+.categories-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 12px;
+  background: #f8f9fa;
+}
+
+.products-checkboxes,
+.categories-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+}
+
+.checkbox-item.selected {
+  background: #e3f2fd;
+  border-color: #007bff;
+}
+
+.checkbox-item input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.checkbox-item-label {
+  flex: 1;
+  font-size: 14px;
+  color: #495057;
+  cursor: pointer;
+}
+
+.checkbox-item-info {
+  font-size: 12px;
+  color: #6c757d;
+  margin-left: 8px;
+}
+
+.load-more-container {
+  text-align: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #dee2e6;
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+}
+
+.selected-count {
+  font-size: 12px;
+  color: #007bff;
+  font-weight: 500;
+  margin-top: 8px;
+}
+</style>
+
+<!-- Include Cropper.js CSS and JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+<script>
+  const BASE_URL = window.location.origin;
+  let cropper = null;
+  let currentImageFile = null;
+  
+  const STATE = {
+    page: parseInt('<%= currentPage %>') || 1,
+    status: '<%= status %>' || 'all',
+    applicableFilter: '<%= applicableFilter %>' || 'all',
+    sortField: '<%= sortField %>' || 'createdAt',
+    sortOrder: '<%= sortOrder %>' || 'desc',
+    search: '<%= search %>' || '',
+    showExpired: '<%= showExpired %>' == 'true',
+    pendingAction: null,
+    isLoading: false,
+    currentEditId: null
+  };
+
+// Product and Category search functionality
+let productSearchState = {
+  query: '',
+  page: 1,
+  hasMore: true,
+  loading: false,
+  selectedProducts: new Set()
+};
+
+let categorySearchState = {
+  query: '',
+  page: 1,
+  hasMore: true,
+  loading: false,
+  selectedCategories: new Set()
+};
+
+async function loadProducts(search = '', page = 1, append = false) {
+  if (productSearchState.loading) return;
+  
+  productSearchState.loading = true;
+  document.getElementById('product-search-loading').style.display = 'block';
+  
+  try {
+    const response = await fetch(`${BASE_URL}/admin/offers/api/products?search=${encodeURIComponent(search)}&page=${page}&limit=10`);
+    const data = await response.json();
+    
+    if (data.success) {
+      const container = document.getElementById('products-checkboxes');
+      const loadMoreBtn = document.getElementById('products-load-more');
+      const noResults = document.getElementById('products-no-results');
+      
+      if (!append) {
+        container.innerHTML = '';
+      }
+      
+      if (data.data.products.length === 0 && !append) {
+        noResults.style.display = 'block';
+        loadMoreBtn.style.display = 'none';
+      } else {
+        noResults.style.display = 'none';
+        
+        data.data.products.forEach(product => {
+          const isSelected = productSearchState.selectedProducts.has(product._id);
+          const checkboxItem = createProductCheckboxItem(product, isSelected);
+          container.appendChild(checkboxItem);
+        });
+        
+        productSearchState.hasMore = data.data.hasMore;
+        loadMoreBtn.style.display = data.data.hasMore ? 'block' : 'none';
+      }
+      
+      updateSelectedProductsCount();
+    }
+  } catch (error) {
+    console.error('Error loading products:', error);
+    showModalError('Failed to load products');
+  } finally {
+    productSearchState.loading = false;
+    document.getElementById('product-search-loading').style.display = 'none';
+  }
+}
+
+async function loadCategories(search = '', page = 1, append = false) {
+  if (categorySearchState.loading) return;
+  
+  categorySearchState.loading = true;
+  document.getElementById('category-search-loading').style.display = 'block';
+  
+  try {
+    const response = await fetch(`${BASE_URL}/admin/offers/api/categories?search=${encodeURIComponent(search)}&page=${page}&limit=10`);
+    const data = await response.json();
+    
+    if (data.success) {
+      const container = document.getElementById('categories-checkboxes');
+      const loadMoreBtn = document.getElementById('categories-load-more');
+      const noResults = document.getElementById('categories-no-results');
+      
+      if (!append) {
+        container.innerHTML = '';
+      }
+      
+      if (data.data.categories.length === 0 && !append) {
+        noResults.style.display = 'block';
+        loadMoreBtn.style.display = 'none';
+      } else {
+        noResults.style.display = 'none';
+        
+        data.data.categories.forEach(category => {
+          const isSelected = categorySearchState.selectedCategories.has(category._id);
+          const checkboxItem = createCategoryCheckboxItem(category, isSelected);
+          container.appendChild(checkboxItem);
+        });
+        
+        categorySearchState.hasMore = data.data.hasMore;
+        loadMoreBtn.style.display = data.data.hasMore ? 'block' : 'none';
+      }
+      
+      updateSelectedCategoriesCount();
+    }
+  } catch (error) {
+    console.error('Error loading categories:', error);
+    showModalError('Failed to load categories');
+  } finally {
+    categorySearchState.loading = false;
+    document.getElementById('category-search-loading').style.display = 'none';
+  }
+}
+
+function createProductCheckboxItem(product, isSelected = false) {
+  const div = document.createElement('div');
+  div.className = `checkbox-item ${isSelected ? 'selected' : ''}`;
+  div.innerHTML = `
+    <input type="checkbox" 
+           id="product-${product._id}" 
+           value="${product._id}" 
+           ${isSelected ? 'checked' : ''}
+           onchange="toggleProductSelection('${product._id}', this.checked)">
+    <label for="product-${product._id}" class="checkbox-item-label">${product.name}</label>
+    ${product.price ? `<span class="checkbox-item-info">₹${product.price}</span>` : ''}
+  `;
+  return div;
+}
+
+function createCategoryCheckboxItem(category, isSelected = false) {
+  const div = document.createElement('div');
+  div.className = `checkbox-item ${isSelected ? 'selected' : ''}`;
+  div.innerHTML = `
+    <input type="checkbox" 
+           id="category-${category._id}" 
+           value="${category._id}" 
+           ${isSelected ? 'checked' : ''}
+           onchange="toggleCategorySelection('${category._id}', this.checked)">
+    <label for="category-${category._id}" class="checkbox-item-label">${category.name}</label>
+    ${category.description ? `<span class="checkbox-item-info">${category.description.substring(0, 30)}...</span>` : ''}
+  `;
+  return div;
+}
+
+function toggleProductSelection(productId, isSelected) {
+  const checkboxItem = document.getElementById(`product-${productId}`).closest('.checkbox-item');
+  
+  if (isSelected) {
+    productSearchState.selectedProducts.add(productId);
+    checkboxItem.classList.add('selected');
+  } else {
+    productSearchState.selectedProducts.delete(productId);
+    checkboxItem.classList.remove('selected');
+  }
+  
+  updateSelectedProductsCount();
+}
+
+function toggleCategorySelection(categoryId, isSelected) {
+  const checkboxItem = document.getElementById(`category-${categoryId}`).closest('.checkbox-item');
+  
+  if (isSelected) {
+    categorySearchState.selectedCategories.add(categoryId);
+    checkboxItem.classList.add('selected');
+  } else {
+    categorySearchState.selectedCategories.delete(categoryId);
+    checkboxItem.classList.remove('selected');
+  }
+  
+  updateSelectedCategoriesCount();
+}
+
+function updateSelectedProductsCount() {
+  const container = document.getElementById('products-section');
+  let countElement = container.querySelector('.selected-count');
+  
+  if (!countElement) {
+    countElement = document.createElement('div');
+    countElement.className = 'selected-count';
+    container.querySelector('.form-group').appendChild(countElement);
+  }
+  
+  const count = productSearchState.selectedProducts.size;
+  countElement.textContent = count > 0 ? `${count} product(s) selected` : '';
+}
+
+function updateSelectedCategoriesCount() {
+  const container = document.getElementById('categories-section');
+  let countElement = container.querySelector('.selected-count');
+  
+  if (!countElement) {
+    countElement = document.createElement('div');
+    countElement.className = 'selected-count';
+    container.querySelector('.form-group').appendChild(countElement);
+  }
+  
+  const count = categorySearchState.selectedCategories.size;
+  countElement.textContent = count > 0 ? `${count} category(s) selected` : '';
+}
+
+function searchProducts() {
+  const searchInput = document.getElementById('product-search-input');
+  const query = searchInput.value.trim();
+  
+  productSearchState.query = query;
+  productSearchState.page = 1;
+  productSearchState.hasMore = true;
+  
+  loadProducts(query, 1, false);
+  
+  // Show/hide clear button
+  const clearBtn = searchInput.parentElement.querySelector('.clear-btn');
+  clearBtn.style.display = query ? 'block' : 'none';
+}
+
+function searchCategories() {
+  const searchInput = document.getElementById('category-search-input');
+  const query = searchInput.value.trim();
+  
+  categorySearchState.query = query;
+  categorySearchState.page = 1;
+  categorySearchState.hasMore = true;
+  
+  loadCategories(query, 1, false);
+  
+  // Show/hide clear button
+  const clearBtn = searchInput.parentElement.querySelector('.clear-btn');
+  clearBtn.style.display = query ? 'block' : 'none';
+}
+
+function clearProductSearch() {
+  const searchInput = document.getElementById('product-search-input');
+  const clearBtn = searchInput.parentElement.querySelector('.clear-btn');
+  
+  searchInput.value = '';
+  clearBtn.style.display = 'none';
+  
+  productSearchState.query = '';
+  productSearchState.page = 1;
+  productSearchState.hasMore = true;
+  
+  loadProducts('', 1, false);
+}
+
+function clearCategorySearch() {
+  const searchInput = document.getElementById('category-search-input');
+  const clearBtn = searchInput.parentElement.querySelector('.clear-btn');
+  
+  searchInput.value = '';
+  clearBtn.style.display = 'none';
+  
+  categorySearchState.query = '';
+  categorySearchState.page = 1;
+  categorySearchState.hasMore = true;
+  
+  loadCategories('', 1, false);
+}
+
+function loadMoreProducts() {
+  if (!productSearchState.hasMore || productSearchState.loading) return;
+  
+  productSearchState.page += 1;
+  loadProducts(productSearchState.query, productSearchState.page, true);
+}
+
+function loadMoreCategories() {
+  if (!categorySearchState.hasMore || categorySearchState.loading) return;
+  
+  categorySearchState.page += 1;
+  loadCategories(categorySearchState.query, categorySearchState.page, true);
+}
+
+function getSelectedProducts() {
+  return Array.from(productSearchState.selectedProducts);
+}
+
+function getSelectedCategories() {
+  return Array.from(categorySearchState.selectedCategories);
+}
+
+function resetProductSelection() {
+  productSearchState.selectedProducts.clear();
+  productSearchState.query = '';
+  productSearchState.page = 1;
+  productSearchState.hasMore = true;
+  
+  document.getElementById('product-search-input').value = '';
+  document.getElementById('product-search-input').parentElement.querySelector('.clear-btn').style.display = 'none';
+  updateSelectedProductsCount();
+}
+
+function resetCategorySelection() {
+  categorySearchState.selectedCategories.clear();
+  categorySearchState.query = '';
+  categorySearchState.page = 1;
+  categorySearchState.hasMore = true;
+  
+  document.getElementById('category-search-input').value = '';
+  document.getElementById('category-search-input').parentElement.querySelector('.clear-btn').style.display = 'none';
+  updateSelectedCategoriesCount();
+}
+
+  function showLoading() {
+    STATE.isLoading = true;
+    document.getElementById('loading-overlay').classList.add('active');
+  }
+
+  function hideLoading() {
+    STATE.isLoading = false;
+    document.getElementById('loading-overlay').classList.remove('active');
+  }
+
+  function showError(message) {
+    const errorMsg = document.getElementById('error-msg');
+    errorMsg.textContent = message;
+    errorMsg.classList.add('show');
+    setTimeout(() => {
+      errorMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function showSuccess(message) {
+    const successMsg = document.getElementById('success-msg');
+    successMsg.textContent = message;
+    successMsg.classList.add('show');
+    setTimeout(() => {
+      successMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function showModalError(message) {
+    const modalMessages = document.getElementById('modal-messages');
+    modalMessages.innerHTML = `<div class="error-msg show">${message}</div>`;
+    setTimeout(() => {
+      modalMessages.innerHTML = '';
+    }, 5000);
+  }
+
+  function showModalSuccess(message) {
+    const modalMessages = document.getElementById('modal-messages');
+    modalMessages.innerHTML = `<div class="success-msg show">${message}</div>`;
+    setTimeout(() => {
+      modalMessages.innerHTML = '';
+    }, 3000);
+  }
+
+  function buildUrl(overrides = {}) {
+    const params = {
+      page: overrides.page || STATE.page,
+      status: overrides.status || STATE.status,
+      applicableFilter: overrides.applicableFilter || STATE.applicableFilter,
+      sortField: overrides.sortField || STATE.sortField,
+      sortOrder: overrides.sortOrder || STATE.sortOrder,
+      search: overrides.search !== undefined ? overrides.search : STATE.search,
+      showExpired: overrides.showExpired !== undefined ? overrides.showExpired : STATE.showExpired
+    };
+
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === null || params[key] === undefined || 
+          (key === 'showExpired' && !params[key])) {
+        delete params[key];
+      }
+    });
+
+    const url = new URL(window.location.pathname, window.location.origin);
+    Object.keys(params).forEach(key => {
+      url.searchParams.set(key, params[key]);
+    });
+
+    return url.toString();
+  }
+
+  function navigateToUrl(url) {
+    showLoading();
+    window.location.href = url;
+  }
+
+  function goToPage(page) {
+    const pageNum = parseInt(page);
+    const maxPages = parseInt('<%= totalPages %>');
+    if (pageNum < 1 || pageNum > maxPages) return;
+    
+    STATE.page = pageNum;
+    navigateToUrl(buildUrl({ page: pageNum }));
+  }
+
+  function setSortField(field) {
+    const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+    STATE.sortField = field;
+    STATE.sortOrder = newOrder;
+    STATE.page = 1;
+    navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
+  }
+
+  function resetFilters() {
+    STATE.page = 1;
+    STATE.status = 'all';
+    STATE.applicableFilter = 'all';
+    STATE.sortField = 'createdAt';
+    STATE.sortOrder = 'desc';
+    STATE.search = '';
+    STATE.showExpired = false;
+    
+    navigateToUrl(buildUrl({
+      page: 1,
+      status: 'all',
+      applicableFilter: 'all',
+      sortField: 'createdAt',
+      sortOrder: 'desc',
+      search: '',
+      showExpired: false
+    }));
+  }
+
+  function toggleApplicableFields() {
+  const applicableOn = document.getElementById('applicable-on').value;
+  const productsSection = document.getElementById('products-section');
+  const categoriesSection = document.getElementById('categories-section');
+  
+  if (applicableOn === 'product') {
+    productsSection.style.display = 'block';
+    categoriesSection.style.display = 'none';
+    
+    // Load initial products if not already loaded
+    if (document.getElementById('products-checkboxes').children.length === 0) {
+      loadProducts();
+    }
+  } else if (applicableOn === 'category') {
+    productsSection.style.display = 'none';
+    categoriesSection.style.display = 'block';
+    
+    // Load initial categories if not already loaded
+    if (document.getElementById('categories-checkboxes').children.length === 0) {
+      loadCategories();
+    }
+  } else {
+    productsSection.style.display = 'none';
+    categoriesSection.style.display = 'none';
+  }
+}
+
+  function handleImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showModalError('Please select a valid image file');
+      input.value = '';
+      return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showModalError('Image size must be less than 5MB');
+      input.value = '';
+      return;
+    }
+    
+    currentImageFile = file;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('crop-image').src = e.target.result;
+      openCropModal();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function openCropModal() {
+    const modal = document.getElementById('crop-modal-overlay');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+      const image = document.getElementById('crop-image');
+      cropper = new Cropper(image, {
+        aspectRatio: 16 / 9,
+        viewMode: 1,
+        dragMode: 'move',
+        autoCropArea: 1,
+        restore: false,
+        guides: false,
+        center: false,
+        highlight: false,
+        cropBoxMovable: true,
+        cropBoxResizable: true,
+        toggleDragModeOnDblclick: false,
+      });
+    }, 300);
+  }
+
+  function closeCropModal() {
+    const modal = document.getElementById('crop-modal-overlay');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    
+    // Reset file input if crop was cancelled
+    document.getElementById('offer-image').value = '';
+    currentImageFile = null;
+  }
+
+  function applyCrop() {
+    if (!cropper) return;
+    
+    const canvas = cropper.getCroppedCanvas({
+      width: 800,
+      height: 450,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high',
+    });
+    
+    canvas.toBlob((blob) => {
+      // Create a new file from the cropped image
+      const croppedFile = new File([blob], currentImageFile.name, {
+        type: currentImageFile.type,
+        lastModified: Date.now()
+      });
+      
+      // Update the file input
+      const dt = new DataTransfer();
+      dt.items.add(croppedFile);
+      document.getElementById('offer-image').files = dt.files;
+      
+      // Show preview
+      const preview = document.getElementById('image-preview');
+      const previewImg = document.getElementById('preview-img');
+      previewImg.src = canvas.toDataURL();
+      preview.style.display = 'block';
+      
+      closeCropModal();
+    }, currentImageFile.type, 0.9);
+  }
+
+  function removeImage() {
+    document.getElementById('offer-image').value = '';
+    document.getElementById('image-preview').style.display = 'none';
+    currentImageFile = null;
+  }
+
+  function openOfferModal(mode, offerId = null) {
+    const modal = document.getElementById('offer-modal-overlay');
+    const title = document.getElementById('offer-modal-title');
+    const form = document.getElementById('offer-form');
+    const submitBtn = document.getElementById('offer-submit-text');
+    
+    form.reset();
+    resetProductSelection();
+resetCategorySelection();
+    clearFormErrors();
+    document.getElementById('modal-messages').innerHTML = '';
+    document.getElementById('image-preview').style.display = 'none';
+    toggleApplicableFields();
+    
+    if (mode === 'create') {
+      title.textContent = 'Add Offer';
+      submitBtn.textContent = 'Save Offer';
+      STATE.currentEditId = null;
+      
+      document.getElementById('offer-active').checked = true;
+      
+      // Set default dates
+      const now = new Date();
+      const startDate = new Date(now.getTime() + 60000); // 1 minute from now
+      const endDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 1 week from now
+      
+      document.getElementById('start-date').value = startDate.toISOString().slice(0, 16);
+      document.getElementById('end-date').value = endDate.toISOString().slice(0, 16);
+      
+    } else if (mode === 'edit' && offerId) {
+      title.textContent = 'Edit Offer';
+      submitBtn.textContent = 'Update Offer';
+      STATE.currentEditId = offerId;
+      
+      loadOfferData(offerId);
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+      document.getElementById('offer-title').focus();
+    }, 300);
+  }
+
+  function closeOfferModal() {
+    const modal = document.getElementById('offer-modal-overlay');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    STATE.currentEditId = null;
+    clearFormErrors();
+    document.getElementById('modal-messages').innerHTML = '';
+    removeImage();
+  }
+
+  async function loadOfferData(offerId) {
+    try {
+      showFormLoading(true);
+      
+      const response = await fetch(`${BASE_URL}/admin/offers/api/offer/${offerId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const offer = data.data;
+        
+        document.getElementById('offer-title').value = offer.title || '';
+        document.getElementById('offer-description').value = offer.description || '';
+        document.getElementById('offer-discount').value = offer.discount || '';
+        document.getElementById('max-discount-amount').value = offer.maxDiscountAmount || 0;
+        document.getElementById('applicable-on').value = offer.applicableOn || '';
+        document.getElementById('offer-active').checked = offer.isActive;
+        document.getElementById('offer-id').value = offer._id;
+        
+        if (offer.startDate) {
+          const startDate = new Date(offer.startDate);
+          document.getElementById('start-date').value = startDate.toISOString().slice(0, 16);
+        }
+        if (offer.endDate) {
+          const endDate = new Date(offer.endDate);
+          document.getElementById('end-date').value = endDate.toISOString().slice(0, 16);
+        }
+        
+        // Handle applicable fields
+        toggleApplicableFields();
+
+if (offer.applicableOn === 'product' && offer.products) {
+  // Wait for products to load, then select them
+  setTimeout(() => {
+    offer.products.forEach(productId => {
+      productSearchState.selectedProducts.add(productId);
+    });
+    loadProducts().then(() => {
+      updateSelectedProductsCount();
+    });
+  }, 100);
+}
+
+if (offer.applicableOn === 'category' && offer.categories) {
+  // Wait for categories to load, then select them
+  setTimeout(() => {
+    offer.categories.forEach(categoryId => {
+      categorySearchState.selectedCategories.add(categoryId);
+    });
+    loadCategories().then(() => {
+      updateSelectedCategoriesCount();
+    });
+  }, 100);
+}
+        
+        // Handle image preview
+        if (offer.image) {
+          const preview = document.getElementById('image-preview');
+          const previewImg = document.getElementById('preview-img');
+          previewImg.src = offer.image;
+          preview.style.display = 'block';
+        }
+        
+      } else {
+        showModalError('Failed to load offer data');
+        closeOfferModal();
+      }
+    } catch (error) {
+      console.error('Error loading offer:', error);
+      showModalError('Error loading offer data');
+      closeOfferModal();
+    } finally {
+      showFormLoading(false);
+    }
+  }
+
+  function showFormLoading(show) {
+    const spinner = document.getElementById('offer-spinner');
+    const submitBtn = document.getElementById('offer-submit-btn');
+    
+    if (show) {
+      spinner.style.display = 'inline-block';
+      submitBtn.disabled = true;
+    } else {
+      spinner.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+  }
+
+  function clearFormErrors() {
+    const errors = document.querySelectorAll('.form-error');
+    errors.forEach(error => {
+      error.classList.remove('show');
+      error.textContent = '';
+    });
+    
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+      input.classList.remove('error');
+    });
+  }
+
+  function showFormError(fieldName, message) {
+    const field = document.querySelector(`[name="${fieldName}"]`);
+    const error = document.getElementById(`${fieldName}-error`);
+    
+    if (field) field.classList.add('error');
+    if (error) {
+      error.textContent = message;
+      error.classList.add('show');
+    }
+  }
+
+  function validateForm() {
+    clearFormErrors();
+    let isValid = true;
+    
+    const title = document.getElementById('offer-title').value.trim();
+    const discountValue = document.getElementById('offer-discount').value;
+    const maxDiscountAmount = document.getElementById('max-discount-amount').value;
+    const applicableOn = document.getElementById('applicable-on').value;
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+    
+    if (!title) {
+      showFormError('title', 'Offer title is required');
+      isValid = false;
+    } else if (title.length < 3) {
+      showFormError('title', 'Offer title must be at least 3 characters');
+      isValid = false;
+    } else if (title.length > 100) {
+      showFormError('title', 'Offer title cannot exceed 100 characters');
+      isValid = false;
+    }
+    
+    if (!discountValue || discountValue > 90) {
+      showFormError('discountValue', 'Discount value is required and not > 90');
+      isValid = false;
+    } else if (discountValue < 1 || discountValue > 100) {
+      showFormError('discountValue', 'Discount must be between 1% and 100%');
+      isValid = false;
+    }
+    
+    if (maxDiscountAmount && maxDiscountAmount < 0) {
+      showFormError('maxDiscountAmount', 'Max discount amount cannot be negative');
+      isValid = false;
+    }
+    
+    if (!applicableOn) {
+      showFormError('applicableOn', 'Please select applicable type');
+      isValid = false;
+    }
+    
+    if (applicableOn === 'product') {
+  const selectedProducts = getSelectedProducts();
+  if (selectedProducts.length === 0) {
+    showFormError('products', 'Please select at least one product');
+    isValid = false;
+  }
+}
+
+if (applicableOn === 'category') {
+  const selectedCategories = getSelectedCategories();
+  if (selectedCategories.length === 0) {
+    showFormError('categories', 'Please select at least one category');
+    isValid = false;
+  }
+}
+    
+    if (!startDate) {
+      showFormError('startDate', 'Start date is required');
+      isValid = false;
+    }
+    
+    if (!endDate) {
+      showFormError('endDate', 'End date is required');
+      isValid = false;
+    }
+    
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (end <= start) {
+        showFormError('endDate', 'End date must be after start date');
+        isValid = false;
+      }
+    }
+    
+    return isValid;
+  }
+
+  function toggleStatus(offerId, offerTitle, isActive) {
+    const action = isActive === 'true' ? 'deactivate' : 'activate';
+    showConfirmModal(
+      `${action.charAt(0).toUpperCase() + action.slice(1)} Offer`,
+      `Are you sure you want to ${action} offer "${offerTitle}"?`,
+      action.charAt(0).toUpperCase() + action.slice(1),
+      () => performToggleStatus(offerId, isActive)
+    );
+  }
+
+  function deleteOffer(offerId, offerTitle) {
+    showConfirmModal(
+      'Delete Offer',
+      `Are you sure you want to delete offer "${offerTitle}"? This action cannot be undone.`,
+      'Delete',
+      () => performDeleteOffer(offerId)
+    );
+  }
+
+  function performToggleStatus(offerId, isActive) {
+    if (STATE.isLoading) return;
+    showLoading();
+    
+    fetch(`${BASE_URL}/admin/offers/toggle-status/${offerId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isActive: isActive === 'false' })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showSuccess(data.message || 'Offer status updated successfully');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        hideLoading();
+        showError(data.message || 'Failed to update offer status');
+      }
+    })
+    .catch(error => {
+      hideLoading();
+      showError('An error occurred while updating the offer');
+      console.error('Error:', error);
+    });
+  }
+
+  function performDeleteOffer(offerId) {
+    if (STATE.isLoading) return;
+    showLoading();
+    
+    fetch(`${BASE_URL}/admin/offers/delete/${offerId}`, {
+      method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showSuccess(data.message || 'Offer deleted successfully');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        hideLoading();
+        showError(data.message || 'Failed to delete offer');
+      }
+    })
+    .catch(error => {
+      hideLoading();
+      showError('An error occurred while deleting the offer');
+      console.error('Error:', error);
+    });
+  }
+
+  function showConfirmModal(title, message, confirmText, confirmCallback) {
+    document.getElementById('confirm-modal-title').textContent = title;
+    document.getElementById('confirm-modal-message').textContent = message;
+    document.getElementById('confirm-modal-confirm').textContent = confirmText;
+    STATE.pendingAction = confirmCallback;
+    document.getElementById('confirm-modal-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirm-modal-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+    STATE.pendingAction = null;
+  }
+
+  function confirmAction() {
+    if (STATE.pendingAction) {
+      STATE.pendingAction();
+      closeConfirmModal();
+    }
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    // Offer form submission
+    document.getElementById('offer-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!validateForm()) {
+        return;
+      }
+      
+      showFormLoading(true);
+      
+      try {
+        const formData = new FormData(this);
+        
+        // Handle selected products/categories
+const applicableOn = formData.get('applicableOn');
+if (applicableOn === 'product') {
+  const selectedProducts = getSelectedProducts();
+  formData.delete('products');
+  selectedProducts.forEach(productId => {
+    formData.append('products', productId);
+  });
+} else if (applicableOn === 'category') {
+  const selectedCategories = getSelectedCategories();
+  formData.delete('categories');
+  selectedCategories.forEach(categoryId => {
+    formData.append('categories', categoryId);
+  });
+}
+        
+        const isEdit = STATE.currentEditId;
+        const url = isEdit 
+          ? `${BASE_URL}/admin/offers/update/${STATE.currentEditId}`
+          : `${BASE_URL}/admin/offers/create`;
+        
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method: method,
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showModalSuccess(isEdit ? 'Offer updated successfully' : 'Offer created successfully');
+          setTimeout(() => {
+            closeOfferModal();
+            window.location.reload();
+          }, 1500);
+        } else {
+          if (result.errors) {
+            Object.keys(result.errors).forEach(field => {
+              showFormError(field, result.errors[field]);
+            });
+          } else {
+            showModalError(result.message || 'Failed to save offer');
+          }
+        }
+      } catch (error) {
+        showModalError('An error occurred while saving the offer');
+        console.error('Error:', error);
+      } finally {
+        showFormLoading(false);
+      }
+    });
+
+    // Filter event listeners
+    document.getElementById('status-filter').addEventListener('change', function(e) {
+      STATE.status = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('applicable-filter').addEventListener('change', function(e) {
+      STATE.applicableFilter = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ applicableFilter: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('show-expired').addEventListener('change', function(e) {
+      STATE.showExpired = e.target.checked;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ showExpired: e.target.checked, page: 1 }));
+    });
+
+    document.getElementById('sort-field').addEventListener('change', function(e) {
+      STATE.sortField = e.target.value;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
+    });
+
+    document.getElementById('sort-order').addEventListener('click', function() {
+      const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
+      STATE.sortOrder = newOrder;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
+    });
+
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const searchValue = document.getElementById('search-input').value.trim();
+      STATE.search = searchValue;
+      STATE.page = 1;
+      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
+    });
+
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (document.getElementById('offer-modal-overlay').classList.contains('active')) {
+          closeOfferModal();
+        }
+        if (document.getElementById('confirm-modal-overlay').classList.contains('active')) {
+          closeConfirmModal();
+        }
+        if (document.getElementById('crop-modal-overlay').classList.contains('active')) {
+          closeCropModal();
+        }
+      }
+    });
+
+    document.getElementById('offer-modal-overlay').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeOfferModal();
+      }
+    });
+
+    document.getElementById('confirm-modal-overlay').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeConfirmModal();
+      }
+    });
+
+    document.getElementById('crop-modal-overlay').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeCropModal();
+      }
+    });
+
+document.getElementById('product-search-input').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    searchProducts();
+  }
+});
+
+document.getElementById('category-search-input').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    searchCategories();
+  }
+});
+
+
+  });
+
+  window.addEventListener('popstate', function() {
+    if (!STATE.isLoading) {
+      window.location.reload();
+    }
+  });
+
+  window.addEventListener('load', function() {
+    hideLoading();
+  });
+</script>

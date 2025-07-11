@@ -136,8 +136,8 @@
                     data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="profile-info">
                       <div class="info">
-                        <div class="image">
-                          <img src="/assets/images/profile/profile-image.png" alt="" />
+                        <div style="border:2px solid #eee ;padding-inline: 12px;padding-block: 5px;color: black;margin-right: 8px; border-radius: 50%;">
+                          <p><%= admin.name.charAt(0) %></p>
                         </div>
                         <div>
                           <%= admin.name %>
@@ -149,12 +149,9 @@
                   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
                     <li>
                       <div class="author-info flex items-center !p-1">
-                        <div class="image">
-                          <img src="assets/images/profile/profile-image.png" alt="image">
-                        </div>
                         <div class="content">
-                          <h4 class="text-sm">Adam Joe</h4>
-                          <a class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs" href="#">Email@gmail.com</a>
+                          <h4 class="text-sm"><%= admin.name %></h4>
+                          <a class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs" href="#"><%= admin.email %></a>
                         </div>
                       </div>
                     </li>
@@ -177,7 +174,7 @@
                     </li>
                     <li class="divider"></li>
                     <li>
-                      <a href="#0"> <i class="lni lni-exit"></i> Sign Out </a>
+                      <a href="/admin/logout"> <i class="lni lni-exit"></i> Sign Out </a>
                     </li>
                   </ul>
                 </div>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Payment Success | Threade</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+/* ── Global ─────────────────────────────── */
+html,body{font-size:22px;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
+body.block{overflow:hidden;background:#f8faf9;color:#222;}
+body{padding-bottom:4rem;}         /* keeps every element clear of sticky footer */
+@media(max-width:480px){html,body{font-size:18px}}
+a{text-decoration:none;color:inherit}
+/* ── 1) Tick Intro ──────────────────────── */
+.tick-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f8faf9;z-index:999;pointer-events:none;}
+.tick-wrap.fade{animation:fadeOut .4s ease forwards;}
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
+.tick-box{width:6.25rem;height:7.5rem;display:flex;flex-direction:column;align-items:center;justify-content:space-between;}
+.tick-bg{width:100%;height:calc(100% - 1.25rem);background:linear-gradient(to bottom right,#5de593,#41d67c);box-shadow:0 0 0 65px rgba(255,255,255,.25) inset,0 0 0 65px rgba(255,255,255,.25) inset;border-radius:50%;transform:scale(.84);display:flex;align-items:center;justify-content:center;opacity:0;animation:boxAnim .75s ease-out forwards .6s;}
+.tick-bg svg{width:65%;stroke:#fff;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;fill:none;stroke-dasharray:80;stroke-dashoffset:80;transform:translateY(.25rem);animation:tickDraw .35s ease-out forwards 1.1s;}
+.tick-shadow{position:absolute;bottom:-20%;left:0;width:100%;height:15%;border-radius:50%;background:radial-gradient(closest-side,rgba(73,218,131,1),transparent);opacity:0;animation:shadowAnim .75s ease-out forwards .6s;}
+@keyframes boxAnim{0%{opacity:0;transform:scale(0);}25%{opacity:1;transform:scale(.9);}44%{transform:scale(1.15);}62%{transform:scale(1);}100%{opacity:1;}}
+@keyframes tickDraw{to{stroke-dashoffset:0}}
+@keyframes shadowAnim{0%{opacity:0;width:100%;height:15%;}44%{opacity:.35;width:40%;height:7%;}100%{opacity:.25;width:85%;height:15%;}}
+/* ── 2) Receipt Card ────────────────────── */
+.wrapper{max-width:420px;margin:0 auto;padding:2.5rem .8rem;opacity:0;transform:translateY(22px);transition:.7s ease;}
+.wrapper.show{opacity:1;transform:translateY(0);}
+.pr-top,.pr-bot{height:6px;border:6px solid #6c757d;background:#343a40;}
+.pr-bot{border-top:0;}
+.paper-zone{position:relative;overflow:hidden;height:1000px;margin-top:-6px;}
+.paper{background:#fff;position:absolute;left:0;right:0;margin:0 12px;margin-top:-12px;height:494px;}
+.paper.print{animation:print 1.8s cubic-bezier(.68,-.55,.265,.9) forwards;}
+@keyframes print{0%{transform:translateY(-97%);}100%{transform:translateY(0);}}
+.cont{margin:0 12px;padding:2rem 1.4rem;}
+.big-ok{width:72px;height:72px;margin:0 auto 22px;border-radius:50%;background:#359d00;color:#fff;font-size:46px;display:flex;align-items:center;justify-content:center;}
+.t{font-size:1.25rem;font-weight:700;text-align:center;color:#4a4a4a;margin-bottom:14px;}
+.d{font-size:.9rem;line-height:1.3;color:#5e5e5e;text-align:center;margin-bottom:22px;}
+.label{font-size:.88rem;font-weight:600;text-align:center;color:#333;margin-bottom:6px;}
+.val{font-size:.88rem;text-align:center;border-top:1px solid #ccc;border-bottom:1px solid #ccc;padding:6px 0;margin-bottom:22px;color:#333;}
+.items{max-height:200px;overflow-y:auto;border-top:1px dashed #ccc;padding-top:.8rem;margin-top:.8rem;}
+.it{display:flex;gap:.9rem;margin-bottom:.9rem;}
+.it img{width:54px;height:54px;border-radius:8px;object-fit:cover;background:#f1f3f5;}
+.it-info{font-size:.79rem;}
+.it-info .n{font-weight:600;color:#222;margin-bottom:2px;}
+.cta-zone{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:1.8rem;}
+.btn{flex:1 1 140px;text-align:center;padding:.9rem 1rem;border-radius:8px;font-weight:600;font-size:.9rem;cursor:pointer;transition:transform .2s;}
+.btn-green{background:#41d67c;color:#fff;border:none;}
+.btn-outline{background:#fff;color:#359d00;border:2px solid #41d67c;}
+.btn:hover{transform:translateY(-3px);}
+@media(max-width:400px){.cont{padding:1.6rem}.big-ok{width:60px;height:60px;font-size:38px}}
+</style>
+</head>
+<body class="block">
+
+<!-- Tick intro -->
+<div class="tick-wrap" id="tickLayer">
+  <div class="tick-box">
+    <div class="tick-bg">
+      <svg viewBox="0 0 65 51"><path d="M7 25L27.3 44 58.5 7"/></svg>
+    </div>
+    <div class="tick-shadow"></div>
+  </div>
+</div>
+
+<!-- Receipt card -->
+<div class="wrapper" id="cardLayer">
+  <div class="pr-top"></div>
+  <div class="paper-zone">
+    <div class="pr-bot"></div>
+
+    <div class="paper" id="receipt">
+      <div class="cont">
+        <div class="big-ok"><i class="fas fa-check"></i></div>
+        <div class="t">Payment Complete</div>
+        <p class="d">We received <strong>₹<%= order.totalAmount.toFixed(2) %></strong> via <%= order.paymentMethod.toUpperCase() %>.</p>
+
+        <div class="label">Order #</div>
+        <div class="val"><%= order.orderNumber %></div>
+
+        <% if(order.paymentId){ %>
+          <div class="label">Payment ID</div>
+          <div class="val"><%= order.paymentId %></div>
+        <% } %>
+
+        <div class="items">
+          <% order.items.forEach(i=>{ %>
+            <div class="it">
+              <img src="<%= i.productImage %>" alt="<%= i.productName %>">
+              <div class="it-info">
+                <span class="n"><%= i.productName %></span>
+                <span>Qty <%= i.quantity %> • ₹<%= i.price.toFixed(2) %></span>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- CTAs -->
+        <div class="cta-zone">
+          <a href="/user/products/shop" class="btn btn-green">Continue Shopping</a>
+          <a href="/user/profile/orders/<%= order._id %>" class="btn btn-outline">View Order</a>
+        </div>
+      </div>
+      <div class="jagged-edge"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* switch phases after tick animation */
+setTimeout(()=>{
+  document.getElementById('tickLayer').classList.add('fade');
+  document.getElementById('cardLayer').classList.add('show');
+  document.getElementById('receipt').classList.add('print');
+  document.body.classList.remove('block');
+},2000);
+</script>
+</body>
+</html>

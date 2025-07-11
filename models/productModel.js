@@ -27,6 +27,7 @@ const VariantSchema = new Schema({
     default: 0,
     min: 0
   },
+  isActive: { type: Boolean, default: true },
   images: {
     type: [String],
     validate: {
@@ -65,11 +66,22 @@ const ProductSchema = new Schema({
     }
   },
 
-  tags:       { type: [String], enum: ['deal-of-the-day','top-seller','new-arrival'], default: [] },
-  rating:     { type: Number, default: 0, min: 0, max: 5 },
+  
+
+  tags:  { type: [String], enum: ['deal-of-the-day','top-seller','new-arrival'], default: [] },
+  rating: { type: Number, default: 0, min: 0, max: 5 },
+  maxCartQuantity: {type: Number, default: 5 },
   isFeatured: { type: Boolean, default: false },
-  isActive:   { type: Boolean, default: true },
-  createdBy:  { type: Schema.Types.ObjectId, ref: 'users' }
+
+
+
+  isActive: { type: Boolean, default: true },
+  isCategoryActive: { type: Boolean, default: true },
+  isBrandActive: { type: Boolean, default: true },
+
+
+
+  createdBy: { type: Schema.Types.ObjectId, ref: 'users' }
 }, { timestamps: true , toJSON: { virtuals: true }});
 
 
@@ -83,11 +95,9 @@ ProductSchema.virtual('discountPercentage').get(function () {
 
 ProductSchema.pre('save', function(next) {
   if (this.variants && this.variants.length) {
-    const prices     = this.variants.map(v => v.price);
+    const prices     = this.variants.map(v => v.price).filter(p => p > 0);
     const stockArr = this.variants.map(v => v.stock);
-    const salePrices = this.variants
-      .map(v => v.salePrice)
-      .filter(sp => sp > 0);
+    const salePrices = this.variants.map(v => v.salePrice).filter(sp => sp > 0);
 
     this.regularPrice = Math.max(...prices);
     this.stock = Math.min(...stockArr);

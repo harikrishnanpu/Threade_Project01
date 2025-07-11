@@ -1,0 +1,224 @@
+<!-- ✨ Floating Chat Component ✨  -->
+<!-- Put this at the very end of <body> (or in an EJS partial) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+<style>
+  /* ---------- design tokens ---------- */
+  :root {
+    --accent: #000;               /* brand */
+    --accent-dark: #000;          /* hover */
+    --bg-chat: #ffffff;
+    --shadow: 0 4px 12px rgba(0,0,0,.12);
+    --radius: 12px;
+  }
+
+  /* ---------- floating fab ---------- */
+  #chatFab {
+    position: fixed;
+    right: 24px;
+    bottom: 54px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 1.35rem;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    outline: none;
+    border: none;
+    z-index: 990;
+    transition: transform .25s;
+  }
+  #chatFab:hover { transform: scale(1.05); }
+
+  /* pulse ring */
+  #chatFab::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: .45;
+    animation: pulse 2.2s infinite;
+    z-index: -1;
+  }
+  @keyframes pulse {
+    0%   { transform: scale(1);   opacity:.45; }
+    50%  { transform: scale(1.7); opacity:0;   }
+    100% { transform: scale(1.7); opacity:0;   }
+  }
+
+  /* ---------- chat window ---------- */
+  #chatWindow {
+    position: fixed;
+    right: 24px;
+    bottom: 114px;           /* fab height + gap */
+    width: 320px;
+    max-height: 440px;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-chat);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: opacity .25s, transform .25s, visibility .25s;
+    z-index: 980;
+  }
+  #chatWindow.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .chat-header {
+    background: var(--accent);
+    color: #fff;
+    padding: .9rem 1.1rem;
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .chat-body {
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    background: #f9fafb;
+  }
+  .chat-msg {
+    max-width: 75%;
+    padding: .55rem .85rem;
+    border-radius: var(--radius);
+    font-size: .9rem;
+    line-height: 1.4;
+    box-shadow: var(--shadow);
+    word-break: break-word;
+  }
+  .me    { align-self: flex-end; background: var(--accent); color:#fff; }
+  .other { align-self: flex-start; background: #fff; }
+
+  .chat-footer {
+    padding: .75rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: .5rem;
+  }
+  #chatInput {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius);
+    padding: .55rem .8rem;
+    font-size: .9rem;
+  }
+  #chatSend {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: .55rem .9rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+  }
+</style>
+
+<button id="chatFab"><i class="fas fa-comments"></i></button>
+<div id="chatWindow">
+  <div class="chat-header"><i class="fas fa-headset"></i> Support</div>
+  <div class="chat-body" id="chatBody">
+    <div class="chat-msg other">Hi! How can we help?</div>
+  </div>
+  <div class="chat-footer">
+    <input id="chatInput" type="text" placeholder="Type a message…">
+    <button id="chatSend"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
+<script>
+  /* ---------- initial setup ---------- */
+  const socket   = io();                 // same-origin
+  const userId   = "<%= user._id %>";
+  const userName = "<%= user.name %>";
+  let   ROOM_ID  = null;                 // filled once
+
+  /* ---------- DOM refs ---------- */
+  const fab  = document.getElementById('chatFab');
+  const win  = document.getElementById('chatWindow');
+  const body = document.getElementById('chatBody');
+  const inp  = document.getElementById('chatInput');
+  const send = document.getElementById('chatSend');
+
+  /* ---------- helper ---------- */
+  const append = ({ senderId, message }) => {
+    const div  = document.createElement('div');
+    div.className = 'chat-msg ' + (senderId === userId ? 'me' : 'other');
+    div.textContent = message;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  };
+
+  /* ---------- open / close fab ---------- */
+  fab.onclick = () => win.classList.toggle('open');
+
+  /* ---------- Socket events ---------- */
+
+  /* 1) tell server we’re here (gets or creates the room) */
+  socket.emit('user_online', { userId, name: userName });
+
+  /* 2) server responds with the roomId */
+  socket.on('room_assigned', ({ roomId }) => {
+    ROOM_ID = roomId;
+    /* you can now safely send/receive */
+  });
+
+  /* 3) initial chat history */
+  socket.on('load_messages', history => {
+    history.forEach(append);
+    body.scrollTop = body.scrollHeight;
+  });
+
+  /* 4) real-time incoming message */
+  socket.on('new_message', msg => {
+    if (msg.roomId === ROOM_ID) append(msg);
+  });
+
+  /* 5) typing indicator (optional) */
+  socket.on('user_typing', () => {
+    /* show “Agent is typing…” under chat header for 1–2 s */
+  });
+
+  /* ---------- send flow ---------- */
+  const push = () => {
+    const text = inp.value.trim();
+    if (!text || !ROOM_ID) return;
+
+    const msg = {
+      roomId: ROOM_ID,
+      senderId: userId,
+      senderType: 'user',
+      message: text
+    };
+
+    socket.emit('new_message', msg);  // to server
+    inp.value = '';
+  };
+
+  send.onclick = push;
+  inp.addEventListener('keydown', e => e.key === 'Enter' && push());
+
+  /* ---------- emit typing (optional) ---------- */
+  inp.addEventListener('input', () => {
+    if (ROOM_ID) socket.emit('typing', { roomId: ROOM_ID, senderType: 'user' });
+  });
+</script>

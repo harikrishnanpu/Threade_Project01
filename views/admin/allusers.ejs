@@ -186,12 +186,6 @@
                         <i class="lni lni-pencil"></i>
                         <span class="btn-text">Edit</span>
                       </button>
-                      <button class="btn btn-sm <%= user.isListed ? 'btn-outline-danger' : 'btn-outline-success' %>"
-                              onclick="toggleListUser('<%= user._id %>', '<%= user.name %>', '<%= user.isListed %>')"
-                              title="Delete User">
-                        <i class="lni lni-trash"></i>
-                         <span class="btn-text"><%= user.isListed ? 'unlist' : 'list' %></span>
-                      </button>
                       <button class="btn btn-sm btn-outline-warning toggle-btn" 
                               onclick="toggleUserStatus('<%= user._id %>', `<%= user.isBlocked ? 'false' : 'true' %>`)"
                               title="<%= user.isBlocked ? 'Unblock' : 'Block' %> User">

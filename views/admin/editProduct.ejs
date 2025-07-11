@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Product</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css"
-  >
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
   <style>
-    /* Modern Product Form Styles */
+    /* Modern Minimalist Design System */
     :root {
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
       --success: #10b981;
+      --success-light: #d1fae5;
       --warning: #f59e0b;
+      --warning-light: #fef3c7;
       --danger: #ef4444;
+      --danger-light: #fee2e2;
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
@@ -28,102 +28,706 @@
       --gray-800: #1f2937;
       --gray-900: #111827;
       --white: #ffffff;
-      --radius: 8px;
-      --radius-lg: 12px;
+      --radius: 12px;
+      --radius-lg: 16px;
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-50); color: var(--gray-900); line-height: 1.5; }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+      background: linear-gradient(135deg, var(--gray-50) 0%, #fafbfc 100%); 
+      color: var(--gray-900); 
+      line-height: 1.6; 
+      min-height: 100vh;
+      font-size: 14px;
+    }
 
-    .product-form-section { min-height: 100vh; padding: 1rem; }
-    .container-fluid { max-width: 1000px; margin: 0 auto; }
-    .content-wrapper { display: flex; flex-direction: column; gap: 1.5rem; }
-    .page-card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+    .product-form-section { 
+      min-height: 100vh; 
+      padding: 1rem; 
+    }
+    
+    .container-fluid { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+    }
+    
+    .content-wrapper { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 1.5rem; 
+    }
+    
+    .page-card { 
+      background: var(--white); 
+      border-radius: var(--radius-lg); 
+      box-shadow: var(--shadow-lg); 
+      overflow: hidden; 
+      border: 1px solid var(--gray-200);
+    }
 
-    .page-header { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem; border-bottom: 1px solid var(--gray-200); background: var(--white); }
-    .header-content { display: flex; align-items: center; gap: 1.5rem; }
-    .page-title { font-size: 1.5rem; font-weight: 600; color: var(--gray-900); }
-    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: none; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: var(--primary); color: var(--white); }
-    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
-    .btn-ghost { background: transparent; color: var(--gray-600); border: 1px solid var(--gray-200); }
-    .btn-ghost:hover:not(:disabled) { background: var(--gray-50); color: var(--gray-900); }
+    /* Header */
+    .page-header { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 2rem; 
+      border-bottom: 1px solid var(--gray-200); 
+      background: linear-gradient(135deg, var(--white) 0%, var(--gray-50) 100%);
+    }
+    
+    .header-content { 
+      display: flex; 
+      align-items: center; 
+      gap: 1rem; 
+    }
+    
+    .page-title { 
+      font-size: 1.875rem; 
+      font-weight: 700; 
+      color: var(--gray-900); 
+      margin: 0;
+      letter-spacing: -0.025em;
+    }
 
-    .message-container { padding: 0 2rem; }
-    .alert { padding: 0.75rem 1rem; border-radius: var(--radius); font-size: 0.875rem; display: none; margin: 1rem 0; }
-    .alert.show { display: block; }
-    .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-    .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .page-subtitle {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-top: 0.25rem;
+    }
 
-    .product-form { padding: 2rem; }
-    .form-grid { display: flex; flex-direction: column; gap: 2rem; margin-bottom: 2rem; }
-    .form-section { display: flex; flex-direction: column; gap: 1rem; }
-    .section-title { font-size: 1rem; font-weight: 600; color: var(--gray-900); margin-bottom: 0.5rem; }
-    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .form-label { font-size: 0.875rem; font-weight: 500; color: var(--gray-700); }
-    .required { color: var(--danger); }
-    .form-input, .form-textarea, .form-select { padding: 0.75rem 1rem; border: 1px solid var(--gray-300); border-radius: var(--radius); font-size: 0.875rem; transition: all 0.2s; }
-    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1); }
-    .form-input.error, .form-textarea.error, .form-select.error { border-color: var(--danger); }
-    .form-error { font-size: 0.75rem; color: var(--danger); display: none; }
-    .form-error.show { display: block; }
+    /* Buttons */
+    .btn { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+      padding: 0.75rem 1.5rem; 
+      border: none; 
+      border-radius: var(--radius); 
+      font-size: 0.875rem; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: var(--transition); 
+      text-decoration: none; 
+      white-space: nowrap; 
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn:disabled { 
+      opacity: 0.6; 
+      cursor: not-allowed; 
+    }
+    
+    .btn-primary { 
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%); 
+      color: var(--white); 
+      box-shadow: var(--shadow);
+    }
+    
+    .btn-primary:hover:not(:disabled) { 
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .btn-ghost { 
+      background: var(--white); 
+      color: var(--gray-600); 
+      border: 1px solid var(--gray-300); 
+    }
+    
+    .btn-ghost:hover:not(:disabled) { 
+      background: var(--gray-50); 
+      color: var(--gray-900); 
+      border-color: var(--gray-400);
+    }
 
-    .input-group { display: flex; border: 1px solid var(--gray-300); border-radius: var(--radius); overflow: hidden; }
-    .input-prefix { padding: 0.75rem 1rem; background: var(--gray-50); color: var(--gray-500); font-size: 0.875rem; border-right: 1px solid var(--gray-300); }
-    .input-group .form-input { border: none; border-radius: 0; }
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.8125rem;
+    }
 
-    .checkbox-group { display: flex; align-items: center; gap: 0.75rem; }
-    .checkbox-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; }
-    .checkbox-label input[type="checkbox"] { display: none; }
-    .checkbox-custom { width: 1rem; height: 1rem; border: 1px solid var(--gray-300); border-radius: 0.25rem; position: relative; transition: all 0.2s; }
-    .checkbox-label input:checked + .checkbox-custom { background: var(--primary); border-color: var(--primary); }
-    .checkbox-label input:checked + .checkbox-custom:after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--white); font-size: 0.75rem; font-weight: bold; }
-    .checkbox-text { font-size: 0.875rem; color: var(--gray-700); }
+    /* Messages */
+    .message-container { 
+      padding: 0 2rem; 
+    }
+    
+    .alert { 
+      padding: 1rem 1.5rem; 
+      border-radius: var(--radius); 
+      font-size: 0.875rem; 
+      display: none; 
+      margin: 1rem 0; 
+      border: 1px solid;
+      position: relative;
+    }
+    
+    .alert.show { 
+      display: flex; 
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .alert-error { 
+      background: var(--danger-light); 
+      color: #991b1b; 
+      border-color: #fecaca; 
+    }
+    
+    .alert-success { 
+      background: var(--success-light); 
+      color: #166534; 
+      border-color: #bbf7d0; 
+    }
 
-    .image-upload-container { display: flex; flex-direction: column; gap: 1rem; }
-    .image-upload-area { border: 2px dashed var(--gray-300); border-radius: var(--radius-lg); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; }
-    .image-upload-area:hover { border-color: var(--primary); background: var(--gray-50); }
-    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
-    .upload-placeholder i { font-size: 2rem; color: var(--gray-400); }
-    .upload-placeholder p { font-size: 0.875rem; font-weight: 500; color: var(--gray-700); }
-    .upload-placeholder span { font-size: 0.75rem; color: var(--gray-500); }
+    /* Form */
+    .product-form { 
+      padding: 2rem; 
+    }
+    
+    .form-grid { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 2rem; 
+      margin-bottom: 2rem; 
+    }
+    
+    .form-section { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 1.5rem; 
+      padding: 2rem;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
 
-    .image-preview-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; }
-    .image-preview { position: relative; aspect-ratio: 1; border-radius: var(--radius); overflow: hidden; background: var(--gray-100); }
-    .image-preview img { width: 100%; height: 100%; object-fit: cover; }
-    .image-remove { position: absolute; top: 0.25rem; right: 0.25rem; width: 1.5rem; height: 1.5rem; background: var(--danger); color: var(--white); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+    .form-section:hover {
+      box-shadow: var(--shadow);
+    }
+    
+    .section-title { 
+      font-size: 1.25rem; 
+      font-weight: 700; 
+      color: var(--gray-900); 
+      margin-bottom: 0.5rem; 
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--primary-light);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-    .form-actions { display: flex; gap: 1rem; justify-content: flex-end; padding-top: 2rem; border-top: 1px solid var(--gray-200); }
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-    .modal-overlay.active { opacity: 1; visibility: visible; }
-    .modal-container { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-width: 600px; width: 90%; max-height: 90vh; overflow: hidden; transform: scale(0.95); transition: transform 0.3s ease; }
-    .modal-overlay.active .modal-container { transform: scale(1); }
+    .section-description {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .form-group { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.5rem; 
+    }
+    
+    .form-row { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 1.5rem; 
+    }
+    
+    .form-label { 
+      font-size: 0.875rem; 
+      font-weight: 600; 
+      color: var(--gray-700); 
+    }
+    
+    .required { 
+      color: var(--danger); 
+    }
+    
+    .form-input, .form-textarea, .form-select { 
+      padding: 0.875rem 1rem; 
+      border: 2px solid var(--gray-300); 
+      border-radius: var(--radius); 
+      font-size: 0.875rem; 
+      transition: var(--transition); 
+      background: var(--white);
+    }
+    
+    .form-input:focus, .form-textarea:focus, .form-select:focus { 
+      outline: none; 
+      border-color: var(--primary); 
+      box-shadow: 0 0 0 3px var(--primary-light); 
+    }
+    
+    .form-input.error, .form-textarea.error, .form-select.error { 
+      border-color: var(--danger); 
+      box-shadow: 0 0 0 3px var(--danger-light);
+    }
+    
+    .form-error { 
+      font-size: 0.75rem; 
+      color: var(--danger); 
+      display: none; 
+      font-weight: 500;
+    }
+    
+    .form-error.show { 
+      display: block; 
+    }
 
-    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem; border-bottom: 1px solid var(--gray-200); }
-    .modal-header h3 { font-size: 1.125rem; font-weight: 600; color: var(--gray-900); }
-    .modal-close { padding: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; border-radius: var(--radius); transition: all 0.2s; }
-    .modal-close:hover { background: var(--gray-100); color: var(--gray-600); }
-    .modal-body { padding: 2rem; max-height: 60vh; overflow-y: auto; }
-    .modal-footer { display: flex; gap: 1rem; justify-content: flex-end; padding: 1.5rem 2rem; border-top: 1px solid var(--gray-200); background: var(--gray-50); }
+    /* Input Groups */
+    .input-group { 
+      display: flex; 
+      border: 2px solid var(--gray-300); 
+      border-radius: var(--radius); 
+      overflow: hidden; 
+      transition: var(--transition);
+    }
+    
+    .input-group:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    .input-prefix { 
+      padding: 0.875rem 1rem; 
+      background: var(--gray-100); 
+      color: var(--gray-600); 
+      font-size: 0.875rem; 
+      border-right: 1px solid var(--gray-300); 
+      font-weight: 600;
+    }
+    
+    .input-group .form-input { 
+      border: none; 
+      border-radius: 0; 
+    }
 
-    .crop-container { max-width: 100%; max-height: 400px; overflow: hidden; }
-    .crop-container img { max-width: 100%; height: auto; }
+    /* Checkboxes */
+    .checkbox-group { 
+      display: flex; 
+      align-items: center; 
+      gap: 1rem; 
+      padding: 1rem;
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-200);
+    }
+    
+    .checkbox-label { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.75rem; 
+      cursor: pointer; 
+      user-select: none; 
+      font-weight: 500;
+    }
+    
+    .checkbox-label input[type="checkbox"] { 
+      display: none; 
+    }
+    
+    .checkbox-custom { 
+      width: 1.25rem; 
+      height: 1.25rem; 
+      border: 2px solid var(--gray-300); 
+      border-radius: 0.375rem; 
+      position: relative; 
+      transition: var(--transition); 
+      background: var(--white);
+    }
+    
+    .checkbox-label input:checked + .checkbox-custom { 
+      background: var(--primary); 
+      border-color: var(--primary); 
+    }
+    
+    .checkbox-label input:checked + .checkbox-custom:after { 
+      content: '✓'; 
+      position: absolute; 
+      top: 50%; 
+      left: 50%; 
+      transform: translate(-50%, -50%); 
+      color: var(--white); 
+      font-size: 0.875rem; 
+      font-weight: bold; 
+    }
+    
+    .checkbox-text { 
+      font-size: 0.875rem; 
+      color: var(--gray-700); 
+    }
 
-    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-    .loading-overlay.active { opacity: 1; visibility: visible; }
-    .loading-spinner .spinner { width: 2rem; height: 2rem; border: 2px solid var(--gray-200); border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .btn-spinner { width: 1rem; height: 1rem; border: 1px solid transparent; border-top: 1px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
-    .btn-spinner.active { display: block; }
+    /* Image Upload */
+    .image-upload-container { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 1.5rem; 
+    }
+    
+    .image-upload-area { 
+      border: 3px dashed var(--gray-300); 
+      border-radius: var(--radius-lg); 
+      padding: 3rem 2rem; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: var(--transition); 
+      background: var(--gray-50);
+    }
+    
+    .image-upload-area:hover { 
+      border-color: var(--primary); 
+      background: var(--primary-light); 
+      transform: translateY(-2px);
+    }
+    
+    .upload-placeholder { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 1rem; 
+    }
+    
+    .upload-icon { 
+      font-size: 3rem; 
+      color: var(--gray-400); 
+    }
+    
+    .upload-text { 
+      font-size: 1rem; 
+      font-weight: 600; 
+      color: var(--gray-700); 
+    }
+    
+    .upload-subtext { 
+      font-size: 0.875rem; 
+      color: var(--gray-500); 
+    }
+
+    .image-preview-container { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+      gap: 1.5rem; 
+    }
+    
+    .image-preview { 
+      position: relative; 
+      aspect-ratio: 1; 
+      border-radius: var(--radius-lg); 
+      overflow: hidden; 
+      background: var(--gray-100); 
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+    
+    .image-preview:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .image-preview img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+    }
+    
+    .image-remove { 
+      position: absolute; 
+      top: 0.5rem; 
+      right: 0.5rem; 
+      width: 2rem; 
+      height: 2rem; 
+      background: var(--danger); 
+      color: var(--white); 
+      border: none; 
+      border-radius: 50%; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 1rem; 
+      font-weight: bold;
+      transition: var(--transition);
+      opacity: 0.9;
+    }
+    
+    .image-remove:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    /* Variants */
+    .variant-block {
+      border: 2px solid var(--gray-200);
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      margin-bottom: 2rem;
+      background: var(--white);
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .variant-block:hover {
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow);
+    }
+    
+    .variant-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .variant-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+    
+    .variant-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .variant-block.inactive {
+      opacity: 0.7;
+      border-color: var(--gray-300);
+    }
+
+    /* Form Actions */
+    .form-actions { 
+      display: flex; 
+      gap: 1rem; 
+      justify-content: flex-end; 
+      padding: 2rem; 
+      border-top: 1px solid var(--gray-200); 
+      background: var(--gray-50);
+    }
+
+    /* Modals */
+    .modal-overlay { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0,0,0,0.6); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      z-index: 1000; 
+      opacity: 0; 
+      visibility: hidden; 
+      transition: var(--transition); 
+    }
+    
+    .modal-overlay.active { 
+      opacity: 1; 
+      visibility: visible; 
+    }
+    
+    .modal-container { 
+      background: var(--white); 
+      border-radius: var(--radius-lg); 
+      box-shadow: var(--shadow-xl); 
+      max-width: 700px; 
+      width: 90%; 
+      max-height: 90vh; 
+      overflow: hidden; 
+      transform: scale(0.95); 
+      transition: var(--transition); 
+    }
+    
+    .modal-overlay.active .modal-container { 
+      transform: scale(1); 
+    }
+
+    .modal-header { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 2rem; 
+      border-bottom: 1px solid var(--gray-200); 
+      background: var(--gray-50);
+    }
+    
+    .modal-header h3 { 
+      font-size: 1.25rem; 
+      font-weight: 700; 
+      color: var(--gray-900); 
+    }
+    
+    .modal-close { 
+      padding: 0.5rem; 
+      background: none; 
+      border: none; 
+      color: var(--gray-400); 
+      cursor: pointer; 
+      border-radius: var(--radius); 
+      transition: var(--transition); 
+      font-size: 1.5rem;
+    }
+    
+    .modal-close:hover { 
+      background: var(--gray-200); 
+      color: var(--gray-600); 
+    }
+    
+    .modal-body { 
+      padding: 2rem; 
+      max-height: 60vh; 
+      overflow-y: auto; 
+    }
+    
+    .modal-footer { 
+      display: flex; 
+      gap: 1rem; 
+      justify-content: flex-end; 
+      padding: 2rem; 
+      border-top: 1px solid var(--gray-200); 
+      background: var(--gray-50); 
+    }
+
+    .crop-container { 
+      max-width: 100%; 
+      max-height: 400px; 
+      overflow: hidden; 
+    }
+    
+    .crop-container img { 
+      max-width: 100%; 
+      height: auto; 
+    }
+
+    /* Loading */
+    .loading-overlay { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(255,255,255,0.95); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      z-index: 2000; 
+      opacity: 0; 
+      visibility: hidden; 
+      transition: var(--transition); 
+    }
+    
+    .loading-overlay.active { 
+      opacity: 1; 
+      visibility: visible; 
+    }
+    
+    .loading-spinner .spinner { 
+      width: 3rem; 
+      height: 3rem; 
+      border: 3px solid var(--gray-200); 
+      border-top: 3px solid var(--primary); 
+      border-radius: 50%; 
+      animation: spin 1s linear infinite; 
+      margin: 0 auto 1rem; 
+    }
+    
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+    }
+    
+    .btn-spinner { 
+      width: 1rem; 
+      height: 1rem; 
+      border: 2px solid transparent; 
+      border-top: 2px solid currentColor; 
+      border-radius: 50%; 
+      animation: spin 1s linear infinite; 
+      display: none; 
+    }
+    
+    .btn-spinner.active { 
+      display: block; 
+    }
+
+    /* Icons */
+    .icon {
+      font-style: normal;
+      font-size: 1.25rem;
+    }
+
+    /* Enhanced Responsive Design */
+    @media (max-width: 1024px) {
+      .container-fluid { max-width: 100%; padding: 0 1rem; }
+      .form-section { padding: 1.5rem; }
+      .page-header { padding: 1.5rem; }
+    }
 
     @media (max-width: 768px) {
+      .product-form-section { padding: 0.5rem; }
+      .page-header { 
+        flex-direction: column; 
+        gap: 1rem; 
+        text-align: center;
+        padding: 1rem;
+      }
+      .page-title { font-size: 1.5rem; }
       .form-row { grid-template-columns: 1fr; }
-      .form-actions { flex-direction: column; }
-      .image-preview-container { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+      .form-actions { 
+        flex-direction: column; 
+        gap: 0.75rem;
+        padding: 1.5rem;
+      }
+      .image-preview-container { 
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+        gap: 1rem;
+      }
+      .variant-block { padding: 1.5rem; }
+      .variant-header { 
+        flex-direction: column; 
+        gap: 1rem; 
+        align-items: flex-start;
+      }
+      .modal-container { width: 95%; }
+      .modal-header, .modal-body, .modal-footer { padding: 1.5rem; }
+      .upload-placeholder { padding: 2rem 1rem; }
+      .upload-icon { font-size: 2rem; }
+    }
+
+    @media (max-width: 480px) {
+      .form-section { padding: 1rem; }
+      .image-preview-container { 
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); 
+      }
+      .btn { padding: 0.625rem 1rem; font-size: 0.8125rem; }
+      .variant-block { padding: 1rem; }
+      .page-header { padding: 1rem; }
+      .product-form { padding: 1rem; }
+    }
+
+    /* Status indicators */
+    .status-active { color: var(--success); }
+    .status-inactive { color: var(--gray-500); }
+    
+    /* Enhanced form styling */
+    .form-section:hover {
+      box-shadow: var(--shadow);
     }
   </style>
 </head>
@@ -134,7 +738,7 @@
       <div class="loading-overlay" id="loading-overlay">
         <div class="loading-spinner">
           <div class="spinner"></div>
-          <p>Loading...</p>
+          <p>Processing...</p>
         </div>
       </div>
 
@@ -143,20 +747,30 @@
           <!-- Header -->
           <div class="page-header">
             <div class="header-content">
-              <h1 class="page-title">Edit Product</h1>
+              <div>
+                <h1 class="page-title">Edit Product</h1>
+                <p class="page-subtitle">Update product information and settings</p>
+              </div>
             </div>
             <a href="/admin/products/all" class="btn btn-ghost">
-              ← <span>Back to Products</span>
+              <span class="icon">←</span>
+              <span>Back to Products</span>
             </a>
           </div>
 
           <!-- Flash messages -->
           <div class="message-container">
             <% if (messages?.error?.length) { %>
-              <div class="alert alert-error show"><%= messages.error[0] %></div>
+              <div class="alert alert-error show">
+                <span class="icon">⚠️</span>
+                <%= messages.error[0] %>
+              </div>
             <% } %>
             <% if (messages?.success?.length) { %>
-              <div class="alert alert-success show"><%= messages.success[0] %></div>
+              <div class="alert alert-success show">
+                <span class="icon">✅</span>
+                <%= messages.success[0] %>
+              </div>
             <% } %>
             <div class="alert alert-error" id="dynamic-error-msg"></div>
             <div class="alert alert-success" id="dynamic-success-msg"></div>
@@ -167,23 +781,26 @@
             <div class="form-grid">
               <!-- Basic Info -->
               <div class="form-section">
-                <h4 class="section-title">Basic Information</h4>
+                <h4 class="section-title">
+                  <span class="icon">📝</span>
+                  Basic Information
+                </h4>
                 <div class="form-group">
                   <label class="form-label">Name <span class="required">*</span></label>
                   <input type="text" id="product-name" name="name" class="form-input"
-                         value="<%= product.name %>" required>
+                         value="<%= product.name %>" >
                   <div class="form-error" id="name-error"></div>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Description</label>
                   <textarea id="product-description" name="description"
-                            class="form-textarea"><%= product.description %></textarea>
+                            class="form-textarea" rows="4"><%= product.description %></textarea>
                   <div class="form-error" id="description-error"></div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
-                    <label class="form-label">Category <%= product.category %> <span class="required">*</span></label>
-                    <select id="product-category" name="category" class="form-select" required>
+                    <label class="form-label">Category <span class="required">*</span></label>
+                    <select id="product-category" name="category" class="form-select" >
                       <option value="">Select category</option>
                       <% categories.forEach(cat => { %>
                         <option value="<%= cat._id %>"
@@ -212,45 +829,35 @@
 
               <!-- Pricing & Stock -->
               <div class="form-section">
-                <h4 class="section-title">Pricing & Stock</h4>
+                <h4 class="section-title">
+                  <span class="icon">💰</span>
+                  Pricing & Stock
+                </h4>
                 <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label">Regular Price <span class="required">*</span></label>
-                    <div class="input-group">
-                      <span class="input-prefix">$</span>
-                      <input type="number" id="product-regular-price" name="regularPrice"
-                             class="form-input" step="0.01" min="0"
-                             value="<%= product.regularPrice %>" required>
-                    </div>
-                    <div class="form-error" id="regularPrice-error"></div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Sale Price</label>
-                    <div class="input-group">
-                      <span class="input-prefix">$</span>
-                      <input type="number" id="product-sale-price" name="salePrice"
-                             class="form-input" step="0.01" min="0"
-                             value="<%= product.salePrice %>">
-                    </div>
-                    <div class="form-error" id="salePrice-error"></div>
-                  </div>
-                </div>
+
+
                 <div class="form-group">
-                  <label class="form-label">Stock Quantity</label>
-                  <input type="number" id="product-stock" name="stock" class="form-input"
-                         min="0" value="<%= product.stock %>">
-                  <div class="form-error" id="stock-error"></div>
-                </div>
+  <label class="form-label">Max Cart Quantity <span class="required">*</span></label>
+  <input type="number" id="product-max-cart-qty" name="maxCartQuantity" class="form-input"
+         min="1" value="<%= product.maxCartQuantity || 5 %>" >
+  <div class="form-error" id="maxCartQuantity-error"></div>
+</div>
+</div>
+
               </div>
 
               <!-- Images -->
               <div class="form-section">
-                <h4 class="section-title">Product Images <span class="required">*</span></h4>
+                <h4 class="section-title">
+                  <span class="icon">📸</span>
+                  Product Images
+                </h4>
+                <p class="section-description">Upload at least 3 high-quality images</p>
                 <div class="image-upload-container">
                   <div class="image-upload-area" id="image-upload-area">
                     <div class="upload-placeholder">
-                      <i>📤</i>
-                      <p>Click or drag to upload</p>
+                      <div class="upload-icon">📤</div>
+                      <p class="upload-text">Click or drag to upload</p>
                     </div>
                     <input type="file" id="image-input" accept="image/*" multiple style="display:none">
                   </div>
@@ -261,23 +868,38 @@
 
               <!-- Variants -->
               <div class="form-section">
-                <h4 class="section-title">Variants <span class="required">*</span></h4>
+                <h4 class="section-title">
+                  <span class="icon">🎨</span>
+                  Product Variants
+                </h4>
+                <p class="section-description">Manage different sizes, colors, and pricing options</p>
                 <button type="button" id="add-variant-btn" class="btn btn-primary">
-                  + Add Variant
+                  <span class="icon">+</span>
+                  Add Variant
                 </button>
                 <div class="form-error" id="variants-error"></div>
                 <div id="variants-container">
                   <% product.variants.forEach((v, idx) => { %>
                     <div class="variant-block" id="variant-<%=idx%>">
-                      <button type="button" class="btn btn-ghost"
-                              style="float:right"
-                              onclick="removeVariant(`<%=idx%>`)">
-                        × Remove
-                      </button>
+                      <div class="variant-header">
+                        <h5 class="variant-title">Variant <%=idx + 1%></h5>
+                        <div class="variant-status">
+                          <label class="checkbox-label">
+                            <input type="checkbox" name="variants[<%=idx%>][isActive]" <%=v.isActive?'checked':''%>>
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-text">Active Variant</span>
+                          </label>
+                          <button type="button" class="btn btn-ghost btn-sm"
+                                  onclick="removeVariant(`<%=idx%>`)">
+                            <span class="icon">×</span>
+                            Remove
+                          </button>
+                        </div>
+                      </div>
                       <div class="form-row">
                         <div class="form-group">
                           <label class="form-label">Size <span class="required">*</span></label>
-                          <select name="variants[<%=idx%>][size]" class="form-select" required>
+                          <select name="variants[<%=idx%>][size]" class="form-select" >
                             <option value="">Select size</option>
                             <% ['xs','sm','md','lg','xl','xxl'].forEach(s => { %>
                               <option value="<%=s%>" <%=v.size===s?'selected':''%>><%=s.toUpperCase()%></option>
@@ -287,19 +909,25 @@
                         <div class="form-group">
                           <label class="form-label">Color <span class="required">*</span></label>
                           <input type="text" name="variants[<%=idx%>][color]" class="form-input"
-                                 value="<%=v.color%>" required>
+                                 value="<%=v.color%>" >
                         </div>
                       </div>
                       <div class="form-row">
                         <div class="form-group">
                           <label class="form-label">Price <span class="required">*</span></label>
-                          <input type="number" name="variants[<%=idx%>][price]" class="form-input"
-                                 step="0.01" min="0" value="<%=v.price%>" required>
+                          <div class="input-group">
+                            <span class="input-prefix">₹</span>
+                            <input type="number" name="variants[<%=idx%>][price]" class="form-input"
+                                   step="0.01" min="0" value="<%=v.price%>" required>
+                          </div>
                         </div>
                         <div class="form-group">
                           <label class="form-label">Sale Price</label>
-                          <input type="number" name="variants[<%=idx%>][salePrice]" class="form-input"
-                                 step="0.01" min="0" value="<%=v.salePrice%>">
+                          <div class="input-group">
+                            <span class="input-prefix">₹</span>
+                            <input type="number" name="variants[<%=idx%>][salePrice]" class="form-input"
+                                   step="0.01" min="0" value="<%=v.salePrice%>">
+                          </div>
                         </div>
                       </div>
                       <div class="form-row">
@@ -310,13 +938,16 @@
                         </div>
                         <div class="form-group">
                           <label class="form-label">Images <span class="required">*</span></label>
-                          <div class="image-upload-area" id="variant-upload-<%=idx%>">
-                            Click or drag
+                          <div class="image-upload-area" id="variant-upload-<%=idx%>" style="padding: 1.5rem; font-size: 0.875rem;">
+                            <div class="upload-placeholder">
+                              <div class="upload-icon" style="font-size: 1.5rem;">📤</div>
+                              <p class="upload-text" style="font-size: 0.875rem;">Click or drag</p>
+                            </div>
                           </div>
-                          <div class="image-preview-container" id="variant-preview-<%=idx%>">
+                          <div class="image-preview-container" id="variant-preview-<%=idx%>" style="grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
                             <% v.images.forEach((u,i)=>{ %>
                               <div class="image-preview">
-                                <img src="<%=u%>">
+                                <img src="<%=u%>" alt="Variant image">
                                 <button type="button" class="image-remove"
                                         onclick="removeVariantImage(`<%=idx%>`,`<%=i%>`)">×</button>
                               </div>
@@ -331,12 +962,16 @@
 
               <!-- Settings -->
               <div class="form-section">
+                <h4 class="section-title">
+                  <span class="icon">⚙️</span>
+                  Product Settings
+                </h4>
                 <div class="checkbox-group">
                   <label class="checkbox-label">
                     <input type="checkbox" id="product-active" name="isActive"
                            <%=product.isActive?'checked':''%>>
                     <span class="checkbox-custom"></span>
-                    <span class="checkbox-text">Active</span>
+                    <span class="checkbox-text">Active Product</span>
                   </label>
                 </div>
                 <div class="checkbox-group">
@@ -344,7 +979,7 @@
                     <input type="checkbox" id="product-featured" name="isFeatured"
                            <%=product.isFeatured?'checked':''%>>
                     <span class="checkbox-custom"></span>
-                    <span class="checkbox-text">Featured</span>
+                    <span class="checkbox-text">Featured Product</span>
                   </label>
                 </div>
               </div>
@@ -367,12 +1002,15 @@
   <div class="modal-overlay" id="crop-modal">
     <div class="modal-container modal-crop">
       <div class="modal-header">
-        <h3>Crop Image</h3>
+        <h3>
+          <span class="icon">🖼️</span>
+          Crop Image
+        </h3>
         <button class="modal-close" onclick="closeCropModal()">×</button>
       </div>
       <div class="modal-body">
         <div class="crop-container">
-          <img id="crop-image" src="" alt="Crop">
+          <img id="crop-image" src="/placeholder.svg" alt="Crop">
         </div>
       </div>
       <div class="modal-footer">
@@ -388,7 +1026,6 @@
     const MIN_IMAGES = 3;
     const PRODUCT_ID = '<%= product._id %>';
 
-
     // prettier-ignore
     const uploadedJSONimages = <%- JSON.stringify(product.images) %>;
 
@@ -401,14 +1038,10 @@
       isLoading: false
     };
 
-
     <% product.variants.forEach((v, idx) => { %>
       STATE.variants[<%=idx%>] = { images: <%- JSON.stringify(v.images) %> };
     <% }) %>
     let variantCount = <%= product.variants.length %>;
-
-
-
 
     function showLoading() {
       STATE.isLoading = true;
@@ -431,10 +1064,11 @@
       if (!el) return;
       el.textContent = msg;
       el.classList.add('show');
+      
+      // Also add error class to the input
+      const input = document.getElementById(id.replace('-error', ''));
+      if (input) input.classList.add('error');
     }
-
-
-
 
     // ----- Image Upload + Crop -----
     function initializeImageUpload() {
@@ -447,14 +1081,17 @@
         area.addEventListener('dragover', e => {
           e.preventDefault();
           area.style.borderColor = 'var(--primary)';
+          area.style.background = 'var(--primary-light)';
         });
         area.addEventListener('dragleave', e => {
           e.preventDefault();
           area.style.borderColor = 'var(--gray-300)';
+          area.style.background = 'var(--gray-50)';
         });
         area.addEventListener('drop', e => {
           e.preventDefault();
           area.style.borderColor = 'var(--gray-300)';
+          area.style.background = 'var(--gray-50)';
           handle([...e.dataTransfer.files]);
         });
       });
@@ -515,7 +1152,8 @@
         const j = await res.json();
         hideLoading();
         if (!j.success) {
-          showFormError('dynamic-error-msg', j.message||'Upload failed');
+          document.getElementById('dynamic-error-msg').innerHTML = '<span class="icon">⚠️</span> ' + (j.message||'Upload failed');
+          document.getElementById('dynamic-error-msg').classList.add('show');
           return closeCropModal();
         }
         const url = j.imageUrl;
@@ -536,8 +1174,8 @@
         const d = document.createElement('div');
         d.className = 'image-preview';
         d.innerHTML = `
-          <img src="${u}">
-          <button type="button" class="image-remove" onclick="removeMainImage(${i})">×</button>
+          <img src="${u}" alt="Product image ${i + 1}">
+          <button type="button" class="image-remove" onclick="removeMainImage(${i})" title="Remove image">×</button>
         `;
         c.appendChild(d);
       });
@@ -559,9 +1197,9 @@
         const d = document.createElement('div');
         d.className = 'image-preview';
         d.innerHTML = `
-          <img src="${u}">
+          <img src="${u}" alt="Variant image ${i + 1}">
           <button type="button" class="image-remove"
-                  onclick="removeVariantImage(${idx},${i})">×</button>
+                  onclick="removeVariantImage(${idx},${i})" title="Remove image">×</button>
         `;
         c.appendChild(d);
       });
@@ -578,11 +1216,21 @@
       const c = document.getElementById('variants-container');
       c.insertAdjacentHTML('beforeend', `
         <div class="variant-block" id="variant-${idx}">
-          <button type="button" class="btn btn-ghost"
-                  style="float:right"
-                  onclick="removeVariant(${idx})">
-            × Remove
-          </button>
+          <div class="variant-header">
+            <h5 class="variant-title">Variant ${idx + 1}</h5>
+            <div class="variant-status">
+              <label class="checkbox-label">
+                <input type="checkbox" name="variants[${idx}][isActive]" checked>
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">Active Variant</span>
+              </label>
+              <button type="button" class="btn btn-ghost btn-sm"
+                      onclick="removeVariant(${idx})">
+                <span class="icon">×</span>
+                Remove
+              </button>
+            </div>
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Size *</label>
@@ -605,13 +1253,19 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Price *</label>
-              <input type="number" name="variants[${idx}][price]"
-                     class="form-input" step="0.01" min="0" required>
+              <div class="input-group">
+                <span class="input-prefix">₹</span>
+                <input type="number" name="variants[${idx}][price]"
+                       class="form-input" step="0.01" min="0" required>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Sale Price</label>
-              <input type="number" name="variants[${idx}][salePrice]"
-                     class="form-input" step="0.01" min="0">
+              <div class="input-group">
+                <span class="input-prefix">₹</span>
+                <input type="number" name="variants[${idx}][salePrice]"
+                       class="form-input" step="0.01" min="0">
+              </div>
             </div>
           </div>
           <div class="form-row">
@@ -622,10 +1276,13 @@
             </div>
             <div class="form-group">
               <label class="form-label">Images *</label>
-              <div class="image-upload-area" id="variant-upload-${idx}">
-                Click or drag
+              <div class="image-upload-area" id="variant-upload-${idx}" style="padding: 1.5rem; font-size: 0.875rem;">
+                <div class="upload-placeholder">
+                  <div class="upload-icon" style="font-size: 1.5rem;">📤</div>
+                  <p class="upload-text" style="font-size: 0.875rem;">Click or drag</p>
+                </div>
               </div>
-              <div class="image-preview-container" id="variant-preview-${idx}"></div>
+              <div class="image-preview-container" id="variant-preview-${idx}" style="grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.75rem; margin-top: 1rem;"></div>
             </div>
           </div>
         </div>
@@ -633,9 +1290,22 @@
       // wire up that new upload area:
       const area = document.getElementById(`variant-upload-${idx}`);
       area.addEventListener('click', () => openFileDialog(idx));
-      area.addEventListener('dragover', e => { e.preventDefault(); area.style.borderColor='var(--primary)'; });
-      area.addEventListener('dragleave', e => { e.preventDefault(); area.style.borderColor='var(--gray-300)'; });
-      area.addEventListener('drop', e => { e.preventDefault(); handleFiles([...e.dataTransfer.files], idx); });
+      area.addEventListener('dragover', e => { 
+        e.preventDefault(); 
+        area.style.borderColor='var(--primary)'; 
+        area.style.background='var(--primary-light)';
+      });
+      area.addEventListener('dragleave', e => { 
+        e.preventDefault(); 
+        area.style.borderColor='var(--gray-300)'; 
+        area.style.background='var(--gray-50)';
+      });
+      area.addEventListener('drop', e => { 
+        e.preventDefault(); 
+        area.style.borderColor='var(--gray-300)'; 
+        area.style.background='var(--gray-50)';
+        handleFiles([...e.dataTransfer.files], idx); 
+      });
     });
 
     // ----- Form Submit -----
@@ -644,8 +1314,13 @@
       clearFormErrors();
 
       // basic validation
-      if (!document.getElementById('product-name').value.trim())
-        return showFormError('name-error','Name is required');
+      const name = document.getElementById('product-name').value.trim();
+      const category = document.getElementById('product-category').value.trim();
+      const brand = document.getElementById('product-brand').value.trim();
+      if (!name) return showFormError('name-error', 'Product name is required');
+      if(!category) return showFormError('category-error', 'Category is required');
+      if(!brand) return showFormError('brand-error', 'Brand is required');
+
       if (STATE.uploadedImages.length < MIN_IMAGES)
         return showFormError('images-error',`At least ${MIN_IMAGES} images`);
 
@@ -658,21 +1333,30 @@
         const size  = block.querySelector(`[name="variants[${idx}][size]"]`).value;
         const color = block.querySelector(`[name="variants[${idx}][color]"]`).value;
         const price = block.querySelector(`[name="variants[${idx}][price]"]`).value;
+        const salePrice = block.querySelector(`[name="variants[${idx}][salePrice]"]`).value;
         const stock = block.querySelector(`[name="variants[${idx}][stock]"]`).value;
         if (!size||!color||!price||!stock)
           return showFormError('variants-error','All variant fields are required');
         if (STATE.variants[idx].images.length < MIN_IMAGES)
           return showFormError('variants-error',`Each variant needs ${MIN_IMAGES} images`);
+
+                  if(price < salePrice){
+          return showFormError('variants-error', 'sale price cannot be grater than price')
+        }
       }
+
+      const maxQty = document.getElementById('product-max-cart-qty').value;
+if (!maxQty || parseInt(maxQty) < 1) {
+  return showFormError('maxCartQuantity-error', 'Enter a valid max quantity (min 1)');
+}
+
 
       const payload = {
         name:        document.getElementById('product-name').value.trim(),
         description: document.getElementById('product-description').value.trim(),
         category:    document.getElementById('product-category').value,
         brand:       document.getElementById('product-brand').value || null,
-        regularPrice: parseFloat(document.getElementById('product-regular-price').value),
-        salePrice:    parseFloat(document.getElementById('product-sale-price').value)||0,
-        stock:        parseInt(document.getElementById('product-stock').value)||0,
+        maxCartQuantity: parseInt(document.getElementById('product-max-cart-qty').value) || 5,
         images:      STATE.uploadedImages,
         isActive:    document.getElementById('product-active').checked,
         isFeatured:  document.getElementById('product-featured').checked,
@@ -682,7 +1366,8 @@
           price:     Number(document.querySelector(`[name="variants[${idx}][price]"]`).value),
           salePrice: Number(document.querySelector(`[name="variants[${idx}][salePrice]"]`).value)||0,
           stock:     Number(document.querySelector(`[name="variants[${idx}][stock]"]`).value),
-          images:    STATE.variants[idx].images
+          images:    STATE.variants[idx].images,
+          isActive:  document.querySelector(`[name="variants[${idx}][isActive]"]`).checked
         }))
       };
 
@@ -702,17 +1387,21 @@
         document.getElementById('product-submit-btn').disabled = false;
 
         if (j.success) {
-          document.getElementById('dynamic-success-msg').textContent = 'Updated!';
+          document.getElementById('dynamic-success-msg').innerHTML = '<span class="icon">✅</span> Product updated successfully!';
           document.getElementById('dynamic-success-msg').classList.add('show');
           setTimeout(()=>window.location='/admin/products/all',1500);
         } else if (j.errors) {
           Object.entries(j.errors).forEach(([f,m])=>showFormError(`${f}-error`,m));
         } else {
-          showFormError('dynamic-error-msg', j.message||'Save failed');
+          document.getElementById('dynamic-error-msg').innerHTML = '<span class="icon">⚠️</span> ' + (j.message||'Save failed');
+          document.getElementById('dynamic-error-msg').classList.add('show');
         }
       } catch (err) {
         hideLoading();
-        showFormError('dynamic-error-msg','An error occurred');
+        document.getElementById('product-spinner').classList.remove('active');
+        document.getElementById('product-submit-btn').disabled = false;
+        document.getElementById('dynamic-error-msg').innerHTML = '<span class="icon">⚠️</span> An error occurred';
+        document.getElementById('dynamic-error-msg').classList.add('show');
         console.error(err);
       }
     });

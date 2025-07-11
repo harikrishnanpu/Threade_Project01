@@ -1,17 +1,20 @@
 const express = require('express');
 const nocache = require('nocache');
+const http = require('http');
 const path = require('node:path');
-const userRouter = require('./routers/usersRouter.js');
+const userRouter = require('./routers/user/usersRouter.js');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const { checkAndRedirect } = require('./middlewares/userMiddleware.js');
 const expressEjsLayouts = require('express-ejs-layouts');
-const adminRouter = require('./routers/adminRouter.js');
+const adminRouter = require('./routers/admin/adminRouter.js');
 const { connectDb } = require('./config/db.js');
+const chatSocketHandler = require('./socket/socket.js');
+const { Server } = require('socket.io');
 
 const MONGODB_URI = process.env.MONGODB_URI;
-
+ 
 
 connectDb(MONGODB_URI);
 const app = express();
@@ -39,12 +42,15 @@ app.get('/', checkAndRedirect);
 app.use('/user', userRouter);
 app.use('/admin', adminRouter);
 
+const httpServer = http.createServer(app);      
+const io = new Server(httpServer, {
+  cors: {origin: '*' }
+})
+
+chatSocketHandler(io)
 
 
 
 
 
-
-
-
-module.exports = app;
+module.exports = httpServer;

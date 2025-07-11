@@ -5,11 +5,31 @@ const UserSchema = mongoose.Schema({
     email: { type: String, trim: true, required: true, unique: true },
     phone: { type: String, trim: true },
     password: { type: String, trim: true, },
+    profileImage: { type: String , default: null },
+
     googleId: {type: String, trim: true},
     dateOfBirth: {type: Date},
     isVerified: {type: Boolean, default: false},
+
     isBlocked: { type: Boolean, default: false },
-    isListed: { type: Boolean, default: true }
+
+    isListed: { type: Boolean, default: true },
+    
+referralCode: {
+    type: String,
+    unique: true,
+    uppercase: true,
+    trim: true
+  },
+  referredBy: {
+    type: mongoose.Types.ObjectId,
+    ref: 'users',
+    default: null
+  },
+  isOnline: {type: Boolean, default: false},
+  currentRoomId: String,
+  socketId: String
+
 }, { timestamps: true });
 
 const Users = mongoose.model('users', UserSchema);

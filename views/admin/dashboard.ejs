@@ -1,4 +1,756 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
+  <style>
+
+:root {
+      --primary: #007bff;
+      --primary-dark: #0056b3;
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #17a2b8;
+      --light: #f8f9fa;
+      --dark: #343a40;  
+      --border-color: #dee2e6;
+      --text-muted: #6c757d;
+      --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.5;
+    }
+
+    .container-fluid {
+      padding: 0 15px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .loading-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .loading-spinner {
+      text-align: center;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Page header */
+    .page-header {
+      background: transparent;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--dark);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* Stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .stat-card.success::before { background: var(--success); }
+    .stat-card.warning::before { background: var(--warning); }
+    .stat-card.danger::before { background: var(--danger); }
+    .stat-card.info::before { background: var(--info); }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .stat-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: white;
+    }
+
+    .stat-icon.primary { background: var(--primary); }
+    .stat-icon.success { background: var(--success); }
+    .stat-icon.warning { background: var(--warning); }
+    .stat-icon.danger { background: var(--danger); }
+    .stat-icon.info { background: var(--info); }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+
+    .stat-change {
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat-change.positive { color: var(--success); }
+    .stat-change.negative { color: var(--danger); }
+    .stat-change.neutral { color: var(--text-muted); }
+
+    /* Main content */
+    .card-style {
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .mb-30 {
+      margin-bottom: 30px;
+    }
+
+    /* Controls */
+    .table-controls {
+      padding: 25px;
+      border-bottom: 1px solid var(--border-color);
+      background: #f8f9fa;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: end;
+    }
+
+    .filters-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      flex: 1;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 150px;
+    }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-select, .form-control {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      background: white;
+    }
+
+    .form-select:focus, .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .date-range-inputs {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .date-range-inputs input {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .actions-section {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 16px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .btn-success:hover {
+      background: #218838;
+      border-color: #1e7e34;
+    }
+
+    .btn-outline-primary {
+      background: transparent;
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-outline-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border-color: var(--border-color);
+    }
+
+    .btn-outline-secondary:hover {
+      background: var(--light);
+      color: var(--dark);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Charts section */
+    .charts-section {
+      padding: 25px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 400px;
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--dark);
+    }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    .table-container {
+      min-width: 800px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .table th {
+      background: #f8f9fa;
+      padding: 15px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--dark);
+      border-bottom: 2px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    .table td {
+      padding: 15px 12px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .table tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .sortable-header {
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .sortable-header:hover {
+      background: #e9ecef;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sort-indicator {
+      font-size: 12px;
+      color: var(--primary);
+    }
+
+    /* Pagination */
+    .table-navigator {
+      padding: 20px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      background: #f8f9fa;
+    }
+
+    .table-navigator button i{
+          font-size: 13px;
+    padding-inline: 5px;
+    padding-block: 3px;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .nav-btn {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    .page-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .page-input {
+      width: 60px;
+      text-align: center;
+      padding: 4px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+
+    .error-msg, .success-msg {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 15px 25px;
+      font-size: 14px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      transform: translateY(-10px);
+      display: none;
+    }
+
+    .error-msg.show, .success-msg.show {
+      opacity: 1;
+      visibility: visible;
+      display: block !important;
+      transform: translateY(0);
+    }
+
+    .error-msg {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .success-msg {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    /* No data state */
+    .no-data-content {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .no-data-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    /* Export dropdown */
+    .export-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .export-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      min-width: 150px;
+      margin-top: 5px;
+    }
+
+  .export-dropdown:hover .export-menu {
+      display: block;
+      top: 90%;
+    }
+
+    .export-menu:hover .export-item{
+      display: block;
+    }
+
+    .export-item {
+      display: block;
+      padding: 10px 15px;
+      color: var(--dark);
+      text-decoration: none;
+      font-size: 14px;
+      transition: background-color 0.2s ease;
+    }
+
+    .export-menu button{
+      border: none;
+    }
+
+    .export-item:hover {
+      background: var(--light);
+    }
+
+    .export-item i {
+      width: 16px;
+      margin-right: 8px;
+    }
+
+    /* Responsive design */
+    @media (max-width: 1200px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container-fluid {
+        padding: 0 10px;
+      }
+
+      .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .filters-section {
+        flex-direction: column;
+      }
+
+      .filter-group {
+        min-width: auto;
+      }
+
+      .date-range-inputs {
+        flex-direction: column;
+      }
+
+      .date-range-inputs input {
+        min-width: auto;
+      }
+
+      .actions-section {
+        justify-content: center;
+      }
+
+      .table-navigator {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .pagination-controls {
+        justify-content: center;
+      }
+
+      .btn-text {
+        display: none;
+      }
+
+      .chart-container {
+        height: 300px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .page-title {
+        font-size: 20px;
+      }
+
+      .stat-card {
+        padding: 20px;
+      }
+
+      .stat-value {
+        font-size: 24px;
+      }
+
+      .table-controls {
+        padding: 20px;
+      }
+
+      .charts-section {
+        padding: 20px;
+      }
+
+      .table-navigator {
+        padding: 15px 20px;
+      }
+    }
+
+    /* Custom date range styles */
+    .custom-date-section {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+
+    .custom-date-section.show {
+      display: block;
+    }
+
+    .date-range-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Loading states for buttons */
+    .btn.loading {
+      position: relative;
+      color: transparent;
+    }
+
+    .btn.loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .btn-primary.loading::after {
+      border-top-color: white;
+    }
+
+    /* Table cell specific styles */
+    .order-date {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    .amount-cell {
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .discount-cell {
+      color: var(--warning);
+      font-weight: 500;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-cancelled {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    #Chart3 {
+  max-height: 370px;
+  width: 100%;
+}
+
+  </style>
+
+
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
 
       <!-- ========== section start ========== -->
       <section class="section">
@@ -8,7 +760,7 @@
             <div class="row align-items-center">
               <div class="col-md-6">
                 <div class="title">
-                  <h2>eCommerce Dashboard</h2>
+                  <h2>THREADË Dashboard</h2>
                 </div>
               </div>
               <!-- end col -->
@@ -19,9 +771,6 @@
                       <li class="breadcrumb-item">
                         <a href="#0">Dashboard</a>
                       </li>
-                      <li class="breadcrumb-item active" aria-current="page">
-                        eCommerce
-                      </li>
                     </ol>
                   </nav>
                 </div>
@@ -31,6 +780,80 @@
             <!-- end row -->
           </div>
           <!-- ========== title-wrapper end ========== -->
+
+              <p class="error-msg" id="error-msg"></p>
+    <p class="success-msg" id="success-msg"></p>
+
+                <div class="table-controls">
+        <div class="controls-row">
+          <div class="filters-section">
+
+            <div class="filter-group">
+              <label class="filter-label">Report Period</label>
+              <select class="form-select" id="date-range-filter">
+                <option value="today" <%= dateRange === 'today' ? 'selected' : '' %>>Today</option>
+                <option value="yesterday" <%= dateRange === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+                <option value="week" <%= dateRange === 'week' ? 'selected' : '' %>>This Week</option>
+                <option value="month" <%= dateRange === 'month' ? 'selected' : '' %>>This Month</option>
+                <option value="last-month" <%= dateRange === 'last-month' ? 'selected' : '' %>>Last Month</option>
+                <option value="year" <%= dateRange === 'year' ? 'selected' : '' %>>This Year</option>
+                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="filter-group">
+              <label class="filter-label">Order Status</label>
+              <select class="form-select" id="status-filter">
+                <option value="all" <%= status === 'all' ? 'selected' : '' %>>All Orders</option>
+                <option value="completed" <%= status === 'completed' ? 'selected' : '' %>>Completed</option>
+                <option value="delivered" <%= status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                <option value="cancelled" <%= status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                <option value="returned" <%= status === 'returned' ? 'selected' : '' %>>Returned</option>
+              </select>
+            </div>
+
+            <!-- Payment Method Filter -->
+            <div class="filter-group">
+              <label class="filter-label">Payment Method</label>
+              <select class="form-select" id="payment-filter">
+                <option value="all" <%= paymentMethod === 'all' ? 'selected' : '' %>>All Methods</option>
+                <option value="online" <%= paymentMethod === 'online' ? 'selected' : '' %>>Online Payment</option>
+                <option value="cod" <%= paymentMethod === 'cod' ? 'selected' : '' %>>Cash on Delivery</option>
+              </select>
+            </div>
+
+
+          </div>
+
+          <div class="actions-section">
+            <button class="btn btn-outline-secondary" id="reset-filters">
+              <i class="fas fa-undo"></i>
+              <span class="btn-text">Reset</span>
+            </button>
+            <button class="btn btn-primary" id="apply-filters">
+              <i class="fas fa-filter"></i>
+              <span class="btn-text">Apply Filters</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Date Range -->
+        <div class="custom-date-section" id="custom-date-section">
+          <div class="date-range-label">Custom Date Range</div>
+          <div class="date-range-inputs">
+            <input type="date" class="form-control" id="start-date" value="<%= startDate || '' %>">
+            <span>to</span>
+            <input type="date" class="form-control" id="end-date" value="<%= endDate || '' %>">
+            <button class="btn btn-primary" id="apply-custom-date">
+              <i class="fas fa-calendar-check"></i>
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+
+
           <div class="row">
             <div class="col-xl-3 col-lg-4 col-sm-6">
               <div class="icon-card mb-30">
@@ -38,12 +861,12 @@
                   <i class="lni lni-cart-full"></i>
                 </div>
                 <div class="content">
-                  <h6 class="mb-10">New Orders</h6>
-                  <h3 class="text-bold mb-10">34567</h3>
-                  <p class="text-sm text-success">
+                  <h6 class="mb-10">Total Orders</h6>
+                  <h3 class="text-bold mb-10"><%= totals.totalOrders %></h3>
+                  <!-- <p class="text-sm text-success">
                     <i class="lni lni-arrow-up"></i> +2.00%
                     <span class="text-gray">(30 days)</span>
-                  </p>
+                  </p> -->
                 </div>
               </div>
               <!-- End Icon Cart -->
@@ -52,15 +875,15 @@
             <div class="col-xl-3 col-lg-4 col-sm-6">
               <div class="icon-card mb-30">
                 <div class="icon success">
-                  <i class="lni lni-dollar"></i>
+                  <i class="lni lni-rupee"></i>
                 </div>
                 <div class="content">
                   <h6 class="mb-10">Total Income</h6>
-                  <h3 class="text-bold mb-10">$74,567</h3>
-                  <p class="text-sm text-success">
+                  <h3 class="text-bold mb-10">₹<%= totals.totalIncome %></h3>
+                  <!-- <p class="text-sm text-success">
                     <i class="lni lni-arrow-up"></i> +5.45%
                     <span class="text-gray">Increased</span>
-                  </p>
+                  </p> -->
                 </div>
               </div>
               <!-- End Icon Cart -->
@@ -72,12 +895,12 @@
                   <i class="lni lni-credit-cards"></i>
                 </div>
                 <div class="content">
-                  <h6 class="mb-10">Total Expense</h6>
-                  <h3 class="text-bold mb-10">$24,567</h3>
-                  <p class="text-sm text-danger">
+                  <h6 class="mb-10">Total Pending</h6>
+                  <h3 class="text-bold mb-10">₹<%= totals.totalPendingAmt %></h3>
+                  <!-- <p class="text-sm text-danger">
                     <i class="lni lni-arrow-down"></i> -2.00%
                     <span class="text-gray">Expense</span>
-                  </p>
+                  </p> -->
                 </div>
               </div>
               <!-- End Icon Cart -->
@@ -89,12 +912,12 @@
                   <i class="lni lni-user"></i>
                 </div>
                 <div class="content">
-                  <h6 class="mb-10">New User</h6>
-                  <h3 class="text-bold mb-10">34567</h3>
-                  <p class="text-sm text-danger">
+                  <h6 class="mb-10">All Users</h6>
+                  <h3 class="text-bold mb-10"><%= totals.totalUsers %></h3>
+                  <!-- <p class="text-sm text-danger">
                     <i class="lni lni-arrow-down"></i> -25.00%
                     <span class="text-gray"> Earning</span>
-                  </p>
+                  </p> -->
                 </div>
               </div>
               <!-- End Icon Cart -->
@@ -108,15 +931,19 @@
                 <div class="title d-flex flex-wrap justify-content-between">
                   <div class="left">
                     <h6 class="text-medium mb-10">Yearly Stats</h6>
-                    <h3 class="text-bold">$245,479</h3>
+                    <h3 class="text-bold">₹<%= totals.totalOrderAmount %></h3>
                   </div>
                   <div class="right">
                     <div class="select-style-1">
                       <div class="select-position select-sm">
                         <select class="light-bg">
-                          <option value="">Yearly</option>
-                          <option value="">Monthly</option>
-                          <option value="">Weekly</option>
+                <option value="today" <%= dateRange === 'today' ? 'selected' : '' %>>Today</option>
+                <option value="yesterday" <%= dateRange === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+                <option value="week" <%= dateRange === 'week' ? 'selected' : '' %>>This Week</option>
+                <option value="month" <%= dateRange === 'month' ? 'selected' : '' %>>This Month</option>
+                <option value="last-month" <%= dateRange === 'last-month' ? 'selected' : '' %>>Last Month</option>
+                <option value="year" <%= dateRange === 'year' ? 'selected' : '' %>>This Year</option>
+                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
                         </select>
                       </div>
                     </div>
@@ -132,18 +959,22 @@
             </div>
             <!-- End Col -->
             <div class="col-lg-5">
-              <div class="card-style mb-30">
+              <div class="card-style ">
                 <div class="title d-flex flex-wrap align-items-center justify-content-between">
                   <div class="left">
-                    <h6 class="text-medium mb-30">Sales/Revenue</h6>
+                    <h6 class="text-medium mb-2">Payment Method</h6>
                   </div>
                   <div class="right">
-                    <div class="select-style-1">
+                    <div class="select-style-1 mb-2">
                       <div class="select-position select-sm">
                         <select class="light-bg">
-                          <option value="">Yearly</option>
-                          <option value="">Monthly</option>
-                          <option value="">Weekly</option>
+                <option value="today" <%= dateRange === 'today' ? 'selected' : '' %>>Today</option>
+                <option value="yesterday" <%= dateRange === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+                <option value="week" <%= dateRange === 'week' ? 'selected' : '' %>>This Week</option>
+                <option value="month" <%= dateRange === 'month' ? 'selected' : '' %>>This Month</option>
+                <option value="last-month" <%= dateRange === 'last-month' ? 'selected' : '' %>>Last Month</option>
+                <option value="year" <%= dateRange === 'year' ? 'selected' : '' %>>This Year</option>
+                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
                         </select>
                       </div>
                     </div>
@@ -152,29 +983,45 @@
                 </div>
                 <!-- End Title -->
                 <div class="chart">
-                  <canvas id="Chart2" style="width: 100%; height: 400px; margin-left: -45px;"></canvas>
+                  <div id="legend3">
+                    <ul class="legend3 d-flex flex-wrap align-items-center mb-30">
+                      <li>
+                        <div class="d-flex">
+                          <span class="bg-color purple-bg"> </span>
+                          <div class="text">
+                            <p class="text-sm text-success">
+                              <span class="text-dark">Online</span>
+                              <!-- <i class="lni lni-arrow-up"></i> -->
+                            </p>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="d-flex">
+                          <span class="bg-color primary-bg"></span>
+                          <div class="text">
+                            <p class="text-sm text-success">
+                              <span class="text-dark">Cash on Delivery</span> 
+                              <!-- <i class="lni lni-arrow-up"></i> -->
+                            </p>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                  <canvas id="Chart3" style="width: 100%; height: 450px;"></canvas>
                 </div>
-                <!-- End Chart -->
               </div>
             </div>
             <!-- End Col -->
           </div>
           <!-- End Row -->
-          <div class="row">
-            <div class="col-lg-5">
-              <div class="card-style mb-30">
-                <div class="title d-flex justify-content-between align-items-center">
-                  <div class="left">
-                    <h6 class="text-medium mb-30">Sells by State</h6>
-                  </div>
-                </div>
-                <!-- End Title -->
-                <div id="map" style="width: 100%; height: 400px; overflow: hidden;"></div>
-                <p>Last updated: 7 days ago</p>
-              </div>
-            </div>
-            <!-- End Col -->
-            <div class="col-lg-7">
+
+
+                    <div class="row">
+
+
+                        <div class="col-lg-7">
               <div class="card-style mb-30">
                 <div class="title d-flex flex-wrap justify-content-between align-items-center">
                   <div class="left">
@@ -184,9 +1031,13 @@
                     <div class="select-style-1">
                       <div class="select-position select-sm">
                         <select class="light-bg">
-                          <option value="">Yearly</option>
-                          <option value="">Monthly</option>
-                          <option value="">Weekly</option>
+                <option value="today" <%= dateRange === 'today' ? 'selected' : '' %>>Today</option>
+                <option value="yesterday" <%= dateRange === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+                <option value="week" <%= dateRange === 'week' ? 'selected' : '' %>>This Week</option>
+                <option value="month" <%= dateRange === 'month' ? 'selected' : '' %>>This Month</option>
+                <option value="last-month" <%= dateRange === 'last-month' ? 'selected' : '' %>>Last Month</option>
+                <option value="year" <%= dateRange === 'year' ? 'selected' : '' %>>This Year</option>
+                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
                         </select>
                       </div>
                     </div>
@@ -206,10 +1057,10 @@
                           <h6 class="text-sm text-medium">Category</h6>
                         </th>
                         <th class="min-width">
-                          <h6 class="text-sm text-medium">Price</h6>
-                        </th>
-                        <th class="min-width">
                           <h6 class="text-sm text-medium">Sold</h6>
+                        </th>
+                    <th class="min-width">
+                          <h6 class="text-sm text-medium">Curr.stock</h6>
                         </th>
                         <th class="min-width">
                           <h6 class="text-sm text-medium">Profit</h6>
@@ -218,6 +1069,8 @@
                       </tr>
                     </thead>
                     <tbody>
+                      <% if(topSellingProducts && topSellingProducts.length > 0) { %>
+                        <% topSellingProducts.forEach((prod)=> {  %>
                       <tr>
                         <td>
                           <div class="check-input-primary">
@@ -227,192 +1080,55 @@
                         <td>
                           <div class="product">
                             <div class="image">
-                              <img src="assets/images/products/product-mini-1.jpg" alt="" />
+                              <img src="<%= prod.variant.images[0] %>" alt="" />
                             </div>
-                            <p class="text-sm">Arm Chair</p>
+                            <p class="text-sm"><%= prod.name %></p>
                           </div>
                         </td>
+
                         <td>
-                          <p class="text-sm">Interior</p>
+                          <p class="text-sm"><%= prod.category.name %></p>
                         </td>
                         <td>
-                          <p class="text-sm">$345</p>
+                          <p class="text-sm"><%= prod.itemSold %></p>
                         </td>
                         <td>
-                          <p class="text-sm">43</p>
+                          <p class="text-sm"><%= prod.stock %></p>
+                          <p class="<%= prod.stock == 0 ? 'bg-danger' : prod.stock < 5 ? 'bg-warning' : 'bg-success' %> text-center rounded text-white"><%= prod.stock == 0 ? 'out stock' : prod.stock < 5 ? 'low stock' : 'in stock' %></p>
                         </td>
                         <td>
-                          <p class="text-sm">$45</p>
-                        </td>
-                        <td>
-                          <div class="action justify-content-end">
-                            <button class="more-btn ml-10 dropdown-toggle" id="moreAction1" data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                              <i class="lni lni-more-alt"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreAction1">
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Remove</a>
-                              </li>
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Edit</a>
-                              </li>
-                            </ul>
-                          </div>
+                          <p class="text-sm">₹<%= prod.variant.salePrice %></p>
+                          <p class="text-xs bg-danger text-white text-center rounded"><del>₹<%= prod.variant.price %></del></p>
                         </td>
                       </tr>
-                      <tr>
-                        <td>
-                          <div class="check-input-primary">
-                            <input class="form-check-input" type="checkbox" id="checkbox-1" />
-                          </div>
-                        </td>
-                        <td>
-                          <div class="product">
-                            <div class="image">
-                              <img src="assets/images/products/product-mini-2.jpg" alt="" />
-                            </div>
-                            <p class="text-sm">SOfa</p>
-                          </div>
-                        </td>
-                        <td>
-                          <p class="text-sm">Interior</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$145</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">13</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$15</p>
-                        </td>
-                        <td>
-                          <div class="action justify-content-end">
-                            <button class="more-btn ml-10 dropdown-toggle" id="moreAction1" data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                              <i class="lni lni-more-alt"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreAction1">
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Remove</a>
-                              </li>
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Edit</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="check-input-primary">
-                            <input class="form-check-input" type="checkbox" id="checkbox-1" />
-                          </div>
-                        </td>
-                        <td>
-                          <div class="product">
-                            <div class="image">
-                              <img src="assets/images/products/product-mini-3.jpg" alt="" />
-                            </div>
-                            <p class="text-sm">Dining Table</p>
-                          </div>
-                        </td>
-                        <td>
-                          <p class="text-sm">Interior</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$95</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">32</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$215</p>
-                        </td>
-                        <td>
-                          <div class="action justify-content-end">
-                            <button class="more-btn ml-10 dropdown-toggle" id="moreAction1" data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                              <i class="lni lni-more-alt"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreAction1">
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Remove</a>
-                              </li>
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Edit</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="check-input-primary">
-                            <input class="form-check-input" type="checkbox" id="checkbox-1" />
-                          </div>
-                        </td>
-                        <td>
-                          <div class="product">
-                            <div class="image">
-                              <img src="assets/images/products/product-mini-4.jpg" alt="" />
-                            </div>
-                            <p class="text-sm">Office Chair</p>
-                          </div>
-                        </td>
-                        <td>
-                          <p class="text-sm">Interior</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$105</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">23</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$345</p>
-                        </td>
-                        <td>
-                          <div class="action justify-content-end">
-                            <button class="more-btn ml-10 dropdown-toggle" id="moreAction1" data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                              <i class="lni lni-more-alt"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreAction1">
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Remove</a>
-                              </li>
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Edit</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </td>
-                      </tr>
+                          <%  }) } else{ %>
+                            <p>no products</p>
+                          <% } %>
                     </tbody>
                   </table>
                   <!-- End Table -->
                 </div>
               </div>
             </div>
-            <!-- End Col -->
-          </div>
-          <!-- End Row -->
-          <div class="row">
-            <div class="col-lg-7">
-              <div class="card-style mb-30">
-                <div class="title d-flex flex-wrap align-items-center justify-content-between">
+
+
+                                    <div class="col-lg-5">
+              <div class="card-style mb-2">
+                <div class="title d-flex flex-wrap justify-content-between align-items-center">
                   <div class="left">
-                    <h6 class="text-medium mb-2">Sales Forecast</h6>
+                    <h6 class="text-medium mb-30">Top Selling Categories</h6>
                   </div>
                   <div class="right">
-                    <div class="select-style-1 mb-2">
+                    <div class="select-style-1">
                       <div class="select-position select-sm">
                         <select class="light-bg">
-                          <option value="">Last Month</option>
-                          <option value="">Last 3 Months</option>
-                          <option value="">Last Year</option>
+                <option value="today" <%= dateRange === 'today' ? 'selected' : '' %>>Today</option>
+                <option value="yesterday" <%= dateRange === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+                <option value="week" <%= dateRange === 'week' ? 'selected' : '' %>>This Week</option>
+                <option value="month" <%= dateRange === 'month' ? 'selected' : '' %>>This Month</option>
+                <option value="last-month" <%= dateRange === 'last-month' ? 'selected' : '' %>>Last Month</option>
+                <option value="year" <%= dateRange === 'year' ? 'selected' : '' %>>This Year</option>
+                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
                         </select>
                       </div>
                     </div>
@@ -420,62 +1136,75 @@
                   </div>
                 </div>
                 <!-- End Title -->
-                <div class="chart">
-                  <div id="legend3">
-                    <ul class="legend3 d-flex flex-wrap align-items-center mb-30">
-                      <li>
-                        <div class="d-flex">
-                          <span class="bg-color primary-bg"> </span>
-                          <div class="text">
-                            <p class="text-sm text-success">
-                              <span class="text-dark">Revenue</span> +25.55%
-                              <i class="lni lni-arrow-up"></i>
-                            </p>
+                <div class="table-responsive">
+                  <table class="table top-selling-table">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>
+                          <h6 class="text-sm text-medium">Category</h6>
+                        </th>
+                        <th class="min-width">
+                          <h6 class="text-sm text-medium">Sold</h6>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% if(topSellingCategories && topSellingCategories.length > 0) { %>
+                        <% topSellingCategories.forEach((cat)=> {  %>
+                      <tr>
+                        <td>
+                          <div class="check-input-primary">
+                            <input class="form-check-input" type="checkbox" id="checkbox-1" />
                           </div>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="d-flex">
-                          <span class="bg-color purple-bg"></span>
-                          <div class="text">
-                            <p class="text-sm text-success">
-                              <span class="text-dark">Net Profit</span> +45.55%
-                              <i class="lni lni-arrow-up"></i>
-                            </p>
+                        </td>
+                        <td>
+                          <div class="product">
+                            <p class="text-sm"><%= cat.category.name %></p>
                           </div>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="d-flex">
-                          <span class="bg-color orange-bg"></span>
-                          <div class="text">
-                            <p class="text-sm text-danger">
-                              <span class="text-dark">Order</span> -4.2%
-                              <i class="lni lni-arrow-down"></i>
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                  <canvas id="Chart3" style="width: 100%; height: 450px; margin-left: -35px;"></canvas>
+                        </td>
+                        <td>
+                          <p class="text-sm"><%= cat.sold %></p>
+<p class="<%= cat.sold === 0 
+              ? 'bg-danger' 
+              : cat.sold < 10 
+              ? 'bg-warning' 
+              : 'bg-success' %> text-center rounded text-white">
+
+  <%= cat.sold === 0 
+        ? 'No Sales' 
+        : cat.sold < 10 
+        ? 'Low Sales' 
+        : 'Top Seller' %>
+</p>
+                        </td>
+
+                      </tr>
+                          <%  }) } else{ %>
+                            <p>no categories</p>
+                          <% } %>
+                    </tbody>
+                  </table>
+                  <!-- End Table -->
                 </div>
               </div>
-            </div>
-            <!-- End Col -->
-            <div class="col-lg-5">
-              <div class="card-style mb-30">
-                <div class="title d-flex flex-wrap align-items-center justify-content-between">
+
+                            <div class="card-style mb-30">
+                <div class="title d-flex flex-wrap justify-content-between align-items-center">
                   <div class="left">
-                    <h6 class="text-medium mb-2">Traffic</h6>
+                    <h6 class="text-medium mb-30">Top Selling Brands</h6>
                   </div>
                   <div class="right">
-                    <div class="select-style-1 mb-2">
+                    <div class="select-style-1">
                       <div class="select-position select-sm">
-                        <select class="bg-ligh">
-                          <option value="">Last 6 Months</option>
-                          <option value="">Last 3 Months</option>
-                          <option value="">Last Year</option>
+                        <select class="light-bg">
+                <option value="today" <%= dateRange === 'today' ? 'selected' : '' %>>Today</option>
+                <option value="yesterday" <%= dateRange === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+                <option value="week" <%= dateRange === 'week' ? 'selected' : '' %>>This Week</option>
+                <option value="month" <%= dateRange === 'month' ? 'selected' : '' %>>This Month</option>
+                <option value="last-month" <%= dateRange === 'last-month' ? 'selected' : '' %>>Last Month</option>
+                <option value="year" <%= dateRange === 'year' ? 'selected' : '' %>>This Year</option>
+                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
                         </select>
                       </div>
                     </div>
@@ -483,43 +1212,82 @@
                   </div>
                 </div>
                 <!-- End Title -->
-                <div class="chart">
-                  <div id="legend4">
-                    <ul class="legend3 d-flex flex-wrap gap-3 gap-sm-0 align-items-center mb-30">
-                      <li>
-                        <div class="d-flex">
-                          <span class="bg-color primary-bg"> </span>
-                          <div class="text">
-                            <p class="text-sm text-success">
-                              <span class="text-dark">Store Visits</span>
-                              +25.55%
-                              <i class="lni lni-arrow-up"></i>
-                            </p>
-                            <h2>3456</h2>
+                <div class="table-responsive">
+                  <table class="table top-selling-table">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>
+                          <h6 class="text-sm text-medium">Brand</h6>
+                        </th>
+                        <th class="min-width">
+                          <h6 class="text-sm text-medium">Sold</h6>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% if(topSellingBrands && topSellingBrands.length > 0) { %>
+                        <% topSellingBrands.forEach((brand)=> {  %>
+                      <tr>
+                        <td>
+                          <div class="check-input-primary">
+                            <input class="form-check-input" type="checkbox" id="checkbox-1" />
                           </div>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="d-flex">
-                          <span class="bg-color danger-bg"></span>
-                          <div class="text">
-                            <p class="text-sm text-danger">
-                              <span class="text-dark">Visitors</span> -2.05%
-                              <i class="lni lni-arrow-down"></i>
-                            </p>
-                            <h2>3456</h2>
+                        </td>
+                        <td>
+                          <div class="product">
+                            <p class="text-sm"><%= brand.brand.name %></p>
                           </div>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                  <canvas id="Chart4" style="width: 100%; height: 420px; margin-left: -35px;"></canvas>
+                        </td>
+                        <td>
+                          <p class="text-sm"><%= brand.sold %></p>
+<p class="<%= brand.sold === 0 
+              ? 'bg-danger' 
+              : brand.sold < 10 
+              ? 'bg-warning' 
+              : 'bg-success' %> text-center rounded text-white">
+
+  <%= brand.sold === 0 
+        ? 'No Sales' 
+        : brand.sold < 10 
+        ? 'Low Sales' 
+        : 'Top Seller' %>
+</p>
+                        </td>
+
+                      </tr>
+                          <%  }) } else{ %>
+                            <p>no brands</p>
+                          <% } %>
+                    </tbody>
+                  </table>
+                  <!-- End Table -->
                 </div>
-                <!-- End Chart -->
+              </div>
+            </div>
+
+          </div>
+
+
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="card-style mb-30">
+                <div class="title d-flex justify-content-between align-items-center">
+                  <div class="left">
+                    <h6 class="text-medium mb-30">Sells by State</h6>
+                  </div>
+                </div>
+                <!-- End Title -->
+                <div id="map" style="width: 100%; height: 400px; overflow: hidden;"></div>
+                <p>Last updated: 7 days ago</p>
               </div>
             </div>
             <!-- End Col -->
+            <!-- End Col -->
           </div>
+
+
+
           <!-- End Row -->
           <div class="row">
             <div class="col-lg-5">
@@ -532,14 +1300,19 @@
               <div class="card-style mb-30">
                 <div class="title d-flex flex-wrap align-items-center justify-content-between">
                   <div class="left">
-                    <h6 class="text-medium mb-30">Sales History</h6>
+                    <h6 class="text-medium mb-30">Recent Orders</h6>
                   </div>
                   <div class="right">
                     <div class="select-style-1">
                       <div class="select-position select-sm">
                         <select class="light-bg">
-                          <option value="">Today</option>
-                          <option value="">Yesterday</option>
+                <option value="today" <%= dateRange === 'today' ? 'selected' : '' %>>Today</option>
+                <option value="yesterday" <%= dateRange === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+                <option value="week" <%= dateRange === 'week' ? 'selected' : '' %>>This Week</option>
+                <option value="month" <%= dateRange === 'month' ? 'selected' : '' %>>This Month</option>
+                <option value="last-month" <%= dateRange === 'last-month' ? 'selected' : '' %>>Last Month</option>
+                <option value="year" <%= dateRange === 'year' ? 'selected' : '' %>>This Year</option>
+                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
                         </select>
                       </div>
                     </div>
@@ -552,12 +1325,7 @@
                     <thead>
                       <tr>
                         <th>
-                          <h6 class="text-sm text-medium">Products</h6>
-                        </th>
-                        <th class="min-width">
-                          <h6 class="text-sm text-medium">
-                            Category <i class="lni lni-arrows-vertical"></i>
-                          </h6>
+                          <h6 class="text-sm text-medium">OrderId</h6>
                         </th>
                         <th class="min-width">
                           <h6 class="text-sm text-medium">
@@ -569,166 +1337,27 @@
                             Status <i class="lni lni-arrows-vertical"></i>
                           </h6>
                         </th>
-                        <th>
-                          <h6 class="text-sm text-medium text-end">
-                            Actions <i class="lni lni-arrows-vertical"></i>
-                          </h6>
-                        </th>
                       </tr>
                     </thead>
                     <tbody>
+                      <% if(recentOrders && recentOrders.length > 0 ){ %>
+                        <% recentOrders.forEach((ord)=> { %>
                       <tr>
                         <td>
                           <div class="product">
-                            <div class="image">
-                              <img src="assets/images/products/product-mini-1.jpg" alt="" />
-                            </div>
-                            <p class="text-sm">Bedroom</p>
+                            <p class="text-sm"><%= ord.orderNumber %></p>
                           </div>
                         </td>
                         <td>
-                          <p class="text-sm">Interior</p>
+                          <p class="text-sm">₹<%= ord.totalAmount %></p>
                         </td>
                         <td>
-                          <p class="text-sm">$345</p>
-                        </td>
-                        <td>
-                          <span class="status-btn close-btn">Pending</span>
-                        </td>
-                        <td>
-                          <div class="action justify-content-end">
-                            <button class="edit">
-                              <i class="lni lni-pencil"></i>
-                            </button>
-                            <button class="more-btn ml-10 dropdown-toggle" id="moreAction1" data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                              <i class="lni lni-more-alt"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreAction1">
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Remove</a>
-                              </li>
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Edit</a>
-                              </li>
-                            </ul>
-                          </div>
+                          <span class=" px-2 py-1 rounded font-bold text-white text-xs <%= ord.orderStatus.includes('pending') ? 'bg-warning': ord.orderStatus.includes('cancelled') ? 'bg-danger' :  'bg-secondary' %>"><%= ord.orderStatus %></span>
                         </td>
                       </tr>
-                      <tr>
-                        <td>
-                          <div class="product">
-                            <div class="image">
-                              <img src="assets/images/products/product-mini-2.jpg" alt="" />
-                            </div>
-                            <p class="text-sm">Arm Chair</p>
-                          </div>
-                        </td>
-                        <td>
-                          <p class="text-sm">Interior</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$345</p>
-                        </td>
-                        <td>
-                          <span class="status-btn warning-btn">Refund</span>
-                        </td>
-                        <td>
-                          <div class="action justify-content-end">
-                            <button class="edit">
-                              <i class="lni lni-pencil"></i>
-                            </button>
-                            <button class="more-btn ml-10 dropdown-toggle" id="moreAction1" data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                              <i class="lni lni-more-alt"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreAction1">
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Remove</a>
-                              </li>
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Edit</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="product">
-                            <div class="image">
-                              <img src="assets/images/products/product-mini-3.jpg" alt="" />
-                            </div>
-                            <p class="text-sm">Sofa</p>
-                          </div>
-                        </td>
-                        <td>
-                          <p class="text-sm">Interior</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$345</p>
-                        </td>
-                        <td>
-                          <span class="status-btn success-btn">Completed</span>
-                        </td>
-                        <td>
-                          <div class="action justify-content-end">
-                            <button class="edit">
-                              <i class="lni lni-pencil"></i>
-                            </button>
-                            <button class="more-btn ml-10 dropdown-toggle" id="moreAction1" data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                              <i class="lni lni-more-alt"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreAction1">
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Remove</a>
-                              </li>
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Edit</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="product">
-                            <div class="image">
-                              <img src="assets/images/products/product-mini-4.jpg" alt="" />
-                            </div>
-                            <p class="text-sm">Kitchen</p>
-                          </div>
-                        </td>
-                        <td>
-                          <p class="text-sm">Interior</p>
-                        </td>
-                        <td>
-                          <p class="text-sm">$345</p>
-                        </td>
-                        <td>
-                          <span class="status-btn close-btn">Canceled</span>
-                        </td>
-                        <td>
-                          <div class="action justify-content-end">
-                            <button class="edit">
-                              <i class="lni lni-pencil"></i>
-                            </button>
-                            <button class="more-btn ml-10 dropdown-toggle" id="moreAction1" data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                              <i class="lni lni-more-alt"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreAction1">
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Remove</a>
-                              </li>
-                              <li class="dropdown-item">
-                                <a href="#0" class="text-gray">Edit</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </td>
-                      </tr>
+                      <% }) }else{ %>
+                        <p>no orders</p>
+                        <%}%>
                     </tbody>
                   </table>
                   <!-- End Table -->
@@ -771,6 +1400,516 @@
       </footer>
       <!-- ========== footer end =========== -->
     </main>
+
+
+
+
+
+    <script>
+
+    const STATE = {
+      dateRange: '<%= dateRange %>' || 'month',
+      status: '<%= status %>' || 'all',
+      paymentMethod: '<%= paymentMethod %>' || 'all',
+      startDate: '<%= startDate %>' || '',
+      endDate: '<%= endDate %>' || '',
+      isLoading: false
+    };
+
+
+        function showError(message) {
+      const errorMsg = document.getElementById('error-msg');
+      errorMsg.textContent = message;
+      errorMsg.classList.add('show');
+      setTimeout(() => {
+        errorMsg.classList.remove('show');
+      }, 5000);
+    }
+
+    function showSuccess(message) {
+      const successMsg = document.getElementById('success-msg');
+      successMsg.textContent = message;
+      successMsg.classList.add('show');
+      setTimeout(() => {
+        successMsg.classList.remove('show');
+      }, 3000);
+    }
+
+
+    function buildUrl(overrides = {}) {
+
+      const params = {
+        page: overrides.page || STATE.page,
+        dateRange: overrides.dateRange || STATE.dateRange,
+        status: overrides.status || STATE.status,
+        paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
+        category: overrides.category || STATE.category,
+        sortField: overrides.sortField || STATE.sortField,
+        sortOrder: overrides.sortOrder || STATE.sortOrder,
+        startDate: overrides.startDate || STATE.startDate,
+        endDate: overrides.endDate || STATE.endDate
+      };
+
+      // Remove default/empty values
+      Object.keys(params).forEach(key => {
+        if (params[key] === '' || params[key] === null || params[key] === undefined || 
+            params[key] === 'all' || params[key] === 'month') {
+          delete params[key];
+        }
+      });
+
+      const url = new URL(window.location.pathname, window.location.origin);
+
+      Object.keys(params).forEach(key => {
+        url.searchParams.set(key, params[key]);
+      });
+
+      return url.toString();
+
+    }
+
+    function buildExportUrl(overrides = {}) {
+      const params = {
+        page: overrides.page || STATE.page,
+        dateRange: overrides.dateRange || STATE.dateRange,
+        status: overrides.status || STATE.status,
+        paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
+        category: overrides.category || STATE.category,
+        sortField: overrides.sortField || STATE.sortField,
+        sortOrder: overrides.sortOrder || STATE.sortOrder,
+        startDate: overrides.startDate || STATE.startDate,
+        endDate: overrides.endDate || STATE.endDate
+      };
+
+
+      Object.keys(params).forEach(key => {
+        if (params[key] === '' || params[key] === null || params[key] === undefined || 
+            params[key] === 'all' || params[key] === 'month') {
+          delete params[key];
+        }
+      });
+
+      const url = new URL(`/admin/reports/${overrides.format}/sales`, window.location.origin);
+
+      Object.keys(params).forEach(key => {
+        url.searchParams.set(key, params[key]);
+      });
+
+      return url.toString();
+
+    }
+
+    function navigateToUrl(url) {
+      showLoading();
+      window.location.href = url;
+    }
+
+
+    function applyFilters() {
+      const dateRange = document.getElementById('date-range-filter').value;
+      const status = document.getElementById('status-filter').value;
+      const paymentMethod = document.getElementById('payment-filter').value;
+
+      let params = {
+        page: 1,
+        dateRange,
+        status,
+        paymentMethod,
+      };
+
+      if (dateRange === 'custom') {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        
+        if (!startDate || !endDate) {
+          showError('Please select both start and end dates for custom range');
+          return;
+        }
+        
+        if (new Date(startDate) > new Date(endDate)) {
+          showError('Start date cannot be after end date');
+          return;
+        }
+
+        if (new Date(endDate) > new Date()) {
+          showError('End date cannot be in future');
+          return;
+        }
+
+
+
+        params.startDate = startDate;
+        params.endDate = endDate;
+      }
+
+      navigateToUrl(buildUrl(params));
+    }
+
+    function resetFilters() {
+
+      navigateToUrl(buildUrl({
+        page: 1,
+        dateRange: 'month',
+        status: 'all',
+        paymentMethod: 'all',
+        category: 'all',
+        sortField: 'orderDate',
+        sortOrder: 'desc',
+        startDate: '',
+        endDate: ''
+      }));
+
+    }
+
+
+    function showLoading() {
+      STATE.isLoading = true;
+      document.getElementById('loading-overlay').classList.add('active');
+    }
+
+    function hideLoading() {
+      STATE.isLoading = false;
+      document.getElementById('loading-overlay').classList.remove('active');
+    }
+
+
+    async function exportReport(format) {
+      const btn = document.getElementById('export-btn');
+      btn.classList.add('loading');
+      
+      try {
+        const BASE_URL = window.location.origin;
+        let response;
+
+        if(format == 'pdf'){ 
+          const url = buildExportUrl({ format: 'pdf' })
+           response = await fetch(url);
+        }else if(format == 'excel'){
+          const url = buildExportUrl({ format: 'excel' })
+           response = await fetch(url);        
+          }
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `sales-report-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          showSuccess(`Report exported successfully as ${format.toUpperCase()}`);
+        } else {
+          throw new Error('Export failed');
+        }
+      } catch (error) {
+        showError('Failed to export report. Please try again.');
+      } finally {
+        btn.classList.remove('loading');
+      }
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+      document.getElementById('date-range-filter').addEventListener('change', function(e) {
+        const customSection = document.getElementById('custom-date-section');
+        if (e.target.value === 'custom') {
+          customSection.classList.add('show');
+        } else {
+          customSection.classList.remove('show');
+        }
+      });
+
+      // Show custom date section if already selected
+      if (STATE.dateRange === 'custom') {
+        document.getElementById('custom-date-section').classList.add('show');
+      }
+
+      // Filter buttons
+      document.getElementById('apply-filters').addEventListener('click', applyFilters);
+      document.getElementById('reset-filters').addEventListener('click', resetFilters);
+      document.getElementById('apply-custom-date').addEventListener('click', applyFilters);
+
+      // Auto-apply filters on change (except custom date)
+      ['status-filter', 'payment-filter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', applyFilters);
+      });
+
+      document.getElementById('date-range-filter').addEventListener('change', function(e) {
+        if (e.target.value !== 'custom') {
+          applyFilters();
+        }
+      });
+    });
+
+    const chartData = <%- JSON.stringify(chartData) %>;
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+      const ctx1 = document.getElementById("Chart1").getContext("2d");
+      const chart1 = new Chart(ctx1, {
+        type: "line",
+        data: {
+          labels: chartData?.salesTrend.labels,
+          datasets: [
+            {
+              label: "",
+              backgroundColor: "transparent",
+              borderColor: "#365CF5",
+              data: chartData?.salesTrend.data,
+              pointBackgroundColor: "transparent",
+              pointHoverBackgroundColor: "#365CF5",
+              pointBorderColor: "transparent",
+              pointHoverBorderColor: "#fff",
+              pointHoverBorderWidth: 5,
+              borderWidth: 5,
+              pointRadius: 8,
+              pointHoverRadius: 8,
+              cubicInterpolationMode: "monotone", // Add this line for curved line
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            tooltip: {
+              callbacks: {
+                labelColor: function (context) {
+                  return {
+                    backgroundColor: "#ffffff",
+                    color: "#171717"
+                  };
+                },
+              },
+              intersect: false,
+              backgroundColor: "#f9f9f9",
+              title: {
+                fontFamily: "Plus Jakarta Sans",
+                color: "#8F92A1",
+                fontSize: 12,
+              },
+              body: {
+                fontFamily: "Plus Jakarta Sans",
+                color: "#171717",
+                fontStyle: "bold",
+                fontSize: 16,
+              },
+              multiKeyBackground: "transparent",
+              displayColors: false,
+              padding: {
+                x: 30,
+                y: 10,
+              },
+              bodyAlign: "center",
+              titleAlign: "center",
+              titleColor: "#8F92A1",
+              bodyColor: "#171717",
+              bodyFont: {
+                family: "Plus Jakarta Sans",
+                size: "16",
+                weight: "bold",
+              },
+            },
+            legend: {
+              display: false,
+            },
+          },
+          responsive: true,
+          maintainAspectRatio: false,
+          title: {
+            display: false,
+          },
+          scales: {
+            y: {
+              grid: {
+                display: false,
+                drawTicks: false,
+                drawBorder: false,
+              },
+              ticks: {
+                padding: 35,
+                max: 1200,
+                min: 500,
+              },
+            },
+            x: {
+              grid: {
+                drawBorder: false,
+                color: "rgba(143, 146, 161, .1)",
+                zeroLineColor: "rgba(143, 146, 161, .1)",
+              },
+              ticks: {
+                padding: 20,
+              },
+            },
+          },
+        },
+      });
+      // =========== chart one end
+
+    
+      // =========== chart three start
+      const ctx3 = document.getElementById("Chart3").getContext("2d");
+      const chart3 = new Chart(ctx3, {
+  type: "pie",
+  data: {
+    labels: chartData?.paymentMethods.labels,
+    datasets: [
+      {
+        label: "Dataset 1",
+        backgroundColor: [
+          "#365CF5",
+          "#9b51e0",
+          "#f2994a",
+          "#2ecc71",
+          "#e74c3c",
+          "#34495e"
+        ],
+        borderColor: "transparent",
+        borderWidth: 2,
+        data: chartData?.paymentMethods.data
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        backgroundColor: "#F3F6F8",
+        titleColor: "#8F92A1",
+        titleFontSize: 12,
+        bodyColor: "#171717",
+        bodyFont: {
+          weight: "bold",
+          size: 16
+        },
+        multiKeyBackground: "transparent",
+        displayColors: false,
+        padding: {
+          x: 30,
+          y: 10
+        },
+        bodyAlign: "center",
+        titleAlign: "center",
+        enabled: true
+      },
+      legend: {
+        display: true,
+        position: "right",
+        labels: {
+          color: "#171717",
+          padding: 20,
+          font: {
+            size: 14,
+            family: "Plus Jakarta Sans"
+          }
+        }
+      }
+    }
+  }
+});
+      // =========== chart three end
+
+      // ================== chart four start
+      const ctx4 = document.getElementById("Chart4").getContext("2d");
+      const chart4 = new Chart(ctx4, {
+        type: "bar",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+          datasets: [
+            {
+              label: "",
+              backgroundColor: "#365CF5",
+              borderColor: "transparent",
+              borderRadius: 20,
+              borderWidth: 5,
+              barThickness: 20,
+              maxBarThickness: 20,
+              data: [600, 700, 1000, 700, 650, 800],
+            },
+            {
+              label: "",
+              backgroundColor: "#d50100",
+              borderColor: "transparent",
+              borderRadius: 20,
+              borderWidth: 5,
+              barThickness: 20,
+              maxBarThickness: 20,
+              data: [690, 740, 720, 1120, 876, 900],
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            tooltip: {
+              backgroundColor: "#F3F6F8",
+              titleColor: "#8F92A1",
+              titleFontSize: 12,
+              bodyColor: "#171717",
+              bodyFont: {
+                weight: "bold",
+                size: 16,
+              },
+              multiKeyBackground: "transparent",
+              displayColors: false,
+              padding: {
+                x: 30,
+                y: 10,
+              },
+              bodyAlign: "center",
+              titleAlign: "center",
+              enabled: true,
+            },
+            legend: {
+              display: false,
+            },
+          },
+          layout: {
+            padding: {
+              top: 0,
+            },
+          },
+          responsive: true,
+          // maintainAspectRatio: false,
+          title: {
+            display: false,
+          },
+          scales: {
+            y: {
+              grid: {
+                display: false,
+                drawTicks: false,
+                drawBorder: false,
+              },
+              ticks: {
+                padding: 35,
+                max: 1200,
+                min: 0,
+              },
+            },
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false,
+                color: "rgba(143, 146, 161, .1)",
+                zeroLineColor: "rgba(143, 146, 161, .1)",
+              },
+              ticks: {
+                padding: 20,
+              },
+            },
+          },
+        },
+      });
+
+});
+
+
+
+
+    </script>
 
 
 

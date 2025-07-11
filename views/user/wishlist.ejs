@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Threadë Fashions | Wishlist" />
+  <title>Threadë Fashions – My Wishlist</title>
+
+  <!-- fonts & libs -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+
+  <style>
+    /* -------------------------------------------------------
+       CSS VARIABLES – only if not already present globally
+    ------------------------------------------------------- */
+    :root {
+      --radius: 12px;
+      --border: #e5e7eb;
+      --border-dark: #d1d5db;
+      --light-gray: #f9fafb;
+      --text-dark: #111827;
+      --text-muted: #6b7280;
+      --primary: #000;
+      --success: #16a34a;
+      --warning: #d97706;
+      --error: #dc2626;
+      --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --transition: all 0.2s ease;
+    }
+
+    /* -------------------------------------------------------
+       BASIC RESETS — do NOT touch body / showcase styles
+    ------------------------------------------------------- */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+    a,
+    a:hover,
+    a:visited {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* -------------------------------------------------------
+       PAGE HEADER
+    ------------------------------------------------------- */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .page-subtitle {
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* -------------------------------------------------------
+       ACTION BUTTONS
+    ------------------------------------------------------- */
+    .btn-custom {
+      padding: 0.6rem 1.4rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: var(--transition);
+      color: #fff;
+    }
+    .btn-primary-custom {
+      color: #fff;
+      background: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    .btn-primary-custom:hover:not(:disabled) {
+      background: #333;
+    }
+    .btn-outline-custom {
+      color: var(--primary);
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+    .btn-outline-custom:hover:not(:disabled) {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .btn-sm-custom {
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
+    }
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* -------------------------------------------------------
+       STATS CARDS
+    ------------------------------------------------------- */
+    .wishlist-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1rem;
+      text-align: center;
+      transition: var(--transition);
+    }
+    .stat-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-3px);
+    }
+    .stat-number {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.35rem;
+    }
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .disabled{
+  background-color: #eee !important;
+  cursor: not-allowed;
+}
+
+
+    /* -------------------------------------------------------
+       EMPTY STATE
+    ------------------------------------------------------- */
+    .empty-state {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    .empty-icon {
+      font-size: 3.5rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .empty-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-dark);
+    }
+    .empty-subtitle {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+
+    
+    /* -------------------------------------------------------
+       NOTIFICATION TOAST
+    ------------------------------------------------------- */
+    .toast-global {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: #fff;
+      border: 1px solid var(--border-dark);
+      border-left-width: 4px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 1rem 1.25rem;
+      min-width: 260px;
+      transform: translateX(120%);
+      transition: var(--transition);
+      z-index: 1200;
+    }
+    .toast-global.show {
+      transform: translateX(0);
+    }
+    .toast-global.success {
+      border-left-color: var(--success);
+    }
+    .toast-global.error {
+      border-left-color: var(--error);
+    }
+    .toast-global.warning {
+      border-left-color: var(--warning);
+    }
+
+    .stock-details p{
+  font-weight: 800;
+  font-size: .8rem;
+}
+
+  </style>
+</head>
+
+<body>
+
+<div class="main-container">
+  <!-- header / nav comes from your main layout -->
+  <main class="main-content container py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Wishlist</h1>
+        <p class="page-subtitle">Items you've saved for later</p>
+      </div>
+
+      <% if (wishlistItems && wishlistItems.length > 0) { %>
+        <button id="clearAllBtn" class="btn-custom btn-outline-custom btn-sm-custom" onclick="clearAllWishlist()">
+          <i class="fas fa-trash"></i> Clear All
+        </button>
+      <% } %>
+    </div>
+
+    <!-- WISHLIST GRID or EMPTY STATE -->
+    <div id="wishlistContainer">
+      <% if (wishlistItems && wishlistItems.length > 0) { %>
+        <div class="product-grid">
+          <% wishlistItems.forEach((item)=> { if(item.product){ %>
+            <!-- your existing showcase markup (unchanged) -->
+            <div class="showcase">
+              <!-- banner / content remain identical -->
+              <div class="showcase-banner">
+                <img src="<%= item.product.images[0] %>" alt="product" width="300" class="product-img default" />
+                <img src="<%= item.product.images[1] %>" alt="product" width="300" class="product-img hover" />
+                <p class="showcase-badge">15%</p>
+                <div class="showcase-actions">
+                  <button class="btn-action"><ion-icon name="heart-outline"></ion-icon></button>
+                  <button class="btn-action"><ion-icon name="eye-outline"></ion-icon></button>
+                  <button class="btn-action"><ion-icon name="repeat-outline"></ion-icon></button>
+                  <button class="btn-action"><ion-icon name="bag-add-outline"></ion-icon></button>
+                </div>
+              </div>
+
+              <div class="showcase-content">
+                <a href="<%= `/user/products/${item.product._id}` %>" class="showcase-category"><%= item.product.category.name %></a>
+                <a href="<%= `/user/products/${item.product._id}` %>">
+                  <h3 class="showcase-title text-truncate"><%= item.product.name %></h3>
+                </a>
+                <div class="showcase-rating">
+                  <ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star-outline"></ion-icon><ion-icon name="star-outline"></ion-icon>
+                </div>
+                <div class="price-box">
+                  <p class="price">₹<%= item.product.regularPrice %></p>
+                  <del>₹<%= item.product.salePrice %></del>
+                </div>
+
+                <div class="stock-details">
+                        <p style="<%= item.product.variants?.every(v => !v.isActive || v.stock == 0) ? 'color: #af0202;' :  'color:green;'  %>" ><%= item.product.variants?.every(v => !v.isActive || v.stock == 0) ? 'out of stock' : 'in stock'  %></p>
+                      </div>
+
+                <div class="product-actions d-flex mb-2">
+                  <div>
+										<a  onclick="showVariantSidebar('<%= item.product._id %>')"   style="color: #fff" class="action-btn btn-dark <%= item.product.variants?.every(v => !v.isActive || v.stock == 0) ? 'disabled' : ''  %>" href="javascript:void(0);">
+                                           <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1.56641 4.48242C1.56641 4.06821 1.90219 3.73242 2.31641 3.73242H3.49696C4.37456 3.73242 5.14722 4.23809 5.51674 4.99023H21.0662C21.3045 4.99023 21.5287 5.10354 21.6701 5.29548C21.8114 5.48741 21.8531 5.7351 21.7824 5.96274L19.8601 12.1504C19.5678 13.0915 18.6969 13.7329 17.7114 13.7329H6.85901L6.9791 14.5869C7.03116 14.9571 7.34793 15.2324 7.72179 15.2324L18.0664 15.2324C18.4806 15.2324 18.8164 15.5682 18.8164 15.9824C18.8164 16.3966 18.4806 16.7324 18.0664 16.7324L7.72179 16.7324C6.60021 16.7324 5.6499 15.9064 5.49371 14.7957L4.23965 5.87799L4.23709 5.86111C4.17805 5.49955 3.86513 5.23242 3.49696 5.23242H2.31641C1.90219 5.23242 1.56641 4.89664 1.56641 4.48242Z" fill="#fff"/>
+<g opacity="0.4">
+<path d="M7.7832 18.2324C6.8167 18.2324 6.0332 19.0159 6.0332 19.9824C6.0332 20.9489 6.8167 21.7324 7.7832 21.7324H7.7932C8.7597 21.7324 9.5432 20.9489 9.5432 19.9824C9.5432 19.0159 8.7597 18.2324 7.7932 18.2324H7.7832Z" fill="#fff"/>
+<path d="M16.3203 18.2324C15.3538 18.2324 14.5703 19.0159 14.5703 19.9824C14.5703 20.9489 15.3538 21.7324 16.3203 21.7324H16.3303C17.2968 21.7324 18.0803 20.9489 18.0803 19.9824C18.0803 19.0159 17.2968 18.2324 16.3303 18.2324H16.3203Z" fill="#fff"/>
+</g>
+</svg>
+                     
+                      Add to cart 
+                    </a>
+                  </div>
+
+                  <div class="whishlist-page-icon <%= wishlistItemIds.includes(item.product._id.toString()) ? 'active pulse-continuous' : '' %>" data-product-id="<%= item.product._id %>">
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                      <path d="M11.823 4.771L12 4.949l.177-.178c2.247-2.247 5.89-2.247 8.137 0 2.247 2.247 2.247 5.89 0 8.137l-6.724 6.724a1.5 1.5 0 0 1-2.122 0L3.445 12.908c-2.247-2.247-2.247-5.89 0-8.137 2.247-2.247 5.89-2.247 8.137 0Z"
+                        stroke-width="1.8"
+                        stroke="<%= wishlistItemIds.includes(item.product._id.toString()) ? '#e63946' : '#000' %>"
+                        fill="<%= wishlistItemIds.includes(item.product._id.toString()) ? '#e63946' : 'none' %>"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% } }) %>
+        </div>
+      <% } else { %>
+        <!-- EMPTY STATE -->
+        <div class="empty-state">
+          <div class="empty-icon"><i class="far fa-heart"></i></div>
+          <h2 class="empty-title">Your wishlist is empty</h2>
+          <p class="empty-subtitle">Save items you love to your wishlist and never lose track of them.</p>
+          <a style="color: white;" href="/user/products/shop" class="btn-custom btn-primary-custom mt-4">
+            <i class="fas fa-shopping-bag"></i> Start Shopping
+          </a>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- LOADING SKELETON (hidden by default) -->
+    <div id="loadingGrid" class="product-grid d-none">
+      <% for (let i = 0; i < 6; i++) { %>
+        <div class="skeleton-item loading-skeleton" style="height:320px;border-radius:var(--radius)"></div>
+      <% } %>
+    </div>
+
+  </main>
+</div>
+
+<!-- CONFIRMATION MODALS -->
+<div id="wishlistConfirmModal" class="wishlist-confirm-modal hidden">
+  <div class="wishlist-modal-content">
+    <p>Remove this item from your wishlist?</p>
+    <div class="wishlist-modal-actions">
+      <button id="wishlistConfirmYes">Yes</button>
+      <button id="wishlistConfirmNo">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="wishlistClearAllConfirmModal" class="wishlist-confirm-modal hidden">
+  <div class="wishlist-modal-content">
+    <p>Remove all items from your wishlist?</p>
+    <div class="wishlist-modal-actions">
+      <button id="wishlistClearAllConfirmYes">Yes</button>
+      <button id="wishlistClearAllConfirmNo">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- GLOBAL TOAST -->
+<div id="toast-global" class="toast-global">
+  <span id="toastMessage-global"></span>
+</div>
+
+<!-- libs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<!-- ionicons -->
+<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+<!-- your wishlist JS: unchanged business logic, only moved beneath -->
+<script>
+  /* --- global toast helper --- */
+  function showGlobalToast(msg, type='success'){
+    const toast=document.getElementById('toast-global');
+    const span=document.getElementById('toastMessage-global');
+    span.textContent=msg;
+    toast.className = 'toast-global show '+type;
+    setTimeout(()=>toast.classList.remove('show'),3000);
+  }
+
+  /* --- clear-all logic --- */
+  async function clearAllWishlist(){
+    const modal=document.getElementById('wishlistClearAllConfirmModal');
+    modal.classList.remove('hidden');
+    document.getElementById('wishlistClearAllConfirmYes').onclick = async ()=>{
+      modal.classList.add('hidden');
+      try{
+        const res=await fetch('/user/wishlist/clear',{method:'DELETE'});
+        if(!res.ok) throw new Error((await res.json()).message||'Failed');
+        showGlobalToast('Wishlist cleared','success');
+        setTimeout(()=>location.reload(),600);
+      }catch(err){ showGlobalToast(err.message,'error'); }
+    };
+    document.getElementById('wishlistClearAllConfirmNo').onclick = ()=>modal.classList.add('hidden');
+  }
+
+  /* --- per-item wishlist toggle (existing logic preserved) --- */
+  document.querySelectorAll('.whishlist-page-icon').forEach(btn=>{
+    btn.addEventListener('click',async function(){
+      const productId=this.dataset.productId;
+      const allBtns=document.querySelectorAll(`.whishlist-page-icon[data-product-id="${productId}"]`);
+      const isActive=this.classList.contains('active');
+
+      const updateUI=(active)=>{
+        allBtns.forEach(el=>{
+          const path=el.querySelector('svg path');
+          if(active){
+            el.classList.add('active','pulse-continuous');
+            path.setAttribute('fill','#e63946'); path.setAttribute('stroke','#e63946');
+          }else{
+          const card = el.closest('.showcase') || el.parentElement;
+      if (card) card.remove(); 
+          }
+        });
+      };
+
+      if(!isActive){
+        try{
+          const res=await fetch('/user/wishlist/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productId,variant:null})});
+          if(!res.ok) throw new Error((await res.json()).message||'Failed');
+          updateUI(true); showGlobalToast('Added to wishlist');
+        }catch(err){ location.href='/user/login'; }
+      }else{
+        const modal=document.getElementById('wishlistConfirmModal');
+        modal.classList.remove('hidden');
+        document.getElementById('wishlistConfirmYes').onclick = async ()=>{
+          modal.classList.add('hidden');
+          try{
+            const res=await fetch(`/user/wishlist/remove/${productId}`,{method:'DELETE'});
+            if(!res.ok) throw new Error((await res.json()).message||'Failed');
+            updateWishlistCount();
+            updateUI(false); showGlobalToast('Removed from wishlist');
+          }catch(err){ showGlobalToast(err.message,'error'); }
+        };
+        document.getElementById('wishlistConfirmNo').onclick = ()=>modal.classList.add('hidden');
+      }
+    });
+
+  });
+
+
+
+  
+</script>
+</body>
+</html>

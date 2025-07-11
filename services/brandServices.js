@@ -1,4 +1,5 @@
 const Brand = require('../models/brandModel');
+const productModel = require('../models/productModel');
 
 const getAllBrands = async () => {
   try {
@@ -79,8 +80,8 @@ const updateBrand = async (id, reqBody) => {
       name: name.trim(),
       description: description?.trim() || '',
       category,
-      isActive: isActive === 'true' || isActive === true,
-      isListed: isListed === 'true' || isListed === true,
+      isActive: isActive == 'true' || isActive === true,
+      isListed: isListed == 'true' || isListed === true,
       image: image?.trim() || ''
     };
 
@@ -89,10 +90,13 @@ const updateBrand = async (id, reqBody) => {
       throw new Error('Brand name already exists');
     }
 
-    const brand = await Brand.findByIdAndUpdate(id, brandData, {
-      new: true,
-      runValidators: true
-    }).populate('category', 'name');
+    const brand = await Brand.findByIdAndUpdate(id, brandData, { new: true }).populate('category', 'name');
+
+    if(brandData.isActive){
+      const products = await productModel.updateMany({ brand: id  }, {$set: { isActive: true , isBrandActive: true } });
+    }else{
+      const products = await productModel.updateMany({ brand: id  }, {$set: { isActive: false , isBrandActive: false } });
+    }
     
     return brand;
   } catch (error) {
@@ -106,11 +110,18 @@ const updateBrand = async (id, reqBody) => {
 
 const toggleStatus = async (id, isActive) => {
   try {
+
     const brand = await Brand.findByIdAndUpdate(
       id,
       { isActive },
       { new: true }
     ).populate('category', 'name');
+
+    if(isActive == true){
+      const products = await productModel.updateMany({ brand: id  }, {$set: { isActive: true , isBrandActive: true } });
+    }else{
+      const products = await productModel.updateMany({ brand: id  }, {$set: { isActive: false , isBrandActive: false } });
+    }
     
     return brand;
   } catch (error) {

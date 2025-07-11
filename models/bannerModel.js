@@ -18,9 +18,8 @@ const bannerSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Page is required'],
     trim: true,
-    maxlength: [100, 'Page name too long']
-    // You can also use enum if pages are fixed
-    // enum: ['home', 'about', 'products', 'contact']
+    maxlength: [100, 'Page name too long'],
+    enum: ['home', 'about', 'products', 'contact']
   },
 
   image: {

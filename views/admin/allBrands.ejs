@@ -231,12 +231,6 @@
                         <i class="lni lni-pencil"></i>
                         <span class="btn-text">Edit</span>
                       </button>
-                      <button class="btn btn-sm btn-outline-warning toggle-listed-btn" 
-                              onclick="toggleListed('<%= brand._id %>', '<%= brand.name %>', `<%= !brand.isListed %>`)"
-                              title="<%= brand.isListed ? 'Unlist' : 'List' %> Brand">
-                        <i class="lni lni-<%= brand.isListed ? 'eye-slash' : 'eye' %>"></i>
-                        <span class="btn-text"><%= brand.isListed ? 'Unlist' : 'List' %></span>
-                      </button>
                       <button class="btn btn-sm <%= brand.isActive ? 'btn-outline-danger' : 'btn-outline-success' %> toggle-status-btn" 
                               onclick="toggleStatus('<%= brand._id %>', '<%= brand.name %>', `<%= !brand.isActive %>`)"
                               title="<%= brand.isActive ? 'Deactivate' : 'Activate' %> Brand">

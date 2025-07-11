@@ -1,0 +1,2827 @@
+<section class="order-detail-section">
+  <div class="container-fluid">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="order-detail-wrapper">
+      <!-- Header -->
+      <div class="detail-header">
+        <div class="header-left">
+          <button class="btn btn-outline-secondary back-btn" onclick="goBack()">
+            <i class="lni lni-arrow-left"></i>
+            <span class="btn-text">Back to Orders</span>
+          </button>
+          <div class="order-info">
+            <h1 class="order-title">
+              Order #<%= order.orderNumber %>
+              <% if (order.isUrgent) { %>
+                <span class="urgent-badge">URGENT</span>
+              <% } %>
+            </h1>
+            <p class="order-date">
+              Created on <%= new Date(order.createdAt).toLocaleDateString('en-IN', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+              }) %>
+            </p>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary edit-btn" id="edit-toggle" onclick="toggleEditMode()">
+            <i class="lni lni-pencil"></i>
+            <span class="btn-text">Edit Order</span>
+          </button>
+          <button class="btn btn-success save-btn" id="save-btn" onclick="saveOrder()" style="display: none;">
+            <i class="lni lni-save"></i>
+            <span class="btn-text">Save Changes</span>
+          </button>
+          <button class="btn btn-secondary cancel-edit-btn" id="cancel-edit-btn" onclick="cancelEdit()" style="display: none;">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <p class="error-msg" id="error-msg"></p>
+      <p class="success-msg" id="success-msg"></p>
+
+      <!-- Add this after the existing success-msg div -->
+      <div class="item-action-messages" id="item-action-messages"></div>
+
+      <div class="detail-content">
+        <div class="row">
+          <!-- Main Content -->
+          <div class="col-lg-8">
+            <!-- Order Status & Timeline -->
+            <div class="card-style mb-30">
+              <div class="card-header">
+                <h6 class="card-title">
+                  <i class="lni lni-package"></i>
+                  Order Status & Timeline
+                </h6>
+              </div>
+              <div class="card-body mt-3">
+                <div class="status-section">
+                  <div class="current-status">
+<!-- ORDER STATUS SELECT (replace the whole <select> tag) -->
+<select id="status-select" class="form-select status-select" disabled>
+  <option value="pending"           <%= order.orderStatus==='pending'           ?'selected':'' %>>Pending</option>
+  <option value="confirmed"         <%= order.orderStatus==='confirmed'         ?'selected':'' %>>Confirmed</option>
+  <option value="shipped"           <%= order.orderStatus==='shipped'           ?'selected':'' %>>Shipped</option>
+  <option value="delivered"         <%= order.orderStatus==='delivered'         ?'selected':'' %>>Delivered</option>
+  <option value="cancelled"         <%= order.orderStatus==='cancelled'         ?'selected':'' %>>Cancelled</option>
+  <option value="return-requested"  <%= order.orderStatus==='return-requested'  ?'selected':'' %>>Return Requested</option>
+  <option value="return-processing" <%= order.orderStatus==='return-processing' ?'selected':'' %>>Return Processing</option>
+  <option value="return-pickup"     <%= order.orderStatus==='return-pickup'     ?'selected':'' %>>Return Pickup</option>
+  <option value="return-complete"   <%= order.orderStatus==='return-complete'   ?'selected':'' %>>Return Complete</option>
+  <option value="return-rejected"   <%= order.orderStatus==='return-rejected'   ?'selected':'' %>>Return Rejected</option>
+  <option value="partial-return"    <%= order.orderStatus==='partial-return'    ?'selected':'' %>>Partial Return</option>
+</select>
+
+                    <div class="status-actions" id="status-actions">
+                      <select class="form-select status-select" id="status-select" disabled>
+                        <option value="pending" <%= order.orderStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="confirmed" <%= order.orderStatus === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+                        <option value="shipped" <%= order.orderStatus === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                        <option value="delivered" <%= order.orderStatus === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                        <option value="cancelled" <%= order.orderStatus === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                        <option value="return-requested" <%= order.orderStatus === 'return-requested' ? 'selected' : '' %>>Return Requested</option>
+                        <option value="return-processing" <%= order.orderStatus === 'return-processing' ? 'selected' : '' %>>Return Processing</option>
+                        <option value="return-pickup" <%= order.orderStatus === 'return-pickup' ? 'selected' : '' %>>Return Pickup</option>
+                        <option value="return-complete" <%= order.orderStatus === 'return-complete' ? 'selected' : '' %>>Return Complete</option>
+                        <option value="return-rejected" <%= order.orderStatus === 'return-rejected' ? 'selected' : '' %>>Return Rejected</option>
+                        <option value="returned" <%= order.orderStatus === 'returned' ? 'selected' : '' %>>Returned</option>
+                        <option value="partial-return" <%= order.orderStatus === 'partial-return' ? 'selected' : '' %>>Partial Return</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Order-level Return Request Actions -->
+                  <% if (order.orderStatus === 'return-requested') { %>
+                  <div class="order-return-request-actions">
+                    <div class="return-action-header">
+                      <h6 class="return-action-title">
+                        <i class="lni lni-warning"></i>
+                        Order Return Request Pending
+                      </h6>
+                      <p class="return-action-subtitle">This entire order has a pending return request that requires your action.</p>
+                      <% if (order.returnReason) { %>
+                        <p class="return-reason-display"><strong>Return Reason:</strong> <%= order.returnReason %></p>
+                      <% } %>
+                      <% if (order.returnNote) { %>
+                        <p class="return-note-display"><strong>Customer Note:</strong> <%= order.returnNote %></p>
+                      <% } %>
+                    </div>
+                    
+                    <div class="return-actions">
+                      <button class="btn btn-success" onclick="acceptOrderReturnRequest()">
+                        <i class="lni lni-checkmark"></i>
+                        Accept Order Return
+                      </button>
+                      <button class="btn btn-danger" onclick="rejectOrderReturnRequest()">
+                        <i class="lni lni-close"></i>
+                        Reject Order Return
+                      </button>
+                    </div>
+                  </div>
+                  <% } else if (order.orderStatus === 'return-pickup') { %>
+                  <div class="order-return-pickup-actions">
+                    <div class="return-action-header">
+                      <h6 class="return-action-title">
+                        <i class="lni lni-calendar"></i>
+                        Order Return Pickup Scheduled
+                      </h6>
+                      <p class="return-action-subtitle">Pickup has been scheduled for this order return.</p>
+                      <% if (order.pickupDate) { %>
+                        <p class="pickup-date-display"><strong>Pickup Date:</strong> <%= new Date(order.pickupDate).toLocaleDateString() %></p>
+                      <% } %>
+                    </div>
+                    
+                    <div class="return-actions">
+                      <button class="btn btn-primary" onclick="markOrderReturnProcess()">
+                        <i class="lni lni-reload"></i>
+                        Mark as Processing
+                      </button>
+                    </div>
+                  </div>
+                  <% } else if (order.orderStatus === 'return-processing') { %>
+                  <div class="order-return-process-actions">
+                    <div class="return-action-header">
+                      <h6 class="return-action-title">
+                        <i class="lni lni-reload"></i>
+                        Order Return Processing
+                      </h6>
+                      <p class="return-action-subtitle">This order return is currently being processed.</p>
+                    </div>
+                    
+                    <div class="return-actions">
+                      <button class="btn btn-success" onclick="completeOrderReturn()">
+                        <i class="lni lni-checkmark"></i>
+                        Complete Order Return
+                      </button>
+                      <button class="btn btn-danger" onclick="rejectOrderReturnProcess()">
+                        <i class="lni lni-close"></i>
+                        Reject Order Return
+                      </button>
+                    </div>
+                  </div>
+                  <% } %>
+
+                  <% if (order.orderStatus === 'shipped' || order.trackingNumber) { %>
+                  <div class="tracking-section">
+                    <label class="form-label">Tracking Number</label>
+                    <input type="text" 
+                           class="form-control tracking-input" 
+                           id="tracking-input"
+                           value="<%= order.trackingNumber || '' %>" 
+                           placeholder="Enter tracking number"
+                           disabled>
+                  </div>
+                  <% } %>
+
+                  <div class="notes-section">
+                    <label class="form-label">Admin Notes</label>
+                    <textarea class="form-control notes-textarea" 
+                              id="admin-notes"
+                              rows="3" 
+                              placeholder="Add notes about this order..."
+                              disabled><%= order.adminNotes || '' %></textarea>
+                  </div>
+
+                  <% if (order.userNotes) { %>
+                  <div class="user-notes-section">
+                    <label class="form-label">Customer Notes</label>
+                    <div class="user-notes-display">
+                      <%= order.userNotes %>
+                    </div>
+                  </div>
+                  <% } %>
+
+                  <div class="urgent-section">
+                    <label class="form-label">
+                      <input type="checkbox" 
+                             id="urgent-checkbox" 
+                             <%= order.isUrgent ? 'checked' : '' %>
+                             disabled>
+                      Mark as Urgent Order
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Enhanced Timeline -->
+                <div class="status-timeline">
+                  <h6 class="timeline-title">Order Timeline</h6>
+                  
+                  <% if (order.timeline && order.timeline.length > 0) { %>
+                    <% order.timeline.forEach((event, index) => { %>
+                    <div class="timeline-item completed">
+                      <div class="timeline-icon">
+                        <i class="lni lni-<%= 
+                          event.status === 'placed' || event.status === 'pending' ? 'timer' :
+                          event.status === 'confirmed' ? 'checkmark' :
+                          event.status === 'shipped' ? 'delivery' :
+                          event.status === 'delivered' ? 'package' :
+                          event.status === 'cancelled' ? 'close' :
+                          event.status === 'return-requested' ? 'warning' :
+                          event.status === 'return-pickup' ? 'calendar' :
+                          event.status === 'return-processing' ? 'reload' :
+                          event.status === 'return-complete' ? 'checkmark' :
+                          event.status === 'return-rejected' ? 'close' : 'timer'
+                        %>"></i>
+                      </div>
+                      <div class="timeline-content">
+                        <h6><%= event.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) %></h6>
+                        <p class="timeline-date"><%= new Date(event.date).toLocaleString('en-IN', {
+                          day: '2-digit',
+                          month: 'short', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        }) %></p>
+                        <% if (event.note) { %>
+                          <p class="timeline-note">
+                            <i class="lni lni-comment"></i>
+                            <%= event.note %>
+                          </p>
+                        <% } %>
+                        
+                        <!-- Show relative time -->
+                        <p class="timeline-relative">
+                          <i class="lni lni-clock"></i>
+                          <span class="relative-time" data-date="<%= event.date %>"></span>
+                        </p>
+                      </div>
+                    </div>
+                    <% }) %>
+                    
+                    <!-- Add Timeline Entry Form (only in edit mode) -->
+                    <div class="timeline-add-entry" id="timeline-add-entry" style="display: none;">
+                      <div class="timeline-item new-entry">
+                        <div class="timeline-icon new">
+                          <i class="lni lni-plus"></i>
+                        </div>
+                        <div class="timeline-content">
+                          <form id="add-timeline-form">
+                            <div class="form-group">
+                              <label class="form-label">Status</label>
+                              <select class="form-select" id="new-timeline-status" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="placed">Placed</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="return-requested">Return Requested</option>
+                                <option value="return-pickup">Return Pickup</option>
+                                <option value="return-processing">Return Processing</option>
+                                <option value="return-complete">Return Complete</option>
+                                <option value="return-rejected">Return Rejected</option>
+                              </select>
+                            </div>
+                            <div class="form-group">
+                              <label class="form-label">Date & Time</label>
+                              <input type="datetime-local" 
+                                     class="form-control" 
+                                     id="new-timeline-date" 
+                                     name="date" 
+                                     required>
+                            </div>
+                            <div class="form-group">
+                              <label class="form-label">Note (Optional)</label>
+                              <textarea class="form-control" 
+                                        id="new-timeline-note" 
+                                        name="note" 
+                                        rows="2"
+                                        placeholder="Add a note about this timeline entry..."></textarea>
+                            </div>
+                            <div class="timeline-form-actions">
+                              <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="lni lni-plus"></i>
+                                Add Entry
+                              </button>
+                              <button type="button" class="btn btn-sm btn-secondary" onclick="cancelAddTimeline()">
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                    
+                  <% } else { %>
+                    <!-- Empty Timeline State -->
+                    <div class="timeline-empty">
+                      <div class="empty-state">
+                        <i class="lni lni-timer"></i>
+                        <h6>No Timeline Entries</h6>
+                        <p>Timeline entries will appear here as the order progresses.</p>
+                        <% if (order.createdAt) { %>
+                          <div class="timeline-item completed">
+                            <div class="timeline-icon">
+                              <i class="lni lni-timer"></i>
+                            </div>
+                            <div class="timeline-content">
+                              <h6>Order Created</h6>
+                              <p class="timeline-date"><%= new Date(order.createdAt).toLocaleString('en-IN', {
+                                day: '2-digit',
+                                month: 'short', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              }) %></p>
+                              <p class="timeline-relative">
+                                <i class="lni lni-clock"></i>
+                                <span class="relative-time" data-date="<%= order.createdAt %>"></span>
+                              </p>
+                            </div>
+                          </div>
+                        <% } %>
+                      </div>
+                    </div>
+                  <% } %>
+                  
+                  <!-- Add Timeline Button (only in edit mode) -->
+                  <div class="timeline-actions" id="timeline-actions" style="display: none;">
+                    <button class="btn btn-outline-primary btn-sm" onclick="showAddTimeline()">
+                      <i class="lni lni-plus"></i>
+                      Add Timeline Entry
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Order Items with Individual Status -->
+            <div class="card-style mb-30">
+              <div class="card-header mb-3">
+                <h6 class="card-title">
+                  <i class="lni lni-cart"></i>
+                  Order Items
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="items-list" id="items-list">
+                  <% order.items.forEach((item, index) => { %>
+                  <div class="item-row" data-item-index="<%= index %>">
+                    <div class="item-image">
+                      <img src="<%= item.productImage %>" alt="<%= item.productName %>" class="product-thumb">
+                    </div>
+                    <div class="item-details">
+                      <div class="item-info">
+                        <h6 class="item-name"><%= item.productName %></h6>
+                        <% if (item.brand) { %>
+                          <p class="item-brand"><%= item.brand %></p>
+                        <% } %>
+                        <p class="item-variant">
+                          Size: <%= item.variant.size.toUpperCase() %>, 
+                          Color: <%= item.variant.color %>
+                        </p>
+                        
+                        <!-- Individual Item Status -->
+                        <div class="item-status-section">
+                          <label class="control-label">Item Status:</label>
+<!-- ITEM STATUS SELECT (replace just the <select> tag) -->
+<select class="form-select item-status-select" data-item-index="<%= index %>" disabled>
+  <option value="pending"           <%= item.status==='pending'           ?'selected':'' %>>Pending</option>
+  <option value="confirmed"         <%= item.status==='confirmed'         ?'selected':'' %>>Confirmed</option>
+  <option value="shipped"           <%= item.status==='shipped'           ?'selected':'' %>>Shipped</option>
+  <option value="delivered"         <%= item.status==='delivered'         ?'selected':'' %>>Delivered</option>
+  <option value="cancelled"         <%= item.status==='cancelled'         ?'selected':'' %>>Cancelled</option>
+  <option value="return-requested"  <%= item.status==='return-requested'  ?'selected':'' %>>Return Requested</option>
+  <option value="return-pickup"     <%= item.status==='return-pickup'     ?'selected':'' %>>Return Pickup</option>
+  <option value="return-processing" <%= item.status==='return-processing' ?'selected':'' %>>Return Processing</option>
+  <option value="return-complete"   <%= item.status==='return-complete'   ?'selected':'' %>>Return Complete</option>
+  <option value="return-rejected"   <%= item.status==='return-rejected'   ?'selected':'' %>>Return Rejected</option>
+</select>
+
+                          <span class="item-status-badge status-<%= item.status %>">
+                            <%= item.status.replace('-', ' ').toUpperCase() %>
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div class="item-controls">
+                        <div class="quantity-control">
+                          <label class="control-label">Quantity:</label>
+                          <input type="number" 
+                                 class="form-control quantity-input" 
+                                 value="<%= item.quantity %>" 
+                                 min="1" 
+                                 data-item-index="<%= index %>"
+                                 disabled>
+                        </div>
+                        
+                        <div class="price-control">
+                          <label class="control-label">Price:</label>
+                          <input type="number" 
+                                 class="form-control price-input" 
+                                 value="<%= item.price %>" 
+                                 min="0" 
+                                 step="0.01"
+                                 data-item-index="<%= index %>"
+                                 disabled>
+                        </div>
+                        
+                        <div class="total-control">
+                          <label class="control-label">Total:</label>
+                          <span class="item-total">₹<%= (item.price * item.quantity).toFixed(2) %></span>
+                        </div>
+                        
+                        <div class="item-actions">
+                          <button class="btn btn-sm btn-danger remove-item-btn" 
+                                  data-item-index="<%= index %>"
+                                  onclick="removeItem('<%= index %>')"
+                                  style="display: none;">
+                            <i class="lni lni-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Return Information -->
+                      <% if (item.status && item.status.includes('return') || item.returnReason) { %>
+                      <div class="item-return-info">
+                        <div class="return-details">
+                          <% if (item.returnReason) { %>
+                            <p class="return-reason"><strong>Return Reason:</strong> <%= item.returnReason %></p>
+                          <% } %>
+                          <% if (item.returnNote) { %>
+                            <p class="return-note"><strong>Return Note:</strong> <%= item.returnNote %></p>
+                          <% } %>
+                          <% if (item.returnRequestedAt) { %>
+                            <p class="return-date"><strong>Return Requested:</strong> <%= new Date(item.returnRequestedAt).toLocaleString() %></p>
+                          <% } %>
+                          <% if (item.pickupScheduledAt) { %>
+                            <p class="return-date"><strong>Pickup Scheduled:</strong> <%= new Date(item.pickupScheduledAt).toLocaleString() %></p>
+                          <% } %>
+                          <% if (item.returnProcessAt) { %>
+                            <p class="return-date"><strong>Return Processing:</strong> <%= new Date(item.returnProcessAt).toLocaleString() %></p>
+                          <% } %>
+                          <% if (item.returnCompletedAt) { %>
+                            <p class="return-date"><strong>Return Completed:</strong> <%= new Date(item.returnCompletedAt).toLocaleString() %></p>
+                          <% } %>
+                          <% if (item.returnRejectedAt) { %>
+                            <p class="return-date"><strong>Return Rejected:</strong> <%= new Date(item.returnRejectedAt).toLocaleString() %></p>
+                          <% } %>
+                          <% if (item.returnRequestedBy) { %>
+                            <p class="return-by"><strong>Requested by:</strong> <%= item.returnRequestedBy %></p>
+                          <% } %>
+                        </div>
+                        
+                        <!-- Return Actions based on current status -->
+                        <% if (item.status === 'return-requested') { %>
+                        <div class="return-request-actions">
+                          <div class="return-action-header">
+                            <h6 class="return-action-title">
+                              <i class="lni lni-warning"></i>
+                              Return Request Pending
+                            </h6>
+                            <p class="return-action-subtitle">This item has a pending return request that requires your action.</p>
+                          </div>
+                          
+                          <div class="return-actions">
+                            <button class="btn btn-sm btn-success" onclick="acceptReturnRequest('<%= index %>')">
+                              <i class="lni lni-checkmark"></i>
+                              Accept Return
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectReturnRequest('<%= index %>')">
+                              <i class="lni lni-close"></i>
+                              Reject Return
+                            </button>
+                          </div>
+                        </div>
+                        <% } else if (item.status === 'return-pickup') { %>
+                        <div class="return-pickup-actions">
+                          <div class="return-action-header">
+                            <h6 class="return-action-title">
+                              <i class="lni lni-calendar"></i>
+                              Return Pickup Scheduled
+                            </h6>
+                            <p class="return-action-subtitle">Pickup has been scheduled for this return item.</p>
+                          </div>
+                          
+                          <div class="return-actions">
+                            <button class="btn btn-sm btn-primary" onclick="markReturnProcess('<%= index %>')">
+                              <i class="lni lni-reload"></i>
+                              Mark as Processing
+                            </button>
+                          </div>
+                        </div>
+                        <% } else if (item.status === 'return-processing') { %>
+                        <div class="return-process-actions">
+                          <div class="return-action-header">
+                            <h6 class="return-action-title">
+                              <i class="lni lni-reload"></i>
+                              Return Processing
+                            </h6>
+                            <p class="return-action-subtitle">This return is currently being processed.</p>
+                          </div>
+                          
+                          <div class="return-actions">
+                            <button class="btn btn-sm btn-success" onclick="completeReturn('<%= index %>')">
+                              <i class="lni lni-checkmark"></i>
+                              Complete Return
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectReturnProcess('<%= index %>')">
+                              <i class="lni lni-close"></i>
+                              Reject Return
+                            </button>
+                          </div>
+                        </div>
+                        <% } else if (item.status === 'return-complete') { %>
+                        <div class="return-complete-info">
+                          <div class="return-action-header">
+                            <h6 class="return-action-title">
+                              <i class="lni lni-checkmark"></i>
+                              Return Completed
+                            </h6>
+                            <p class="return-action-subtitle">This return has been successfully completed.</p>
+                          </div>
+                        </div>
+                        <% } else if (item.status === 'return-rejected') { %>
+                        <div class="return-reject-info">
+                          <div class="return-action-header">
+                            <h6 class="return-action-title">
+                              <i class="lni lni-close"></i>
+                              Return Rejected
+                            </h6>
+                            <p class="return-action-subtitle">This return request has been rejected.</p>
+                          </div>
+                        </div>
+                        <% } %>
+                      </div>
+                      <% } %>
+                    </div>
+                  </div>
+                  <% }) %>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary">
+                  <div class="summary-row">
+                    <span class="summary-label">Subtotal:</span>
+                    <span class="summary-value" id="subtotal-value">₹<%= order.subtotal.toFixed(2) %></span>
+                  </div>
+                  <% if (order.coupon && order.coupon.discountAmount > 0) { %>
+                  <div class="summary-row discount-row">
+                    <span class="summary-label">Discount (<%= order.coupon.code %>):</span>
+                    <span class="summary-value discount-value">-₹<%= order.coupon.discountAmount.toFixed(2) %></span>
+                  </div>
+                  <% } %>
+                  <div class="summary-row total-row">
+                    <span class="summary-label">Total Amount:</span>
+                    <span class="summary-value total-value" id="total-value">₹<%= order.totalAmount.toFixed(2) %></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <div class="col-lg-4">
+            <!-- Customer Information -->
+            <div class="card-style mb-30">
+              <div class="card-header">
+                <h6 class="card-title">
+                  <i class="lni lni-user"></i>
+                  Customer Information
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="customer-info">
+                  <div class="info-group">
+                    <label class="info-label">Name:</label>
+                    <p class="info-value"><%= order.user.name %></p>
+                  </div>
+                  <div class="info-group">
+                    <label class="info-label">Email:</label>
+                    <p class="info-value"><%= order.user.email %></p>
+                  </div>
+                  <div class="customer-actions">
+                    <button class="btn btn-sm btn-outline-primary">
+                      <i class="lni lni-envelope"></i>
+                      Send Email
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary">
+                      <i class="lni lni-user"></i>
+                      View Profile
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="card-style mb-30">
+              <div class="card-header">
+                <h6 class="card-title">
+                  <i class="lni lni-map-marker"></i>
+                  Shipping Address
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="address-form" id="address-form">
+                  <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" 
+                           class="form-control address-input" 
+                           id="fullName"
+                           value="<%= order.shippingAddress.fullName %>" 
+                           disabled>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" 
+                           class="form-control address-input" 
+                           id="phone"
+                           value="<%= order.shippingAddress.phone %>" 
+                           disabled>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Street Address</label>
+                    <textarea class="form-control address-input" 
+                              id="street"
+                              rows="2" 
+                              disabled><%= order.shippingAddress.street %></textarea>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="form-group">
+                        <label class="form-label">City</label>
+                        <input type="text" 
+                               class="form-control address-input" 
+                               id="city"
+                               value="<%= order.shippingAddress.city %>" 
+                               disabled>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="form-group">
+                        <label class="form-label">State</label>
+                        <input type="text" 
+                               class="form-control address-input" 
+                               id="state"
+                               value="<%= order.shippingAddress.state %>" 
+                               disabled>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Pincode</label>
+                    <input type="text" 
+                           class="form-control address-input" 
+                           id="pincode"
+                           value="<%= order.shippingAddress.pincode %>" 
+                           disabled>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Information -->
+            <div class="card-style mb-30">
+              <div class="card-header">
+                <h6 class="card-title">
+                  <i class="lni lni-credit-cards"></i>
+                  Payment Information
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="payment-info">
+                  <div class="info-group">
+                    <label class="info-label">Payment Method:</label>
+                    <div class="payment-method-badge">
+                      <i class="lni lni-<%= order.paymentMethod === 'cod' ? 'money-protection' : 'credit-cards' %>"></i>
+                      <%= order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment' %>
+                    </div>
+                  </div>
+                  <div class="info-group">
+                    <label class="info-label">Payment Status:</label>
+                    <div class="payment-status-section">
+                      <span class="payment-status payment-<%= order.paymentStatus %>">
+                        <%= order.paymentStatus.toUpperCase() %>
+                      </span>
+                      <select class="form-select payment-status-select" id="payment-status-select" disabled>
+                        <option value="pending" <%= order.paymentStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="paid" <%= order.paymentStatus === 'paid' ? 'selected' : '' %>>Paid</option>
+                        <option value="failed" <%= order.paymentStatus === 'failed' ? 'selected' : '' %>>Failed</option>
+                      </select>
+                    </div>
+                  </div>
+                  <% if (order.paymentId) { %>
+                  <div class="info-group">
+                    <label class="info-label">Payment ID:</label>
+                    <p class="info-value payment-id"><%= order.paymentId %></p>
+                  </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card-style mb-30">
+              <div class="card-header">
+                <h6 class="card-title">
+                  <i class="lni lni-cog"></i>
+                  Quick Actions
+                </h6>
+              </div>
+              <div class="card-body mt-3">
+                <div class="quick-actions">
+                  <% if (order.orderStatus === 'pending') { %>
+                    <button class="btn btn-success btn-block mb-2" onclick="quickStatusUpdate('confirmed')">
+                      <i class="lni lni-checkmark"></i>
+                      Confirm Order
+                    </button>
+                    <button class="btn btn-danger btn-block mb-2" onclick="quickStatusUpdate('cancelled')">
+                      <i class="lni lni-close"></i>
+                      Cancel Order
+                    </button>
+                  <% } else if (order.orderStatus === 'confirmed') { %>
+                    <button class="btn btn-info btn-block mb-2" onclick="quickStatusUpdate('shipped')">
+                      <i class="lni lni-delivery"></i>
+                      Mark as Shipped
+                    </button>
+                    <button class="btn btn-danger btn-block mb-2" onclick="quickStatusUpdate('cancelled')">
+                      <i class="lni lni-close"></i>
+                      Cancel Order
+                    </button>
+                  <% } else if (order.orderStatus === 'shipped') { %>
+                    <button class="btn btn-success btn-block mb-2" onclick="quickStatusUpdate('delivered')">
+                      <i class="lni lni-package"></i>
+                      Mark as Delivered
+                    </button>
+                  <% } else if (order.orderStatus === 'delivered') { %>
+                    <button class="btn btn-warning btn-block mb-2" onclick="quickStatusUpdate('return-requested')">
+                      <i class="lni lni-reload"></i>
+                      Process Return
+                    </button>
+                  <% } else if (order.orderStatus === 'return-requested') { %>
+                    <button class="btn btn-success btn-block mb-2" onclick="acceptOrderReturnRequest()">
+                      <i class="lni lni-checkmark"></i>
+                      Accept Return Request
+                    </button>
+                    <button class="btn btn-danger btn-block mb-2" onclick="rejectOrderReturnRequest()">
+                      <i class="lni lni-close"></i>
+                      Reject Return Request
+                    </button>
+                  <% } else if (order.orderStatus === 'return-pickup') { %>
+                    <button class="btn btn-primary btn-block mb-2" onclick="markOrderReturnProcess()">
+                      <i class="lni lni-reload"></i>
+                      Mark as Processing
+                    </button>
+                  <% } else if (order.orderStatus === 'return-processing') { %>
+                    <button class="btn btn-success btn-block mb-2" onclick="completeOrderReturn()">
+                      <i class="lni lni-checkmark"></i>
+                      Complete Return
+                    </button>
+                    <button class="btn btn-danger btn-block mb-2" onclick="rejectOrderReturnProcess()">
+                      <i class="lni lni-close"></i>
+                      Reject Return
+                    </button>
+                  <% } %>
+                  
+                  <div class="action-divider"></div>
+                  
+                  <button class="btn btn-outline-primary btn-block mb-2" onclick="printInvoice(`<%= order._id %>`)">
+                    <i class="lni lni-printer"></i>
+                    Print Invoice
+                  </button>
+                  <button class="btn btn-outline-secondary btn-block mb-2" onclick="sendEmail()">
+                    <i class="lni lni-envelope"></i>
+                    Send Email Update
+                  </button>
+                  <!-- <button class="btn btn-outline-info btn-block" onclick="exportOrder()">
+                    <i class="lni lni-download"></i>
+                    Export Order
+                  </button> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Status Update Modal -->
+<div class="modal-overlay" id="status-update-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="status-modal-title">Update Order Status</h5>
+      <button class="modal-close" onclick="closeStatusModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="status-update-form">
+      <div class="modal-body">
+        <div id="status-modal-messages"></div>
+        
+        <div class="form-group mb-2" id="tracking-group" style="display: none;">
+          <label for="modal-tracking-number" class="form-label">Tracking Number</label>
+          <input type="text" id="modal-tracking-number" name="trackingNumber" class="form-control" 
+                 placeholder="Enter tracking number">
+        </div>
+        
+        <div class="form-group mb-2" id="reason-group" style="display: none;">
+          <label for="modal-reason" class="form-label">Reason</label>
+          <textarea id="modal-reason" name="reason" class="form-control" rows="3"
+                    placeholder="Please provide a reason..."></textarea>
+        </div>
+
+        <div class="form-group mb-2" id="confirm-group">
+                              <label for="deliveryDate" class="form-label mt-2">Delivery Date</label>
+          <input type="date" name="deliveryDate" id="deliveryDate" class="form-control mb-2">
+        </div>
+        
+
+        <div class="form-group">
+          <label for="modal-notes" class="form-label">Timeline Notes (Optional)</label>
+          <textarea id="modal-notes" name="notes" class="form-control" rows="3"
+                    placeholder="Add notes to be recorded in timeline..."></textarea>
+        </div>
+
+        <input type="hidden" id="modal-new-status" name="newStatus">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="status-update-submit">
+          <span class="btn-spinner" id="status-update-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="status-update-text">Update Status</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Order Return Request Action Modal -->
+<div class="modal-overlay" id="order-return-request-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="order-return-request-modal-title">Order Return Request Action</h5>
+      <button class="modal-close" onclick="closeOrderReturnRequestModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="order-return-request-form">
+      <div class="modal-body">
+        <div id="order-return-request-modal-messages"></div>
+        
+        <!-- Show order return request details -->
+        <div class="return-request-details" id="order-return-request-details">
+          <div class="alert alert-info">
+            <h6><i class="lni lni-information"></i> Order Return Request Details</h6>
+            <div id="order-return-request-info">
+              <p><strong>Order:</strong> #<%= order.orderNumber %></p>
+              <% if (order.returnReason) { %>
+                <p><strong>Return Reason:</strong> <%= order.returnReason %></p>
+              <% } %>
+              <% if (order.returnNote) { %>
+                <p><strong>Customer Note:</strong> <%= order.returnNote %></p>
+              <% } %>
+              <% if (order.returnRequestedAt) { %>
+                <p><strong>Requested On:</strong> <%= new Date(order.returnRequestedAt).toLocaleString() %></p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pickup Date Field (only for accept action) -->
+        <div class="form-group" id="order-pickup-date-group" style="display: none;">
+          <label for="order-return-pickup-date" class="form-label">Pickup Date</label>
+          <input type="date" 
+                 id="order-return-pickup-date" 
+                 name="pickupDate" 
+                 class="form-control" 
+                 min="<%= new Date().toISOString().split('T')[0] %>"
+                 required>
+          <small class="form-text text-muted">Select the date when the order will be picked up for return.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="order-return-request-notes" class="form-label">Admin Response Notes</label>
+          <textarea id="order-return-request-notes" name="notes" class="form-control" rows="3"
+                    placeholder="Add notes about your decision on this order return request..." required></textarea>
+        </div>
+
+        <input type="hidden" id="order-return-request-action-type" name="actionType">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeOrderReturnRequestModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="order-return-request-submit">
+          <span class="btn-spinner" id="order-return-request-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="order-return-request-text">Confirm</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Return Request Action Modal -->
+<div class="modal-overlay" id="return-request-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="return-request-modal-title">Return Request Action</h5>
+      <button class="modal-close" onclick="closeReturnRequestModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="return-request-form">
+      <div class="modal-body">
+        <div id="return-request-modal-messages"></div>
+        
+        <!-- Show return request details -->
+        <div class="return-request-details" id="return-request-details">
+          <div class="alert alert-info">
+            <h6><i class="lni lni-information"></i> Return Request Details</h6>
+            <div id="return-request-info"></div>
+          </div>
+        </div>
+
+        <!-- Pickup Date Field (only for accept action) -->
+        <div class="form-group" id="pickup-date-group" style="display: none;">
+          <label for="return-pickup-date" class="form-label">Pickup Date</label>
+          <input type="date" 
+                 id="return-pickup-date" 
+                 name="pickupDate" 
+                 class="form-control" 
+                 value="<%= new Date().toISOString().split('T')[0] %>"
+                 min="<%= new Date().toISOString().split('T')[0] %>"
+                 required>
+          <small class="form-text text-muted">Select the date when the item will be picked up for return.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="return-request-notes" class="form-label">Admin Response Notes</label>
+          <textarea id="return-request-notes" name="notes" class="form-control" rows="3"
+                    placeholder="Add notes about your decision on this return request..." required></textarea>
+        </div>
+
+        <input type="hidden" id="return-request-item-index" name="itemIndex">
+        <input type="hidden" id="return-request-action-type" name="actionType">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeReturnRequestModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="return-request-submit">
+          <span class="btn-spinner" id="return-request-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="return-request-text">Confirm</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Return Action Modal (for other return statuses) -->
+<div class="modal-overlay" id="return-action-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="return-action-modal-title">Return Action</h5>
+      <button class="modal-close" onclick="closeReturnActionModal()" aria-label="Close">
+        <i class="lni lni-close"></i>
+      </button>
+    </div>
+    <form id="return-action-form">
+      <div class="modal-body">
+        <div id="return-action-modal-messages"></div>
+        
+        <div class="form-group">
+          <label for="return-action-notes" class="form-label">Notes</label>
+          <textarea id="return-action-notes" name="notes" class="form-control" rows="3"
+                    placeholder="Add notes about this return action..." required></textarea>
+        </div>
+
+        <input type="hidden" id="return-action-item-index" name="itemIndex">
+        <input type="hidden" id="return-action-type" name="actionType">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeReturnActionModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="return-action-submit">
+          <span class="btn-spinner" id="return-action-spinner" style="display: none;">
+            <i class="lni lni-spinner-arrow"></i>
+          </span>
+          <span id="return-action-text">Confirm</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+/* Enhanced Order Detail Page Styles */
+.order-detail-section {
+  padding: 20px 0;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+.order-info .order-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin: 0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.urgent-badge {
+  background: #ff4757;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.order-info .order-date {
+  color: #666;
+  margin: 5px 0 0 0;
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+}
+
+/* Enhanced Status Section */
+.status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.current-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-confirmed { background: #d1ecf1; color: #0c5460; }
+.status-shipped { background: #e2e3e5; color: #383d41; }
+.status-delivered { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+.status-return-requested { background: #fff3cd; color: #856404; }
+.status-return-processing { background: #f3e7ff; color: #6f42c1; }
+.status-return-pickup { background: #e7f3ff; color: #0c5460; }
+.status-return-complete { background: #d1e7dd; color: #155724; }
+.status-return-rejected { background: #f8d7da; color: #721c24; }
+.status-returned { background: #ffeaa7; color: #6c5ce7; }
+.status-partial-return { background: #fab1a0; color: #e17055; }
+
+.status-select {
+  max-width: 200px;
+}
+
+.tracking-section, .notes-section, .user-notes-section, .urgent-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-notes-display {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid #007bff;
+  font-style: italic;
+}
+
+.urgent-section label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+/* Order-level Return Request Actions */
+.order-return-request-actions {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.order-return-pickup-actions {
+  background: #e7f3ff;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.order-return-process-actions {
+  background: #f3e7ff;
+  border: 2px solid #6f42c1;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.return-reason-display, .return-note-display, .pickup-date-display {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #495057;
+}
+
+/* Enhanced Timeline Styles */
+.timeline-title {
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timeline-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(45deg, #007bff, #28a745);
+  border-radius: 2px;
+}
+
+.timeline-date {
+  font-weight: 500;
+  color: #495057;
+}
+
+.timeline-note {
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+  border-left: 3px solid #007bff;
+  font-style: italic;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.timeline-relative {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+.empty-state h6 {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.timeline-add-entry {
+  margin-top: 20px;
+  border-top: 2px dashed #dee2e6;
+  padding-top: 20px;
+}
+
+.timeline-item.new-entry {
+  border: 2px dashed #007bff;
+  border-radius: 8px;
+  padding: 15px;
+  background: #f8f9ff;
+}
+
+.timeline-icon.new {
+  background: #007bff;
+  color: white;
+}
+
+.timeline-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.timeline-actions {
+  margin-top: 20px;
+  text-align: center;
+  padding-top: 15px;
+  border-top: 1px solid #dee2e6;
+}
+
+/* Enhanced Items List */
+.item-row {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.item-image .product-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.item-info .item-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+}
+
+.item-info .item-brand {
+  color: #666;
+  margin: 0 0 5px 0;
+  font-size: 14px;
+}
+
+.item-info .item-variant {
+  color: #888;
+  margin: 0;
+  font-size: 13px;
+}
+
+.item-status-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.item-status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.item-status-select {
+  max-width: 180px;
+}
+
+.item-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.quantity-control, .price-control, .total-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.control-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  margin: 0;
+}
+
+.quantity-input, .price-input {
+  width: 80px;
+}
+
+.item-total {
+  font-weight: bold;
+  color: #28a745;
+  font-size: 16px;
+}
+
+.remove-item-btn {
+  margin-left: auto;
+}
+
+/* Return Information Styles */
+.item-return-info {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.return-details p {
+  margin: 5px 0;
+  font-size: 13px;
+}
+
+.return-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.return-date {
+  color: #6c757d;
+}
+
+.return-by {
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Order Summary */
+.order-summary {
+  border-top: 2px solid #e0e0e0;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.summary-label {
+  font-weight: 500;
+}
+
+.summary-value {
+  font-weight: 600;
+}
+
+.discount-row .summary-value {
+  color: #28a745;
+}
+
+.total-row {
+  border-top: 1px solid #e0e0e0;
+  margin-top: 10px;
+  padding-top: 15px;
+  font-size: 18px;
+}
+
+.total-row .summary-value {
+  color: #28a745;
+  font-size: 20px;
+}
+
+/* Sidebar Styles */
+.customer-info, .payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  margin: 0;
+}
+
+.info-value {
+  margin: 0;
+  font-weight: 500;
+}
+
+.payment-method-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.payment-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.payment-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.payment-paid {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.payment-failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.payment-id {
+  font-family: monospace;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.customer-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Address Form */
+.address-form .form-group {
+  margin-bottom: 15px;
+}
+
+.address-input:disabled {
+  background-color: #f8f9fa;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 10px 0;
+}
+
+.btn-block {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Edit Mode Styles */
+.edit-mode .status-select,
+.edit-mode .tracking-input,
+.edit-mode .notes-textarea,
+.edit-mode .address-input,
+.edit-mode .quantity-input,
+.edit-mode .price-input,
+.edit-mode .payment-status-select,
+.edit-mode .item-status-select,
+.edit-mode #urgent-checkbox {
+  background-color: white !important;
+}
+
+.edit-mode .remove-item-btn {
+  display: inline-flex !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .detail-header {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .current-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .status-select {
+    max-width: 100%;
+  }
+  
+  .item-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .item-controls {
+    justify-content: space-between;
+  }
+  
+  .customer-actions {
+    flex-direction: column;
+  }
+  
+  .item-status-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .return-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 576px) {
+  .item-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .quantity-control, .price-control {
+    width: 100%;
+  }
+  
+  .quantity-input, .price-input {
+    width: 100%;
+  }
+  
+  .order-info .order-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Loading and Message Styles */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay.active {
+  display: flex;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-msg, .success-msg {
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  display: none;
+}
+
+.error-msg {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.success-msg {
+  background: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #badbcc;
+}
+
+.error-msg.show, .success-msg.show {
+  display: block;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+/* Item Action Messages */
+.item-action-messages {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  max-width: 400px;
+}
+
+.item-message {
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: slideInRight 0.3s ease-out;
+}
+
+.item-message.success {
+  background: #d1e7dd;
+  color: #0f5132;
+  border-left: 4px solid #198754;
+}
+
+.item-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.item-message.warning {
+  background: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+.item-message-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.item-message-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Return Request Styles */
+.return-request-actions {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.return-pickup-actions {
+  background: #e7f3ff;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.return-process-actions {
+  background: #f3e7ff;
+  border: 2px solid #6f42c1;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.return-complete-info {
+  background: #d1e7dd;
+  border: 2px solid #28a745;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.return-reject-info {
+  background: #f8d7da;
+  border: 2px solid #dc3545;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.return-action-header {
+  margin-bottom: 15px;
+}
+
+.return-action-title {
+  color: #856404;
+  margin: 0 0 5px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.return-pickup-actions .return-action-title {
+  color: #0c5460;
+}
+
+.return-process-actions .return-action-title {
+  color: #6f42c1;
+}
+
+.return-complete-info .return-action-title {
+  color: #155724;
+}
+
+.return-reject-info .return-action-title {
+  color: #721c24;
+}
+
+.return-action-subtitle {
+  color: #856404;
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.return-pickup-actions .return-action-subtitle {
+  color: #0c5460;
+}
+
+.return-process-actions .return-action-subtitle {
+  color: #6f42c1;
+}
+
+.return-complete-info .return-action-subtitle {
+  color: #155724;
+}
+
+.return-reject-info .return-action-subtitle {
+  color: #721c24;
+}
+
+.return-request-details .alert {
+  background: #e7f3ff;
+  border: 1px solid #b3d7ff;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.return-request-details .alert h6 {
+  margin: 0 0 8px 0;
+  color: #0c5460;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.return-request-details .alert div {
+  color: #0c5460;
+  font-size: 13px;
+}
+
+/* Status-specific item badges */
+.status-return-requested {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-return-pickup {
+  background: #e7f3ff;
+  color: #0c5460;
+}
+
+.status-return-processing {
+  background: #f3e7ff;
+  color: #6f42c1;
+}
+
+.status-return-complete {
+  background: #d1e7dd;
+  color: #155724;
+}
+
+.status-return-rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+</style>
+
+<script>
+  const BASE_URL = window.location.origin;
+  const ORDER_ID = '<%= order._id %>';
+  
+  let isEditMode = false;
+  let originalData = {};
+
+  function showLoading() {
+    document.getElementById('loading-overlay').classList.add('active');
+  }
+
+  function hideLoading() {
+    document.getElementById('loading-overlay').classList.remove('active');
+  }
+
+  function showError(message) {
+    const errorMsg = document.getElementById('error-msg');
+    errorMsg.textContent = message;
+    errorMsg.classList.add('show');
+    setTimeout(() => {
+      errorMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function showSuccess(message) {
+    const successMsg = document.getElementById('success-msg');
+    successMsg.textContent = message;
+    successMsg.classList.add('show');
+    setTimeout(() => {
+      successMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  function goBack() {
+    window.history.back();
+  }
+
+  function toggleEditMode() {
+    isEditMode = !isEditMode;
+    const body = document.body;
+    
+    if (isEditMode) {
+      body.classList.add('edit-mode');
+      document.getElementById('edit-toggle').style.display = 'none';
+      document.getElementById('save-btn').style.display = 'inline-flex';
+      document.getElementById('cancel-edit-btn').style.display = 'inline-flex';
+      
+      enableFormControls();
+      storeOriginalData();
+    } else {
+      body.classList.remove('edit-mode');
+      document.getElementById('edit-toggle').style.display = 'inline-flex';
+      document.getElementById('save-btn').style.display = 'none';
+      document.getElementById('cancel-edit-btn').style.display = 'none';
+      
+      disableFormControls();
+    }
+  }
+
+  function enableFormControls() {
+    // Status controls
+    document.getElementById('status-select').disabled = false;
+    document.getElementById('tracking-input')?.removeAttribute('disabled');
+    document.getElementById('admin-notes').disabled = false;
+    document.getElementById('urgent-checkbox').disabled = false;
+    
+    // Address controls
+    document.querySelectorAll('.address-input').forEach(input => {
+      input.disabled = false;
+    });
+    
+    // Item controls
+    document.querySelectorAll('.quantity-input, .price-input, .item-status-select').forEach(input => {
+      input.disabled = false;
+    });
+    
+    // Payment status
+    document.getElementById('payment-status-select').disabled = false;
+    
+    // Show remove buttons
+    document.querySelectorAll('.remove-item-btn').forEach(btn => {
+      btn.style.display = 'inline-flex';
+    });
+    
+    // Show timeline actions
+    document.getElementById('timeline-actions').style.display = 'block';
+  }
+
+  function disableFormControls() {
+    // Status controls
+    document.getElementById('status-select').disabled = true;
+    document.getElementById('tracking-input')?.setAttribute('disabled', 'disabled');
+    document.getElementById('admin-notes').disabled = true;
+    document.getElementById('urgent-checkbox').disabled = true;
+    
+    // Address controls
+    document.querySelectorAll('.address-input').forEach(input => {
+      input.disabled = true;
+    });
+    
+    // Item controls
+    document.querySelectorAll('.quantity-input, .price-input, .item-status-select').forEach(input => {
+      input.disabled = true;
+    });
+    
+    // Payment status
+    document.getElementById('payment-status-select').disabled = true;
+    
+    // Hide remove buttons
+    document.querySelectorAll('.remove-item-btn').forEach(btn => {
+      btn.style.display = 'none';
+    });
+    
+    // Hide timeline actions
+    document.getElementById('timeline-actions').style.display = 'none';
+    cancelAddTimeline();
+  }
+
+  function storeOriginalData() {
+    originalData = {
+      status: document.getElementById('status-select').value,
+      trackingNumber: document.getElementById('tracking-input')?.value || '',
+      adminNotes: document.getElementById('admin-notes').value,
+      paymentStatus: document.getElementById('payment-status-select').value,
+      isUrgent: document.getElementById('urgent-checkbox').checked,
+      address: {
+        fullName: document.getElementById('fullName').value,
+        phone: document.getElementById('phone').value,
+        street: document.getElementById('street').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        pincode: document.getElementById('pincode').value
+      },
+      items: Array.from(document.querySelectorAll('.item-row')).map((row, index) => ({
+        quantity: parseInt(row.querySelector('.quantity-input').value),
+        price: parseFloat(row.querySelector('.price-input').value),
+        status: row.querySelector('.item-status-select').value
+      }))
+    };
+  }
+
+  function cancelEdit() {
+    if (originalData) {
+      // Restore original values
+      document.getElementById('status-select').value = originalData.status;
+      if (document.getElementById('tracking-input')) {
+        document.getElementById('tracking-input').value = originalData.trackingNumber;
+      }
+      document.getElementById('admin-notes').value = originalData.adminNotes;
+      document.getElementById('payment-status-select').value = originalData.paymentStatus;
+      document.getElementById('urgent-checkbox').checked = originalData.isUrgent;
+      
+      // Restore address
+      document.getElementById('fullName').value = originalData.address.fullName;
+      document.getElementById('phone').value = originalData.address.phone;
+      document.getElementById('street').value = originalData.address.street;
+      document.getElementById('city').value = originalData.address.city;
+      document.getElementById('state').value = originalData.address.state;
+      document.getElementById('pincode').value = originalData.address.pincode;
+      
+      // Restore items
+      document.querySelectorAll('.item-row').forEach((row, index) => {
+        if (originalData.items[index]) {
+          row.querySelector('.quantity-input').value = originalData.items[index].quantity;
+          row.querySelector('.price-input').value = originalData.items[index].price;
+          row.querySelector('.item-status-select').value = originalData.items[index].status;
+          updateItemTotal(row);
+        }
+      });
+      
+      updateOrderSummary();
+    }
+    
+    toggleEditMode();
+  }
+
+  function saveOrder() {
+    showLoading();
+    
+    const orderData = {
+      orderId: ORDER_ID,
+      orderStatus: document.getElementById('status-select').value,
+      trackingNumber: document.getElementById('tracking-input')?.value || '',
+      adminNotes: document.getElementById('admin-notes').value,
+      paymentStatus: document.getElementById('payment-status-select').value,
+      isUrgent: document.getElementById('urgent-checkbox').checked,
+      shippingAddress: {
+        fullName: document.getElementById('fullName').value,
+        phone: document.getElementById('phone').value,
+        street: document.getElementById('street').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        pincode: document.getElementById('pincode').value
+      },
+      items: Array.from(document.querySelectorAll('.item-row')).map((row, index) => ({
+        index: index,
+        quantity: parseInt(row.querySelector('.quantity-input').value),
+        price: parseFloat(row.querySelector('.price-input').value),
+        status: row.querySelector('.item-status-select').value
+      }))
+    };
+
+    fetch(`${BASE_URL}/admin/orders/${ORDER_ID}/update`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(orderData)
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        showSuccess('Order updated successfully');
+        toggleEditMode();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        showError(result.message || 'Failed to update order');
+      }
+    })
+    .catch(error => {
+      showError('Error updating order');
+      console.error('Error:', error);
+    })
+    .finally(() => {
+      hideLoading();
+    });
+  }
+
+  function removeItem(index) {
+    if (confirm('Are you sure you want to remove this item?')) {
+      const itemRow = document.querySelector(`[data-item-index="${index}"]`);
+      if (itemRow) {
+        itemRow.remove();
+        updateOrderSummary();
+      }
+    }
+  }
+
+  function updateItemTotal(itemRow) {
+    const quantity = parseInt(itemRow.querySelector('.quantity-input').value) || 0;
+    const price = parseFloat(itemRow.querySelector('.price-input').value) || 0;
+    const total = quantity * price;
+    
+    itemRow.querySelector('.item-total').textContent = `₹${total.toFixed(2)}`;
+    updateOrderSummary();
+  }
+
+function updateOrderSummary(){
+  let subtotal = 0;
+
+  document.querySelectorAll('.item-row').forEach(row=>{
+    const qty   = parseInt(row.querySelector('.quantity-input').value) || 0;
+    const price = parseFloat(row.querySelector('.price-input').value)  || 0;
+    subtotal += qty * price;
+  });
+
+  const discountAmount = parseFloat('<%= (order.coupon && order.coupon.discountAmount) || 0 %>') || 0;
+
+  document.getElementById('subtotal-value').textContent = '₹' + subtotal.toFixed(2);
+  document.getElementById('total-value').textContent    = '₹' + (subtotal - discountAmount).toFixed(2);
+}
+
+  function quickStatusUpdate(newStatus){
+    document.getElementById('modal-new-status').value = newStatus;
+
+    const trackingGrp = document.getElementById('tracking-group');
+    const reasonGrp   = document.getElementById('reason-group');
+    const confirmGrp   = document.getElementById('confirm-group');
+    const reasonLbl   = document.querySelector('#reason-group label');
+
+    if (newStatus === 'shipped') {
+      trackingGrp.style.display = 'block';
+      reasonGrp.style.display   = 'none';
+      confirmGrp.style.display = 'none';
+    } else if (['cancelled', 'return-requested'].includes(newStatus)) {
+      trackingGrp.style.display = 'none';
+      reasonGrp.style.display   = 'block';
+      confirmGrp.style.display = 'none';
+      reasonLbl.textContent     = (newStatus === 'cancelled')
+        ? 'Cancellation Reason'
+        : 'Return Reason';
+    } else {
+      confirmGrp.style.display = 'block';
+      trackingGrp.style.display = 'none';
+      reasonGrp.style.display   = 'none';
+    }
+
+    document.getElementById('status-modal-title').textContent =
+      'Update Status to ' + newStatus.replace('-',' ')
+                                     .replace(/\b\w/g, l => l.toUpperCase());
+
+    document.getElementById('status-update-modal').classList.add('active');
+  }
+
+
+  function closeStatusModal() {
+    document.getElementById('status-update-modal').classList.remove('active');
+    document.getElementById('status-update-form').reset();
+  }
+
+  async function printInvoice(orderId) {
+    const BASE_URL = window.location.origin;
+    try{
+
+      const response = await fetch(`${BASE_URL}/admin/orders/${orderId}/pdf`)
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `invoice-${new Date().toISOString().split('T')[0]}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+        } else {
+          throw new Error(response.message);
+        }
+
+    }catch(err){
+      console.log(err);
+      
+    }
+  }
+
+  // Order-level return request functions
+  function acceptOrderReturnRequest() {
+    document.getElementById('order-return-request-action-type').value = 'return-approved';
+    document.getElementById('order-return-request-modal-title').textContent = 'Accept Order Return Request';
+    document.getElementById('order-return-request-text').textContent = 'Accept Return';
+    document.getElementById('order-return-request-submit').className = 'btn btn-success';
+    
+    // Show pickup date field for accept action
+    document.getElementById('order-pickup-date-group').style.display = 'block';
+    
+    // Set minimum date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('order-return-pickup-date').min = tomorrow.toISOString().split('T')[0];
+    
+    document.getElementById('order-return-request-modal').classList.add('active');
+  }
+
+  function rejectOrderReturnRequest() {
+    document.getElementById('order-return-request-action-type').value = 'return-rejected';
+    document.getElementById('order-return-request-modal-title').textContent = 'Reject Order Return Request';
+    document.getElementById('order-return-request-text').textContent = 'Reject Return';
+    document.getElementById('order-return-request-submit').className = 'btn btn-danger';
+    
+    // Hide pickup date field for reject action
+    document.getElementById('order-pickup-date-group').style.display = 'none';
+    
+    document.getElementById('order-return-request-modal').classList.add('active');
+  }
+
+  function markOrderReturnProcess() {
+    quickStatusUpdate('return-processing');
+  }
+
+  function completeOrderReturn() {
+    quickStatusUpdate('return-complete');
+  }
+
+  function rejectOrderReturnProcess() {
+    quickStatusUpdate('return-rejected');
+  }
+
+  function closeOrderReturnRequestModal() {
+    document.getElementById('order-return-request-modal').classList.remove('active');
+    document.getElementById('order-return-request-form').reset();
+    document.getElementById('order-pickup-date-group').style.display = 'none';
+  }
+
+  // Item-specific messaging functions
+  function showItemMessage(message, type = 'success', itemIndex = null) {
+    const container = document.getElementById('item-action-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `item-message ${type}`;
+    
+    const itemText = itemIndex !== null ? ` (Item ${parseInt(itemIndex) + 1})` : '';
+    
+    messageDiv.innerHTML = `
+      <i class="lni lni-${type === 'success' ? 'checkmark' : type === 'error' ? 'close' : 'warning'}"></i>
+      <span>${message}${itemText}</span>
+      <button class="item-message-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(messageDiv);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (messageDiv.parentElement) {
+        messageDiv.remove();
+      }
+    }, 5000);
+  }
+
+  function confirmItemAction(itemIndex, action, callback) {
+    const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
+    const message = `Are you sure you want to ${action} "${itemName}"?`;
+    
+    if (confirm(message)) {
+      callback();
+    }
+  }
+
+
+
+  function sendEmail() {
+    alert('Email functionality to be implemented');
+  }
+
+  function exportOrder() {
+    window.open(`${BASE_URL}/admin/orders/${ORDER_ID}/export`, '_blank');
+  }
+
+  // Timeline Management Functions
+  function showAddTimeline() {
+    document.getElementById('timeline-add-entry').style.display = 'block';
+    document.getElementById('timeline-actions').style.display = 'none';
+    
+    // Set current date/time as default
+    const now = new Date();
+    const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('new-timeline-date').value = localDateTime;
+  }
+
+  function cancelAddTimeline() {
+    document.getElementById('timeline-add-entry').style.display = 'none';
+    document.getElementById('timeline-actions').style.display = 'block';
+    document.getElementById('add-timeline-form').reset();
+  }
+
+  function addTimelineEntry(data) {
+    showLoading();
+    
+    fetch(`${BASE_URL}/admin/orders/${ORDER_ID}/timeline`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        showSuccess('Timeline entry added successfully');
+        cancelAddTimeline();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        showError(result.message || 'Failed to add timeline entry');
+      }
+    })
+    .catch(error => {
+      showError('Error adding timeline entry');
+      console.error('Error:', error);
+    })
+    .finally(() => {
+      hideLoading();
+    });
+  }
+
+  // Calculate relative time
+  function updateRelativeTimes() {
+    document.querySelectorAll('.relative-time').forEach(element => {
+      const date = new Date(element.dataset.date);
+      const now = new Date();
+      const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    let relativeTime;
+    
+    if (diffInSeconds < 60) {
+      relativeTime = 'Just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      relativeTime = `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      relativeTime = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 2592000) {
+      const days = Math.floor(diffInSeconds / 86400);
+      relativeTime = `${days} day${days > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 31536000) {
+      const months = Math.floor(diffInSeconds / 2592000);
+      relativeTime = `${months} month${months > 1 ? 's' : ''} ago`;
+    } else {
+      const years = Math.floor(diffInSeconds / 31536000);
+      relativeTime = `${years} year${years > 1 ? 's' : ''} ago`;
+    }
+    
+    element.textContent = relativeTime;
+  });
+}
+
+  // Return Request Functions
+  function acceptReturnRequest(itemIndex) {
+    const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
+    const returnReason = getItemReturnReason(itemIndex);
+    
+    document.getElementById('return-request-item-index').value = itemIndex;
+    document.getElementById('return-request-action-type').value = 'return-approved';
+    document.getElementById('return-request-modal-title').textContent = `Accept Return Request - ${itemName}`;
+    document.getElementById('return-request-text').textContent = 'Accept Return';
+    document.getElementById('return-request-submit').className = 'btn btn-success';
+    
+    // Show pickup date field for accept action
+    document.getElementById('pickup-date-group').style.display = 'block';
+    
+    // Set minimum date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('return-pickup-date').min = tomorrow.toISOString().split('T')[0];
+    
+    // Show return request details
+    document.getElementById('return-request-info').innerHTML = `
+      <p><strong>Item:</strong> ${itemName}</p>
+      <p><strong>Return Reason:</strong> ${returnReason || 'No reason provided'}</p>
+      <p><strong>Action:</strong> You are about to <strong>accept</strong> this return request. This will move the item to "Return Pickup" status and schedule a pickup date.</p>
+    `;
+    
+    document.getElementById('return-request-modal').classList.add('active');
+  }
+
+  function rejectReturnRequest(itemIndex) {
+    const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
+    const returnReason = getItemReturnReason(itemIndex);
+    
+    document.getElementById('return-request-item-index').value = itemIndex;
+    document.getElementById('return-request-action-type').value = 'return-rejected';
+    document.getElementById('return-request-modal-title').textContent = `Reject Return Request - ${itemName}`;
+    document.getElementById('return-request-text').textContent = 'Reject Return';
+    document.getElementById('return-request-submit').className = 'btn btn-danger';
+    
+    // Hide pickup date field for reject action
+    document.getElementById('pickup-date-group').style.display = 'none';
+    
+    // Show return request details
+    document.getElementById('return-request-info').innerHTML = `
+      <p><strong>Item:</strong> ${itemName}</p>
+      <p><strong>Return Reason:</strong> ${returnReason || 'No reason provided'}</p>
+      <p><strong>Action:</strong> You are about to <strong>reject</strong> this return request. This will mark the return as rejected.</p>
+    `;
+    
+    document.getElementById('return-request-modal').classList.add('active');
+  }
+
+  function markReturnProcess(itemIndex) {
+    const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
+    
+    document.getElementById('return-action-item-index').value = itemIndex;
+    document.getElementById('return-action-type').value = 'return-processing';
+    document.getElementById('return-action-modal-title').textContent = `Mark Return as Processing - ${itemName}`;
+    document.getElementById('return-action-text').textContent = 'Mark as Processing';
+    document.getElementById('return-action-submit').className = 'btn btn-primary';
+    
+    document.getElementById('return-action-modal').classList.add('active');
+  }
+
+  function completeReturn(itemIndex) {
+    const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
+    
+    document.getElementById('return-action-item-index').value = itemIndex;
+    document.getElementById('return-action-type').value = 'return-complete';
+    document.getElementById('return-action-modal-title').textContent = `Complete Return - ${itemName}`;
+    document.getElementById('return-action-text').textContent = 'Complete Return';
+    document.getElementById('return-action-submit').className = 'btn btn-success';
+    
+    document.getElementById('return-action-modal').classList.add('active');
+  }
+
+  function rejectReturnProcess(itemIndex) {
+    const itemName = document.querySelector(`[data-item-index="${itemIndex}"] .item-name`).textContent;
+    
+    document.getElementById('return-action-item-index').value = itemIndex;
+    document.getElementById('return-action-type').value = 'return-rejected';
+    document.getElementById('return-action-modal-title').textContent = `Reject Return - ${itemName}`;
+    document.getElementById('return-action-text').textContent = 'Reject Return';
+    document.getElementById('return-action-submit').className = 'btn btn-danger';
+    
+    document.getElementById('return-action-modal').classList.add('active');
+  }
+
+  function getItemReturnReason(itemIndex) {
+    const itemRow = document.querySelector(`[data-item-index="${itemIndex}"]`);
+    const returnReasonElement = itemRow.querySelector('.return-reason');
+    return returnReasonElement ? returnReasonElement.textContent.replace('Return Reason:', '').trim() : null;
+  }
+
+  function closeReturnRequestModal() {
+    document.getElementById('return-request-modal').classList.remove('active');
+    document.getElementById('return-request-form').reset();
+    document.getElementById('pickup-date-group').style.display = 'none';
+  }
+
+  function closeReturnActionModal() {
+    document.getElementById('return-action-modal').classList.remove('active');
+    document.getElementById('return-action-form').reset();
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    // Item quantity and price change listeners
+    document.querySelectorAll('.quantity-input, .price-input').forEach(input => {
+      input.addEventListener('input', function() {
+        const itemRow = this.closest('.item-row');
+        updateItemTotal(itemRow);
+      });
+    });
+
+    // Item status change listeners
+    document.querySelectorAll('.item-status-select').forEach(select => {
+      select.addEventListener('change', function() {
+        const itemIndex = this.dataset.itemIndex;
+        const newStatus = this.value;
+        const oldStatus = this.getAttribute('data-previous-status') || 'unknown';
+        
+        // Update item status badge
+        const statusBadge = this.parentElement.querySelector('.item-status-badge');
+        if (statusBadge) {
+          statusBadge.className = `item-status-badge status-${newStatus}`;
+          statusBadge.textContent = newStatus.replace('-', ' ').toUpperCase();
+        }
+        
+        // Show appropriate message based on status change
+        const itemName = this.closest('.item-row').querySelector('.item-name').textContent;
+        
+        if (newStatus === 'return-requested') {
+          showItemMessage(`${itemName} return has been requested`, 'warning', itemIndex);
+        } else if (newStatus === 'return-pickup') {
+          showItemMessage(`${itemName} return pickup has been scheduled`, 'warning', itemIndex);
+        } else if (newStatus === 'return-processing') {
+          showItemMessage(`${itemName} return is being processed`, 'warning', itemIndex);
+        } else if (newStatus === 'return-complete') {
+          showItemMessage(`${itemName} return has been completed`, 'success', itemIndex);
+        } else if (newStatus === 'return-rejected') {
+          showItemMessage(`${itemName} return has been rejected`, 'error', itemIndex);
+        } else if (newStatus === 'cancelled') {
+          showItemMessage(`${itemName} has been cancelled`, 'warning', itemIndex);
+        } else if (newStatus === 'delivered') {
+          showItemMessage(`${itemName} has been delivered`, 'success', itemIndex);
+        } else if (newStatus === 'shipped') {
+          showItemMessage(`${itemName} has been shipped`, 'success', itemIndex);
+        }
+        
+        // Store current status for next change
+        this.setAttribute('data-previous-status', newStatus);
+      });
+    });
+
+    // Status update form submission
+    document.getElementById('status-update-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      
+      showLoading();
+      
+      fetch(`${BASE_URL}/admin/orders/${ORDER_ID}/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          showSuccess('Order status updated successfully');
+          closeStatusModal();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          showError(result.message || 'Failed to update order status');
+        }
+      })
+      .catch(error => {
+        showError('Error updating order status');
+        console.error('Error:', error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    });
+
+    // Order return request form submission
+    document.getElementById('order-return-request-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      const actionType = data.actionType;
+      
+      showLoading();
+      
+      fetch(`${BASE_URL}/admin/orders/${ORDER_ID}/order-return-request-action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          showSuccess(`Order return request ${actionType}ed successfully`);
+          closeOrderReturnRequestModal();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          showError(result.message || `Failed to ${actionType} order return request`);
+        }
+      })
+      .catch(error => {
+        showError('Error processing order return request action');
+        console.error('Error:', error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    });
+
+    // Return request form submission
+    document.getElementById('return-request-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      const itemIndex = data.itemIndex;
+      const actionType = data.actionType;
+      
+      showLoading();
+      
+      fetch(`${BASE_URL}/admin/orders/${ORDER_ID}/return-request-action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          showItemMessage(`Return request ${actionType}ed successfully`, 'success', itemIndex);
+          closeReturnRequestModal();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          showItemMessage(result.message || `Failed to ${actionType} return request`, 'error', itemIndex);
+        }
+      })
+      .catch(error => {
+        showItemMessage('Error processing return request action', 'error', itemIndex);
+        console.error('Error:', error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    });
+
+    // Return action form submission
+    document.getElementById('return-action-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      const itemIndex = data.itemIndex;
+      const actionType = data.actionType;
+      
+      showLoading();
+      
+      fetch(`${BASE_URL}/admin/orders/${ORDER_ID}/return-request-action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          showItemMessage(`Return ${actionType}ed successfully`, 'success', itemIndex);
+          closeReturnActionModal();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          showItemMessage(result.message || `Failed to ${actionType} return`, 'error', itemIndex);
+        }
+      })
+      .catch(error => {
+        showItemMessage('Error processing return action', 'error', itemIndex);
+        console.log('Error:', error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    });
+
+    // Modal close on outside click
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('active');
+        }
+      });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+          modal.classList.remove('active');
+        });
+      }
+      
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (isEditMode) {
+          saveOrder();
+        }
+      }
+    });
+
+    // Timeline form submission
+    document.getElementById('add-timeline-form')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      
+      addTimelineEntry(data);
+    });
+
+    // Update relative times initially and every minute
+    updateRelativeTimes();
+    setInterval(updateRelativeTimes, 60000);
+
+    // Add data-status attributes to timeline items for styling
+    document.querySelectorAll('.timeline-item').forEach((item, index) => {
+      const statusText = item.querySelector('h6')?.textContent?.toLowerCase().replace(/\s+/g, '-');
+      if (statusText) {
+        item.setAttribute('data-status', statusText);
+      }
+    });
+  });
+
+  // Hide loading on page load
+  window.addEventListener('load', function() {
+    hideLoading();
+  });
+</script>

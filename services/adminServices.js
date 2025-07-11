@@ -1,4 +1,6 @@
 const Admin = require("../models/adminModel");
+const Orders = require("../models/orderModel");
+const Products = require("../models/productModel");
 const Users = require("../models/userModel");
 const { comparePassword, hashPassword } = require("../utils/bcrypt");
 const { getAllUsersQuery } = require("../utils/queries/getAllUsersQueri");
@@ -236,4 +238,235 @@ const updateUser = async (userId, reqBody) => {
 
 
 
-module.exports = {loginAdmin , findOneAdminById, createAdmin, getAllUsers, changeUserStatusById, unlistUserById, updateUser}; 
+const getDashboardData = async (query) => {
+
+  const { dateRange = 'month', startDate, endDate ,paymentMethod , status  } = query;
+
+  try{
+
+    const filters = {};
+    const now = new Date();
+    let from,to;
+
+    if(dateRange && dateRange !== 'custom' ){
+      to = new Date();
+      switch (dateRange) {
+        case 'today':
+          from = new Date(now.setHours(0, 0, 0, 0));
+          break;
+        case 'yesterday':
+          from = new Date(now.setDate(now.getDate() - 1));
+          from.setHours(0, 0, 0, 0);
+          to = new Date(from);
+          to.setHours(23, 59, 59);
+          break;
+        case 'week':
+          from = new Date(now.setDate(now.getDate() - 7));
+          break;
+        case 'last-week':
+          from = new Date(now.setDate(now.getDate() - 14));
+          to = new Date(now.setDate(now.getDate() + 7));
+          break;
+        case 'month':
+          from = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case 'last-month':
+          from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+          break;
+        case 'year':
+          from = new Date(now.getFullYear(), 0, 1);
+          break;
+      }
+
+    }else if( dateRange == 'custom' && startDate && endDate ){
+      from = new Date(startDate);
+      from.setHours(0, 0, 0, 0);
+      to = new Date(endDate);
+      to.setHours(23, 59, 59);
+    }
+
+
+
+
+    if(from && to){
+      filters.createdAt = { $gte: from , $lte: to }
+    }
+
+
+
+    if (status && status !== 'all') {
+      filters.orderStatus = status;
+    }
+
+    if (paymentMethod && paymentMethod !== 'all') {
+      filters.paymentMethod = paymentMethod;
+    }
+
+console.log(filters); 
+
+
+
+    const orders = await Orders.find(filters).populate('user', 'name email').lean();
+    const users = await Users.find({ isBlocked: false, createdAt: filters.createdAt  }).lean();
+    
+
+    const totalOrders = orders.length;
+    const totalIncome = orders.filter(ord => ord.paymentStatus === 'paid').reduce((total, ord) => total + ord.totalAmount, 0);
+    const totalOrderAmount = orders.reduce((total, ord) => total + ord.totalAmount  ,0);
+    const totalPendingAmt = totalOrderAmount - totalIncome;
+    const totalDiscount = orders.reduce((total,ord) => total + ord.coupon?.discountAmount , 0 );
+    const totalUsers = users.length;
+
+
+
+    const salesMapTrend = new Map();
+    
+    for (const order of orders) {
+      const date = new Date(order.createdAt).toISOString().split('T')[0];
+      salesMapTrend.set(date, ( salesMapTrend.get(date) || 0) + order.totalAmount );
+    }
+
+const paymentMethodCodMapTrend = new Map();
+const paymentMethodOnlineMapTrend = new Map();
+
+for (const order of orders) {
+  const date = new Date(order.createdAt).toISOString().split('T')[0];
+
+  if (order.paymentMethod === 'cod') {
+    paymentMethodCodMapTrend.set(date, (paymentMethodCodMapTrend.get(date) || 0) + 1);
+  }
+
+  if (order.paymentMethod === 'online') {
+    paymentMethodOnlineMapTrend.set(date, (paymentMethodOnlineMapTrend.get(date) || 0) + 1);
+  }
+}
+
+
+
+    
+    for (const order of orders) {
+      const date = new Date(order.createdAt).toISOString().split('T')[0];
+      salesMapTrend.set(date, ( salesMapTrend.get(date) || 0) + order.totalAmount );
+    }
+    
+    const paymentMap = {};
+
+    for(const order of orders){
+        const method = order.paymentMethod || 'unknown';
+        paymentMap[method] = (paymentMap[method] || 0) + 1;
+    }
+
+
+    const chartData = {
+
+  salesTrend: {
+    labels: [...salesMapTrend.keys()],
+    data: [...salesMapTrend.values()]
+  }
+  ,paymentMethods: {
+    labels: Object.keys(paymentMap),
+    data: Object.values(paymentMap)
+  }
+
+};
+
+
+
+
+
+const orderedProducts = await Orders.aggregate([
+  { $match: { createdAt: filters.createdAt  } },
+  { $unwind: '$items' },
+  { $unwind: '$items.variant' },
+  {$group: {
+    _id: {
+        productId: '$items.productId',
+        variant: '$items.variant',
+    },
+    itemsSold: { $sum: '$items.quantity' }
+    }},
+  { $sort: { itemsSold: -1 } }
+]);
+
+const products = await Products.find({}).populate('category').populate('brand').lean();
+const productMap = new Map(products.map(p => [ p._id.toString(), p ]));
+
+const topSellingProducts = orderedProducts.map((p) => {
+  const prod = productMap.get(p._id.productId.toString())
+  return{
+    productId: prod._id,
+    name: prod.name,
+    itemSold: p.itemsSold,
+    variant: prod.variants.find(i => i.color ==  p._id.variant.color && i.size == p._id.variant.size),
+    category: prod.category,
+    brand: prod.brand,
+    stock: prod.variants.find(i => i.color ==  p._id.variant.color && i.size == p._id.variant.size).stock,
+  }
+});
+
+
+const topSellingCategories = topSellingProducts.sort((a,b) =>  b.itemSold - a.itemSold)
+.reduce((categories,product) => {
+
+  const catIndex = categories.findIndex(c =>  c.category._id.toString() == product.category._id.toString())
+
+  if(catIndex !== -1){
+    categories[catIndex].sold += product.itemSold
+  }else{
+    categories.push({
+      category: product.category,
+      sold: product.itemSold
+    })
+  }
+
+  return categories
+
+  },[]);
+
+
+const topSellingBrands = topSellingProducts.sort((a,b) =>  b.itemSold - a.itemSold)
+.reduce((brands,products)=> { 
+
+  const brandIndex = brands.findIndex(b => b.brand._id.toString() == products.brand._id.toString())
+
+  if(brandIndex !== -1){
+
+    brands[brandIndex].sold +=  products.itemSold
+
+  }else{
+
+    brands.push({
+      brand: products.brand,
+      sold: products.itemSold
+    })
+
+  }
+
+  return brands
+
+},[]);
+
+
+const recentOrders = await Orders.find({ createdAt: filters.createdAt }).sort({ createdAt: -1  }).lean().limit(6);
+
+
+
+    const totals = {totalOrders , totalIncome,  totalOrderAmount, totalOrderAmount , totalPendingAmt , totalDiscount , totalUsers  }
+
+    return {  totals, startDate, endDate, paymentMethod, status , dateRange , chartData, topSellingProducts, topSellingCategories , topSellingBrands, recentOrders}
+
+  }catch(err){
+    console.log(err);
+    
+    throw new Error(err.message);
+  }
+
+}
+
+
+
+ 
+
+
+module.exports = {loginAdmin , findOneAdminById, createAdmin, getAllUsers, changeUserStatusById, unlistUserById, updateUser, getDashboardData}; 

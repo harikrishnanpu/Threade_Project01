@@ -63,6 +63,7 @@ const insertOneProduct = async (data) => {
     isFeatured = false,
     isActive = true, 
     createdBy,
+    maxCartQuantity,
     variants
   } = data;
   
@@ -85,6 +86,7 @@ const insertOneProduct = async (data) => {
       isFeatured: Boolean(isFeatured),
       isActive: Boolean(isActive),
       createdBy,
+      maxCartQuantity,
       variants
     });
 
@@ -119,7 +121,8 @@ const editProductById = async (productId, data) => {
     isFeatured,
     isActive,
     createdBy,
-    variants 
+    variants ,
+    maxCartQuantity
   } = data;
 
   try {
@@ -143,15 +146,18 @@ const editProductById = async (productId, data) => {
     if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
     if (createdBy !== undefined) updateData.createdBy   = createdBy;
+    if (maxCartQuantity !== undefined) updateData.maxCartQuantity   = maxCartQuantity;
+
 
     if (variants !== undefined) {
       updateData.variants = variants.map(v => ({
-        size:      v.size,
-        color:     v.color,
-        price:     Number(v.price),
+        size: v.size,
+        color: v.color,
+        price: Number(v.price),
         salePrice: Number(v.salePrice) || 0,
-        stock:     Number(v.stock),
-        images:    v.images
+        stock:  Number(v.stock),
+        images:   v.images,
+        isActive:  v.isActive
       }));
     }
 

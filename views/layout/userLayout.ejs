@@ -6,9 +6,6 @@
     <meta name="description" content="Threade Fashions | mens| womens| kids">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Threadë Fashions | Clothes | Mens | Womens | Kids</title>
-
-    <link rel="preload" href="/img/login_banner.jpg" as="image">
-    <link rel="preload" href="/img/signup_banner.jpg" as="image">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
     rel="stylesheet">
@@ -16,7 +13,6 @@
     <!-- Css Styles -->
     <link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
     <link rel="stylesheet" href="/css/font-awesome.min.css" type="text/css">
-    <link rel="stylesheet" href="/css/elegant-icons.css" type="text/css">
     <link rel="stylesheet" href="/css/magnific-popup.css" type="text/css">
     <link rel="stylesheet" href="/css/nice-select.css" type="text/css">
     <link rel="stylesheet" href="/css/owl.carousel.min.css" type="text/css">
@@ -29,34 +25,17 @@
 	
 	<!-- StyleSheet -->
 	
-	<!-- Bootstrap -->
-	<link rel="stylesheet" href="/landing/css/bootstrap.css">
-	<!-- Magnific Popup -->
-    <link rel="stylesheet" href="/landing/css/magnific-popup.min.css">
-	<!-- Font Awesome -->
-    <link rel="stylesheet" href="/landing/css/font-awesome.css">
-	<!-- Fancybox -->
-	<link rel="stylesheet" href="/landing/css/jquery.fancybox.min.css">
-	<!-- Themify Icons -->
-    <link rel="stylesheet" href="/landing/css/themify-icons.css">
-	<!-- Nice Select CSS -->
-    <link rel="stylesheet" href="/landing/css/niceselect.css">
-	<!-- Animate CSS -->
-    <link rel="stylesheet" href="/landing/css/animate.css">
-	<!-- Flex Slider CSS -->
-    <link rel="stylesheet" href="/landing/css/flex-slider.min.css">
-	<!-- Owl Carousel -->
-    <link rel="stylesheet" href="/landing/css/owl-carousel.css">
-	<!-- Slicknav -->
-    <link rel="stylesheet" href="/landing/css/slicknav.min.css">
 	
 	<!-- Eshop StyleSheet -->
-	<link rel="stylesheet" href="/landing/css/reset.css">
-	<link rel="stylesheet" href="/landing/style.css">
-    <link rel="stylesheet" href="/landing/css/responsive.css">
+	<link rel="stylesheet" href="/landing/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/landing/css/style-prefix.css" type="text/css">
 
 	<!-- Swiper CSS -->
-<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
 
 
     <!-- <link rel="stylesheet" href="/css/myStyles.css" type="text/css"> -->
@@ -64,8 +43,225 @@
 
     <script src="/js/form-input-helper.js"></script>
     <script src="/js/form-helper.js"></script>
+    <script src="/js/variantSidebar.js"></script>
+
+    <style>
+
+
+body {
+  overflow-x: hidden;
+}
+
+
+.toast-global{
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:var(--white);
+    border:1px solid #e5e7eb;
+    border-radius:8px;
+    padding:1rem 1.5rem;
+    box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);
+    z-index:10000;
+    transform:translateX(400px);
+    transition:transform 0.3s ease;
+    min-width:300px;
+  }
+  
+  .toast-global.show{
+    transform:translateX(0);
+  }
+  
+  .toast-global.success{
+    border-left:4px solid var(--success);
+  }
+  
+  .toast-global.error{
+    border-left:4px solid var(--danger);
+  }
+  
+  .toast-global.warning{
+    border-left:4px solid var(--warning);
+  }
+
+      @media (max-width: 768px){
+            
+    .toast-global{
+      right:10px;
+      left:10px;
+      transform:translateY(-100px);
+    }
+    
+    .toast-global.show{
+      transform:translateY(0);
+    }
+      }
+
+
+		.swiper{
+			padding-bottom: 60px !important;
+		}
+
+.swiper-button-next:after{
+	font-size: 30px;
+	color: black;
+}
+
+.swiper-button-prev:after{
+	font-size: 30px;
+	color: black;
+}
+
+.section-title{
+	text-align: left;
+}
+
+.section-title::before{
+	text-align: left;
+}
+
+
+.swiper-button-next, .swiper-button-prev{
+  top: 30%;
+}
+
+p{
+  margin-bottom: 0 !important;
+}
+
+
+.product-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.product-actions > *{
+  cursor: pointer;
+}
+
+.product-actions > *:focus{
+  outline: none !important;
+}
+
+.action-btn{
+  padding-inline: 8px;
+  padding-block: 3px;
+  border-radius: 10px;
+  font-size: 1rem !important;
+  font-weight: bold;
+  margin-top: 3px;
+}
+
+
+
+    /* -------------------------------------------------------
+       CONFIRMATION MODALS
+    ------------------------------------------------------- */
+
+
+.wishlist-confirm-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1050;
+      opacity: 0;
+      pointer-events: none;
+      transition:  all 0.2s ease;
+    }
+    .wishlist-confirm-modal:not(.hidden) {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .wishlist-modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      animation: scaleIn 0.25s ease;
+      color: #000;
+    }
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    .wishlist-modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .wishlist-modal-actions button {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 0.6rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition:  all 0.2s ease;
+    }
+    #wishlistConfirmYes,
+    #wishlistClearAllConfirmYes {
+      background: #dc2626;
+      color: #fff;
+    }
+    #wishlistConfirmNo,
+    #wishlistClearAllConfirmNo {
+      background: #f3f4f6;
+    }
+    #wishlistConfirmYes:hover,
+    #wishlistClearAllConfirmYes:hover {
+      background: #b91c1c;
+    }
+    #wishlistConfirmNo:hover,
+    #wishlistClearAllConfirmNo:hover {
+      background: #e5e7eb;
+    }
+
+
+
+        .action-btn:hover{background:#b91c1c;transform:translateY(-2px)}
+
+
+        .banner-content{
+          background-color: hsla(0, 0%, 100%, 0.722) !important;
+        }
+
+    </style>
 </head>
 <body>
+  <div class="overlay" data-overlay></div>
+
+
+  <div class="toast-global" id="toast-global">
+  <div class="toast-content-global">
+    <span id="toastMessage-global"></span>
+  </div>
+</div>
+
+
+<div id="wishlistConfirmModal" class="wishlist-confirm-modal hidden">
+  <div class="wishlist-modal-content">
+    <p>Remove this item from your wishlist?</p>
+    <div class="wishlist-modal-actions">
+      <button id="wishlistConfirmYes">Yes</button>
+      <button id="wishlistConfirmNo">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
     <div class="page-container">
         <% if(!noHeader) { %>
             <%- include('../partials/user/header') %> 
@@ -75,30 +271,25 @@
                 <%- include('../partials/user/footer') %>
                 <% } %>
             </div>
+            <%- include('../partials/user/chat') %>
 
 
-
-
-<!-- Dark overlay -->
 <div id="sidebarOverlay" onclick="closeVariantSidebar()"></div>
 
-<!-- Variant Sidebar -->
+
 <aside id="variantSidebar" class="shadow">
   <div class="vs-header">
-    <button class="vs-close" onclick="closeVariantSidebar()">✕</button>
     <h5 id="vsTitle" class="vs-title">Loading…</h5>
+    <button class="vs-close" onclick="closeVariantSidebar()">✕</button>
   </div>
 
   <div class="vs-content">
-    <!-- Main image -->
     <div class="vs-main-image">
       <img id="vsMainImg" src="" alt="Variant" />
     </div>
 
-    <!-- Thumbnails -->
-    <div id="vsThumbs" class="vs-thumbs"></div>
-
-    <!-- Selectors -->
+    <div id="vsThumbs"></div>
+<p></p>
     <div class="vs-selectors">
       <div class="vs-group">
         <label>Size</label>
@@ -108,7 +299,7 @@
         <label>Colour</label>
         <div id="vsColours" class="vs-options"></div>
       </div>
-      <div class="vs-group vs-qty">
+      <div class="vs-group">
         <label>Quantity</label>
         <div class="vs-qty-controls">
           <button id="vsQtyMinus">−</button>
@@ -118,9 +309,24 @@
       </div>
     </div>
   </div>
-
+<div class="vs-actions">
   <button id="vsAddBtn" class="vs-add-btn">Add to cart</button>
+<button id="vsWishlistBtn" class="vs-wishlist-btn" aria-label="Add to wishlist">
+  <svg id="vsWishlistIcon" width="28" height="28" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z"
+      stroke="#000"
+      stroke-width="1.8"
+      fill="transparent"
+    />
+  </svg>
+</button>
+
+</div>
 </aside>
+
+
+
 
 
     <script src="/js/jquery-3.3.1.min.js"></script>
@@ -133,7 +339,108 @@
     <script src="/js/mixitup.min.js"></script>
     <script src="/js/owl.carousel.min.js"></script>
     <script src="/js/main.js"></script>
-    <script src="/js/variantSidebar.js"></script>
+
+
+
+      <!--
+    - custom js link
+  -->
+  <script src="/landing/js/script.js"></script>
+
+  <!--
+    - ionicon link
+  -->
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+
+
+
+
+<script>
+  
+document.querySelectorAll('.whishlist').forEach(btn => {
+  btn.addEventListener('click', async function () {
+    const productId = this.dataset.productId;
+    const allButtons = document.querySelectorAll(`.whishlist[data-product-id="${productId}"]`);
+
+    const isActive = this.classList.contains('active');
+    const modal = document.getElementById('wishlistConfirmModal');
+    const yesBtn = document.getElementById('wishlistConfirmYes');
+    const noBtn = document.getElementById('wishlistConfirmNo');
+
+    const updateUI = (active) => {
+      allButtons.forEach(el => {
+        const path = el.querySelector('svg path');
+        if (active) {
+          el.classList.add('active', 'pulse-continuous');
+          path.setAttribute('fill', '#e63946');
+          path.setAttribute('stroke', '#e63946');
+
+        } else {
+          el.classList.remove('active', 'pulse-continuous');
+          path.setAttribute('fill', 'none');
+          path.setAttribute('stroke', '#000');
+        }
+      });
+    };
+
+    if (!isActive) {
+      try {
+        const res = await fetch('/user/wishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, variant: null })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+
+                const r = await fetch("/user/wishlist/count");
+      const d = await r.json();
+      
+document.querySelectorAll(".HeaderwishCount").forEach(el => {
+  console.log(el);
+  if (r.ok && el) el.textContent = d.count;
+});
+
+          updateUI(true);
+          showGlobalToast('Added to wishlist');
+        } else {
+          showGlobalToast(data.message || 'Failed', 'error');
+        }
+      } catch (err) {
+        location.href = '/user/login';
+      }
+    } else {
+      modal.classList.remove('hidden');
+
+      yesBtn.onclick = async () => {
+        modal.classList.add('hidden');
+        try {
+          const res = await fetch(`/user/wishlist/remove/${productId}`, {
+            method: 'DELETE'
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            updateWishlistCount();
+            updateUI(false);
+            showGlobalToast('Removed from wishlist');
+          } else {
+            showGlobalToast(data.message || 'Failed to remove', 'error');
+          }
+        } catch (err) {
+          showGlobalToast('Error removing', 'error');
+        }
+      };
+
+      noBtn.onclick = () => modal.classList.add('hidden');
+    }
+  });
+});
+</script>
+
 
 
 

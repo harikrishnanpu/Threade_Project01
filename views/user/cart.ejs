@@ -1,207 +1,653 @@
-<!-- views/cart.ejs -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <title>My Cart</title>
+  <title>My Cart | Elecxo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- ====== Minimal styling (Tailwind-like utility classes) ====== -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    :root { --bg: #fafafa; --card: #fff; --accent: #ff5722; --text: #222; }
-    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
-    body{background:var(--bg);color:var(--text);line-height:1.4;}
-    .container{max-width:1100px;margin-inline:auto;padding:1rem;}
-    h1{font-size:clamp(1.4rem,2.5vw,2rem);margin-bottom:1rem;font-weight:600;}
-    table{width:100%;border-collapse:collapse;}
-    th,td{padding:.75rem .5rem;text-align:left;}
-    thead{background:var(--accent);color:#fff;}
-    tbody tr{background:var(--card);border-bottom:1px solid #e5e5e5;}
-    tbody img{width:64px;height:64px;object-fit:cover;border-radius:.5rem;}
-    .qty-btn,.remove-btn{border:none;background:none;cursor:pointer;font-size:1rem;}
-    .qty-btn{padding:.2rem .6rem;border-radius:.3rem;background:#eee;margin-inline:.2rem;}
-    .qty-btn[disabled]{opacity:.4;cursor:not-allowed;}
-    .remove-btn{color:#c00;}
-    .totals{margin-top:1.5rem;background:var(--card);padding:1rem;border-radius:.5rem;}
-    .totals h2{font-size:1.25rem;margin-bottom:.75rem;}
-    .totals-row{display:flex;justify-content:space-between;margin-bottom:.35rem;}
-    .totals-row:last-child{font-weight:600;font-size:1.1rem;}
-    .btn{display:inline-block;padding:.75rem 1.25rem;border-radius:.5rem;color:#fff;background:var(--accent);text-decoration:none;font-weight:600;}
-    .btn:disabled{opacity:.6;cursor:not-allowed;}
-    /* ====== Mobile tweaks ====== */
-    @media(max-width:640px){
-      thead{display:none;}
-      tbody tr{display:flex;flex-direction:column;padding:1rem;}
-      tbody td{padding:.25rem 0;}
-      tbody td:nth-child(1){order:1;}
-      tbody td:nth-child(2){order:3;}
-      tbody td:nth-child(3){order:4;}
-      tbody td:nth-child(4){order:2;align-self:center;}
-      tbody td:nth-child(5){order:5;}
+    :root {
+      --primary: #000;
+      --text-dark: #333;
+      --text-light: #666;
+      --border-color: #e5e5e5;
+      --bg-light: #f8f9fa;
+      --bg-white: #fff;
+      --danger: #dc3545;
+      --success: #28a745
     }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif
+    }
+
+    body {
+      color: var(--text-dark);
+      line-height: 1.5;
+      background: var(--bg-light)
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      @media (max-width: 600px){
+        padding: 0 10px;
+      }
+    }
+
+    .progress-indicator {
+      display: flex;
+      justify-content: center;
+      margin: 2rem 0;
+      position: relative
+    }
+
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+      width: 120px
+    }
+
+    .step-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: .5rem;
+      font-size: 1.2rem;
+      color: var(--text-light)
+    }
+
+    .step-icon.active {
+      background: var(--primary);
+      color: #fff
+    }
+
+    .step-label {
+      font-size: .85rem;
+      color: var(--text-light)
+    }
+
+    .step-label.active {
+      color: var(--primary);
+      font-weight: 500
+    }
+
+    .progress-line {
+      position: absolute;
+      top: 25px;
+      left: calc(50% - 120px);
+      right: calc(50% - 120px);
+      height: 2px;
+      background: #f0f0f0;
+      z-index: 1
+    }
+
+    .cart-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem
+    }
+
+    @media(min-width:992px) {
+      .cart-content {
+        grid-template-columns: 2fr 1fr
+      }
+    }
+
+    .cart-items {
+      background: var(--bg-white);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+      overflow: hidden
+    }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto auto;
+      gap: 1rem;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      align-items: center
+    }
+
+    .cart-item:last-child {
+      border-bottom: none
+    }
+
+    .item-image {
+        height: 80px;
+        border-radius: 10px;
+      object-fit: contain
+    }
+
+    .item-details h3 {
+      font-size: 1rem;
+      margin-bottom: .25rem
+    }
+
+    .item-meta {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: .5rem
+    }
+
+    .item-meta span {
+      font-size: .75rem;
+      padding: .1rem .5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px
+    }
+
+    .item-price,
+    .item-total {
+      font-weight: 600
+    }
+
+    .item-quantity {
+      display: flex;
+      flex-direction: column;
+      align-items: center
+    }
+
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: .25rem
+    }
+
+    .qty-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: var(--bg-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1
+    }
+
+    .qty-btn:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .stock-info {
+      font-size: .75rem;
+      color: var(--text-light)
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1rem
+    }
+
+    .payment-details {
+      background: var(--bg-white);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+      padding: 1.5rem;
+      position: sticky;
+      top: 100px
+    }
+
+    .payment-details h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: .5rem;
+      border-bottom: 1px solid var(--border-color)
+    }
+
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem
+    }
+
+    .payment-row:last-of-type {
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding-top: .5rem;
+      margin-top: .5rem;
+      border-top: 1px solid var(--border-color)
+    }
+
+    .checkout-btn {
+      display: block;
+      width: 100%;
+      padding: .75rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 1.5rem;
+      transition: background .2s
+    }
+
+    .checkout-btn:hover {
+      background: #000000ce
+    }
+
+    .checkout-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed
+    }
+
+    @media(max-width:768px ) {
+      /* .cart-item {
+        grid-template-columns: 80px 1fr 1fr 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        gap: .75rem
+      }
+
+      .item-image {
+        grid-row: span 3;
+        height: 80px;
+        border-radius: 10px;
+      } */
+
+      .item-details {
+        grid-column: 2
+      }
+
+      .item-price {
+        grid-column: 2
+      }
+
+      .item-quantity,
+      .item-total,
+      .remove-btn {
+        justify-self: start
+      }
+
+      .item-quantity {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem
+      }
+    }
+
+    @media(max-width:576px) {
+
+      .item-details h3{
+        font-size: .8rem;
+      }
+
+      .progress-indicator {
+        margin: 1rem 0
+      }
+
+      .progress-step {
+        width: 80px
+      }
+
+      .step-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem
+      }
+
+      .step-label {
+        font-size: .75rem
+      }
+
+      .progress-line {
+        left: calc(50% - 80px);
+        right: calc(50% - 80px);
+        top: 20px
+      }
+    }
+
+    .btn-spinner {
+  margin-left: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.item-error{
+  margin-top:.25rem;
+  font-size:.75rem;
+  color:var(--danger);
+}
+
+
   </style>
 </head>
+
 <body>
   <div class="container">
-    <h1>Your Cart (<span id="item-count"><%= cartItems.length %></span>)</h1>
-
-    <!-- ================= CART TABLE ================= -->
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Product</th>
-          <th>Price</th>
-          <th style="text-align:center;">Qty</th>
-          <th>Total</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="cart-body">
-      <% cartItems.forEach(item => { %>
-        <tr id="row-<%= item._id %>">
-          <!-- Image -->
-          <td><img src="<%= item.image %>" alt="<%= item.name %>" /></td>
-
-          <!-- Name -->
-          <td>
-            <strong><%= item.name %></strong><br/>
-            <% if(item.isBlocked || item.isUnlisted){ %>
-              <small style="color:#c00">Item unavailable</small>
-            <% } %>
-          </td>
-
-          <!-- Price -->
-          <td>₹<%= item.price.toFixed(2) %></td>
-
-          <!-- Quantity controls -->
-          <td style="text-align:center;">
-            <button class="qty-btn"
-                    onclick="changeQty('<%= item._id %>', -1)"
-                    <%= item.quantity === 1 ? 'disabled' : '' %>>–</button>
-            <span id="qty-<%= item._id %>"><%= item.quantity %></span>
-            <button class="qty-btn"
-                    onclick="changeQty('<%= item._id %>', 1)"
-                    <%= item.quantity >= item.stock ? 'disabled' : '' %>>+</button>
-            <br/>
-            <small style="color:#666"><%= item.stock %> in stock</small>
-          </td>
-
-          <!-- Row total -->
-          <td id="row-total-<%= item._id %>">₹<%= (item.price * item.quantity).toFixed(2) %></td>
-
-          <!-- Remove -->
-          <td>
-            <button class="remove-btn" onclick="removeItem('<%= item._id %>')">&times;</button>
-          </td>
-        </tr>
-      <% }) %>
-      </tbody>
-    </table>
-
-    <!-- ================= TOTALS CARD ================= -->
-    <div class="totals" id="totals-box">
-      <h2>Summary</h2>
-      <div class="totals-row">
-        <span>Subtotal</span>
-        <span id="subtotal">₹0.00</span>
+    <div class="progress-indicator">
+      <div class="progress-line"></div>
+      <div class="progress-step">
+        <div class="step-icon active"><i class="fas fa-shopping-cart"></i></div>
+        <div class="step-label active">cart</div>
       </div>
-      <div class="totals-row">
-        <span>Shipping</span>
-        <span id="shipping">₹0.00</span>
+      <div class="progress-step">
+        <div class="step-icon"><i class="fas fa-clipboard-check"></i></div>
+        <div class="step-label">Checkout</div>
       </div>
-      <div class="totals-row">
-        <span>Grand Total</span>
-        <span id="grand-total">₹0.00</span>
+      <div class="progress-step">
+        <div class="step-icon"><i class="fas fa-credit-card"></i></div>
+        <div class="step-label">Payment</div>
       </div>
-      <div style="margin-top:1rem;display:flex;gap:.75rem;flex-wrap:wrap;">
-        <a href="/shop" class="btn" style="background:#555;">Continue Shopping</a>
-        <button id="checkout-btn" class="btn">Checkout</button>
-      </div>
+    </div>
+
+    <div class="cart-content">
+      <% if(cartItems && cartItems.length>0){ %>
+        <div class="cart-items">
+          <% cartItems.forEach(item=>{ const itemId=`${item.product}-${item.variant.size}-${item.variant.color}`; %>
+            <div class="cart-item" id="row-<%= itemId %>" data-active="<%= item.isActive?'1':'0' %>">
+              <img src="<%= item.image %>" alt="<%= item.name %>" class="item-image">
+              <div class="item-details">
+                <h3>
+                  <%= item.name %>
+                </h3>
+                <div class="item-meta"><span>
+                    <%= item.variant.size.toUpperCase() %>
+                  </span><span>
+                    <%= item.variant.color.toUpperCase() %>
+                  </span></div>
+                <div class="item-price">₹<%= item.salePrice.toFixed(2) %>
+                </div>
+                <% if(!item.isActive){ %><small style="color:var(--danger)">Item unavailable</small>
+                  <% } %>
+              </div>
+              <div class="item-quantity">
+                <div class="quantity-controls">
+                  <button class="qty-btn"
+                    onclick='changeQty("<%= itemId %>", `<%- JSON.stringify(item.variant) %>`, -1)'
+                    <%=(item.quantity ===1 || !item.isActive )?'disabled':'' %> > –</button>
+                  <span id="qty-<%= itemId %>">
+                    <%= item.isActive? item.quantity  :0 %>
+                  </span>
+<button class="qty-btn"
+  onclick='changeQty("<%= itemId %>", `<%- JSON.stringify(item.variant) %>`, 1)'
+  <%= (
+    !item.isActive ||
+    item.quantity >= item.stock ||
+    (item.maxCartQuantity && item.quantity + 1 > item.maxCartQuantity)
+  ) ? 'disabled' : '' %>>
+  +
+</button>
+
+                </div>
+<div class="stock-info">
+  <span id="item-stock-<%= itemId %>"><%= item.stock %></span> in stock
+</div>
+
+<!-- NEW -->
+<div class="item-error" id="error-<%= itemId %>"></div>
+
+              </div>
+              <div class="item-total" id="row-total-<%= itemId %>">₹<%=
+                  item.isActive?(item.salePrice*item.quantity).toFixed(2):'0.00' %>
+              </div>
+              <button class="remove-btn"
+                onclick='removeItem("<%= itemId %>", `<%- JSON.stringify(item.variant) %>` )'><i
+                  class="fas fa-trash"></i></button>
+            </div>
+            <% }) %>
+        </div>
+        <% }else{ %>
+          <p>No Items Found</p>
+          <% } %>
+
+            <div class="payment-details" id="totals-box">
+              <h2>Payment Details</h2>
+              <div class="payment-row"><span>Subtotal</span><span id="subtotal">₹0.00</span></div>
+              <div class="payment-row"><span>Discount</span><span id="discount">₹0.00</span></div>
+              <div class="payment-row"><span>Shipment Cost</span><span id="shipping">₹0.00</span></div>
+              <div class="payment-row"><span>Grand Total</span><span id="grand-total">₹0.00</span></div>
+<button id="checkout-btn" class="checkout-btn" disabled>
+  <span class="btn-text">Proceed to checkout</span>
+  <span class="btn-spinner" style="display:none;"><i class="fas fa-spinner fa-spin"></i></span>
+</button>
+              <small id="inactive-msg"
+                style="color:var(--danger);display:none;margin-top:.5rem;text-align:center">Remove unavailable items to
+                checkout</small>
+            </div>
     </div>
   </div>
 
-  <!-- ================= CLIENT-SIDE JS ================= -->
+
+  <div id="confirm-modal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);z-index:9999;">
+  <div style="background:#fff;padding:1.5rem;border-radius:8px;width:90%;max-width:320px;box-shadow:0 8px 20px rgba(0,0,0,0.15);text-align:center;">
+    <p style="font-size:0.95rem;margin-bottom:1.25rem;" id="confirm-message">Are you sure?</p>
+    <div style="display:flex;gap:1rem;justify-content:center;">
+      <button id="confirm-yes" style="padding:0.5rem 1rem;border:none;background:var(--danger);color:#fff;border-radius:4px;font-weight:600;cursor:pointer;">Yes</button>
+      <button id="confirm-no" style="padding:0.5rem 1rem;border:1px solid var(--border-color);background:#fff;color:var(--text-dark);border-radius:4px;font-weight:500;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
   <script>
-    // ====== Helpers ======
     const money = n => '₹' + (+n).toFixed(2);
+    const hasInactive = () => document.querySelectorAll('.cart-item[data-active="0"]').length > 0;
 
-    // ====== Recalculate totals ======
     function recalc() {
-      let subtotal = 0;
+      let sub = 0;
       document.querySelectorAll('[id^="row-total-"]').forEach(td => {
-        subtotal += parseFloat(td.textContent.replace('₹',''));
+        sub += parseFloat(td.textContent.replace(/[₹,]/g, '')) || 0;
       });
-      const shipping = subtotal === 0 ? 0 : 100;           // flat rate example
-      const grand   = subtotal + shipping;
-
-      document.getElementById('subtotal').textContent    = money(subtotal);
-      document.getElementById('shipping').textContent    = money(shipping);
+      const shipping = sub === 0 ? 0 : 100;
+      const grand = sub + shipping;
+      document.getElementById('subtotal').textContent = money(sub);
+      document.getElementById('shipping').textContent = money(shipping);
       document.getElementById('grand-total').textContent = money(grand);
-      document.getElementById('item-count').textContent  =
-        document.querySelectorAll('#cart-body tr').length;
-
-      // Disable checkout if cart empty
-      document.getElementById('checkout-btn').disabled = subtotal === 0;
+      const inactive = hasInactive();
+      const checkoutBtn = document.getElementById('checkout-btn');
+      checkoutBtn.disabled = sub === 0 || inactive;
+      document.getElementById('inactive-msg').style.display = inactive ? 'block' : 'none';
     }
 
-
-    async function changeQty(id, delta) {
-      const qtySpan = document.getElementById('qty-' + id);
-      const current = +qtySpan.textContent;
-      const newQty  = current + delta;
+    async function changeQty(itemId, variantStr, type) {
+      const variant = JSON.parse(variantStr);
+      const qtySpan = document.getElementById('qty-' + itemId);
+      const newQty = +qtySpan.textContent + type;
       if (newQty < 1) return;
+      const productId = itemId.split('-')[0];
+     
 
       try {
-        const res = await fetch(`/api/cart/update/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quantity: newQty })
-        });
-        if(!res.ok) throw new Error('Server error');
-        const { stock } = await res.json();  // return latest stock for validation
+  const resp = await fetch(`/user/cart/api/update/${productId}`,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ quantity:newQty, variant })
+  });
 
-        // --- Update DOM ---
-        qtySpan.textContent = newQty;
-        document.getElementById('row-total-' + id).textContent =
-          money(parseFloat(document.querySelector('#row-' + id + ' td:nth-child(3)').textContent.replace('₹','')) * newQty);
+  const json = await resp.json();
 
-        // Enable/disable "+" btn based on stock
-        const plusBtn = qtySpan.nextElementSibling;
-        plusBtn.disabled = newQty >= stock;
+  if (!resp.ok) {
+    switch (json.code) {
 
-        // Enable/disable "–" btn
-        const minusBtn = qtySpan.previousElementSibling;
-        minusBtn.disabled = newQty === 1;
+      case 'OUT_OF_STOCK':
+        showItemError(itemId, `Only ${json.stock} left`);
+        qtySpan.nextElementSibling.disabled = true;
+        break;
 
-        recalc();
-      } catch(err) {
-        alert(err.message);
-      }
+      case 'MAX_LIMIT':
+        showItemError(itemId, `Max ${json.limit} per product`);
+        qtySpan.nextElementSibling.disabled = true
+        break;
+
+      case 'UNAVAILABLE':
+        showItemError(itemId, 'Item unavailable');
+        qtySpan.textContent = 0;
+        document.getElementById('row-total-'+itemId).textContent = money(0);
+        break;
+
+      default:
+        showGlobalToast(json.message,'error');
     }
 
-    // ====== Remove item ======
-    async function removeItem(id) {
-      if(!confirm('Remove this item?')) return;
-      try {
-        const res = await fetch(`/api/cart/remove/${id}`, { method:'DELETE' });
-        if(!res.ok) throw new Error('Could not remove item');
-        document.getElementById('row-' + id).remove();
-        recalc();
-      } catch(err) {
-        alert(err.message);
-      }
+    setTimeout(()=>{
+        clearItemError(itemId);
+    },2000)
+    return;      // stop further UI updates
+  }
+
+  /* ------- SUCCESS PATH ------- */
+  clearItemError(itemId);
+
+  qtySpan.textContent = newQty;
+  const price = parseFloat(
+      document.querySelector('#row-'+itemId+' .item-price')
+              .textContent.replace(/[₹,]/g,'')
+  ) || 0;
+  document.getElementById('row-total-'+itemId).textContent = money(price*newQty);
+
+  qtySpan.previousElementSibling.disabled = newQty===1;
+  qtySpan.nextElementSibling.disabled     = newQty >= json.stock;
+  recalc();
+
+} catch (err){
+  console.log(err);
+  
+  showGlobalToast(err.message || err,'error');
+}
+
+
     }
 
-    document.getElementById('checkout-btn').addEventListener('click', async () => {
-      try{
-        const res = await fetch('/api/checkout', { method:'POST' });
-        if(!res.ok) throw new Error('Checkout failed');
-        const { redirectUrl } = await res.json();
-        window.location.href = redirectUrl;             
-      }catch(err){ alert(err.message); }
-    });
+    async function removeItem(itemId, variantStr) {
+const modal = document.getElementById('confirm-modal');
+  const yesBtn = document.getElementById('confirm-yes');
+  const noBtn = document.getElementById('confirm-no');
+
+  modal.style.display = 'flex';
+
+  // Cleanup previous event listeners
+  const newYesBtn = yesBtn.cloneNode(true);
+  const newNoBtn = noBtn.cloneNode(true);
+  yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+  noBtn.parentNode.replaceChild(newNoBtn, noBtn);
+
+  newYesBtn.addEventListener('click', async () => {
+    modal.style.display = 'none';
+    const variant = JSON.parse(variantStr);
+    const productId = itemId.split('-')[0];
+
+    try {
+      const response = await fetch(`/user/cart/api/update/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: 0, variant })
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message);
+
+      document.getElementById('row-' + itemId).remove();
+      showGlobalToast('Item removed successfully');
+      updateCartCount();
+      recalc();
+
+    } catch (err) {
+      console.error(err);
+      showGlobalToast(err.message || err, 'error');
+    }
+  });
+
+  newNoBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    return;
+  });
+
+    }
+
+
+    async function updateCartCount(userId) {
+          const BASE_URL = window.location.origin;
+          try {
+            const res = await fetch(`${BASE_URL}/user/cart/api/count`);
+            const result = await res.json();
+            if (res.ok) {
+              
+
+document.querySelectorAll(".HeadercartCount").forEach(el => {  
+  if (res.ok && el) el.textContent = result.count;
+})
+            } else {
+              showGlobalToast(result.message,'error')
+            }
+          } catch (err) {
+            console.log('Error fetching cart count:', err);
+          }
+        }
+
+document.getElementById('checkout-btn').onclick = async () => {
+  const btn = document.getElementById('checkout-btn');
+  const btnText = btn.querySelector('.btn-text');
+  const spinner = btn.querySelector('.btn-spinner');
+
+  btn.disabled = true;
+  btnText.textContent = "Processing...";
+  spinner.style.display = "inline-block";
+
+  try {
+    const response = await fetch('/user/cart/api/verify/checkout', { method: 'POST' });
+    const result = await response.json();
+    if (!response.ok) throw result;
+
+    setTimeout(() => {
+      location.href = result.redirectUrl;
+    }, 1000); // delay 1 second to show spinner
+
+  } catch (err) {
+    const item = err?.item
+    console.log(err);
+    if(item){
+      showItemError(`${item._id}-${item.variant.size}-${item.variant.color}`, err.message )
+      // setTimeout(()=>{
+      //   clearItemError(`${item._id}-${item.variant.size}-${item.variant.color}`)
+      // },2000)
+    }else{
+      showGlobalToast(err.message, 'error');
+    }
+
+  btn.disabled = true;
+  btnText.textContent = "Proceed to checkout";
+  spinner.style.display = "none";
+  }
+};
+
 
     recalc();
+
+
+
+function showItemError(id, msg){
+  document.getElementById('error-'+id).textContent = msg;
+  // document.querySelector('#row-'+id).dataset.active = '0';
+  recalc();                 // disables checkout if any inactive
+}
+
+function clearItemError(id){
+  document.getElementById('error-'+id).textContent = '';
+  document.querySelector('#row-'+id).dataset.active = '1';
+}
   </script>
 </body>
+
 </html>

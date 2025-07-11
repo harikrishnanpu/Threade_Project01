@@ -39,7 +39,7 @@
       <p class="login-sub">It’s quick and easy.</p>
       <p class="error-msg" id="error-msg"></p>
 
-      <form id="signup-form">
+      <form id="signup-form" class="mt-5">
         <div class="input-group floating">
           <input type="text" name="name" id="name" placeholder=" "  />
           <label for="name">Full Name</label>
@@ -70,6 +70,17 @@
           <label for="signup-phone">Phone Number</label>
           <p id="phone-input-error" class="error-msg-input"></p>
         </div>
+
+        <div class="input-group floating">
+  <input
+    type="text"
+    name="referralCode"
+    id="referral-code"
+    placeholder=" "
+  />
+  <label for="referral-code">Referral Code (optional)</label>
+</div>
+
 
         <div class="input-group floating">
           <input
@@ -138,6 +149,13 @@
   }
 
 
+const referralCodeInput = document.getElementById('referral-code');
+const params = new URLSearchParams(window.location.search);
+const referalCode = params.get('referral');
+referralCodeInput.value = referalCode;
+
+
+
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const errorMessageInput = document.getElementById("error-msg");
@@ -145,18 +163,19 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
   clearAllErrors();
   resetAllSubmitButtons();
   errorMessageInput.innerText = "";
-
+  
   const fullnameInput = document.getElementById('name');
   const emailInput = document.getElementById('signup-email');
   const phoneInput = document.getElementById('signup-phone');
   const passwordInput = document.getElementById('signup-password');
   const confirmpasswordInput = document.getElementById('confirm-password');
-
+  
   const fullname = fullnameInput.value;
   const email = emailInput.value;
   const phone = phoneInput.value;
   const password = passwordInput.value;
   const confirmpassword = confirmpasswordInput.value;
+  const referralCode = referralCodeInput.value?.trim();
 
 
 
@@ -173,6 +192,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       email: email,
       phone: phone,
       password: password,
+      referralCode
     };
 
     try {
