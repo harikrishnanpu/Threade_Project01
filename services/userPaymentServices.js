@@ -1,9 +1,11 @@
 const Razorpay = require('razorpay');
 const orderService = require('./userOrderServices');
+const Product = require('../models/productModel');
 const Orders = require('../models/orderModel');
 const Users = require('../models/userModel');
 const crypto = require('crypto');
 const UserWallet = require('../models/userWalletModel');
+const StockRegistry = require('../models/stockRegsitryModel');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -189,6 +191,42 @@ const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, r
     const order = await Orders.findById(orderId);
     if (!order) return { success: false, message: 'order not found' };
 
+
+
+       const dbProducts = await Product.find({ _id: { $in: order.items.map(i => i.productId.toString()) } });
+    
+        for(const item of order.items){
+    
+          const dbproduct = dbProducts.find( prod => prod._id.equals(item.productId) );
+          const matchedVariant = dbproduct.variants.find(v => v.color == item.variant.color && v.size == item.variant.size);
+    
+          if(matchedVariant){
+            const previousStock = matchedVariant.stock;
+            if(previousStock - item.quantity >= 0) {
+              matchedVariant.stock -= item.quantity;
+    
+              await StockRegistry.create({
+                  productId: dbproduct._id,
+                  variant: { size: item.variant.size, color: item.variant.color },
+                  productName: dbproduct.name,
+                  action: 'stock_out',
+                  quantity: item.quantity,
+                  previousStock: previousStock,
+                  newStock: matchedVariant.stock,
+                  reason: 'Order confirmed',
+                  updatedBy: 'admin'
+                });
+    
+              await dbproduct.save();
+    
+            }
+          }
+
+          item.status = 'confirmed'
+    
+        }
+
+    order.orderStatus = 'confirmed';
     order.paymentStatus = 'paid';
     order.paymentId = razorpay_payment_id;
     

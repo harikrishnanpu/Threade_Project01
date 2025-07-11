@@ -384,18 +384,18 @@ const applyCoupon = async (req, res) => {
     console.log(req.body);
 
     if (!code || !userId || !subTotal) {
-      return res.status(400).json({ success: false, message: 'all fieldws required' });
+      return res.status(400).json({ success: false, message: 'all fields required' });
     }
 
     const user = await findOneUserById(userId);
 
     let userType = 'all';
 
-    if (user.isPremium) {
-      userType = 'premiumUsers';
-    } else if (user.createdAt && (Date.now() - new Date(user.createdAt)) < 1000 * 60 * 60 * 24 * 7) {
-      userType = 'newUsers'; 
-    }
+    // if (user.isPremium) {
+    //   userType = 'premiumUsers';
+    // } else if (user.createdAt && (Date.now() - new Date(user.createdAt)) < 1000 * 60 * 60 * 24 * 7) {
+    //   userType = 'newUsers'; 
+    // }
 
     const result = await cartService.applyCoupon(code.trim(), userId, subTotal, userType);
 

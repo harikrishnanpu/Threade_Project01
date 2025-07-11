@@ -25,7 +25,10 @@ referralCode: {
     type: mongoose.Types.ObjectId,
     ref: 'users',
     default: null
-  }
+  },
+  isOnline: {type: Boolean, default: false},
+  currentRoomId: String,
+  socketId: String
 
 }, { timestamps: true });
 

@@ -246,9 +246,11 @@ const applyCoupon = async (code, userId, cartTotal, userType) => {
     if (coupon.usedCount >= coupon.maxUsage) {
       throw new Error('coupon usage limit reached');
     }
+
     if (coupon.minOrderAmount && cartTotal < coupon.minOrderAmount) {
       throw new Error(`minimum order amount is ₹${coupon.minOrderAmount}`);
     }
+    
     if (coupon.onlyFor !== 'all' && coupon.onlyFor !== userType) {
       throw new Error(`coupon is not valid for user`);
     
@@ -256,7 +258,7 @@ const applyCoupon = async (code, userId, cartTotal, userType) => {
     
 
     if(coupon.usedBy.includes(userId)){
-      throw new Error('coupon is already applied bby user')
+      throw new Error('coupon is already applied by user')
     }
 
     const discount = (coupon.discount / 100) * cartTotal;

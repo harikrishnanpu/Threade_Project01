@@ -458,6 +458,18 @@ a:hover{
 </head>
 <body>
 
+
+<div id="coupon-deactivated-confirm-modal" class="wishlist-confirm-modal hidden">
+  <div class="wishlist-modal-content text-center">
+    <p>Remove this item may remove the coupon from the order</p>
+    <a href="#">see more info</a>
+    <div class="wishlist-modal-actions">
+      <button id="coupon-deactivated-confirm-modal-yes">Yes</button>
+      <button id="coupon-deactivated-confirm-modal-no">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="wrapper">
 
   <!-- main -->
@@ -824,6 +836,13 @@ a:hover{
               <span>Subtotal</span>
               <span>₹<%= order.subtotal.toFixed(2) %></span>
             </div>
+
+            <% if(order.items.some(itm => itm.status == 'cancelled') ) { %>
+                 <div class="summary-row">
+                   <span>Item Cancelled:</span>
+                   <span><%= order.refundAmount %></span>
+                  </div>
+                   <% } %>
             
             <% if (order.coupon && order.coupon.discountAmount > 0) { %>
               <div class="summary-row">
@@ -834,7 +853,7 @@ a:hover{
             
             <div class="summary-row">
               <span>Shipping</span>
-              <span>₹<%= ((order.totalAmount - order.subtotal) + (order.coupon ? order.coupon.discountAmount : 0)).toFixed(2) %></span>
+              <span>₹<%= (order.shippingCharge).toFixed(2) %></span>
             </div>
             
             <div class="summary-row total">
@@ -1238,6 +1257,7 @@ a:hover{
 
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
  const orderPayment = async function (orderId) {
     try {
@@ -1310,9 +1330,7 @@ handler: async function (response) {
 
 
 <script>
-// ===== ORDER MANAGER - COMPLETE SOLUTION =====
 const OrderManager = {
-  // Configuration
   config: {
     orderId: '<%= order._id %>',
     baseURL: window.location.origin,
@@ -1629,9 +1647,51 @@ if (actionsElement) {
     const itemSizeSpan = document.getElementById('cancelItemSize');
     const itemColorHidden = document.getElementById('cancelItemColorHidden');
     const itemSizeHidden = document.getElementById('cancelItemSizeHidden');
+
+
+          const couponString = `<%- JSON.stringify(coupon) %>`;
+const couponObject = JSON.parse(couponString);
+
+const orderString = `<%- JSON.stringify(order) %>`;
+const orderObject = JSON.parse(orderString);
+
+const totalAmountAfterCancel = orderObject.items?.reduce((total, itm) => {
+  if (itm.productId !== itemId && !itm.isCancelled) {
+    total += parseInt(itm.quantity) * parseInt(itm.price);
+  }
+  return total;
+}, 0);
+
+
+console.log("Total:", totalAmountAfterCancel);
+console.log("Coupon:", couponObject);
+
+if(couponObject){
+
+  if (totalAmountAfterCancel < parseInt(couponObject.minOrderAmount)) {
+    document.getElementById('coupon-deactivated-confirm-modal').classList.remove('hidden')
+    document.getElementById('coupon-deactivated-confirm-modal').classList.add('show')
+  }
+
+  document.getElementById('coupon-deactivated-confirm-modal-yes').addEventListener('click', ()=>{
+    cancelItemProceed();
+  })
+
+  document.getElementById('coupon-deactivated-confirm-modal-no').addEventListener('click', ()=>{
+    document.getElementById('coupon-deactivated-confirm-modal').classList.add('hidden')
+    document.getElementById('coupon-deactivated-confirm-modal').classList.remove('show')
+
+  })
+  
+}else if (modal && itemIdInput && itemNameSpan) {
+  
+  cancelItemProceed();
     
-    if (modal && itemIdInput && itemNameSpan) {
-      itemIdInput.value = itemId;
+}
+
+
+    function cancelItemProceed () {
+            itemIdInput.value = itemId;
       itemNameSpan.textContent = itemName;
       if (itemColorSpan) itemColorSpan.textContent = itemColor;
       if (itemSizeSpan) itemSizeSpan.textContent = itemSize.toUpperCase();
@@ -1640,10 +1700,12 @@ if (actionsElement) {
       modal.classList.add('show');
       document.body.style.overflow = 'hidden';
     }
+
   },
 
   hideItemCancelModal() {
     const modal = document.getElementById('itemCancelModal');
+    
     if (modal) {
       modal.classList.remove('show');
       document.body.style.overflow = '';
@@ -1732,7 +1794,9 @@ if (actionsElement) {
   },
 
   // Handle single item cancellation
+
   async handleItemCancel(formData) {
+
     try {
       const data = {
         orderId: this.config.orderId,
@@ -1893,6 +1957,8 @@ if (actionsElement) {
 
     // Single Item Cancel Form
     const itemCancelForm = document.getElementById('itemCancelForm');
+
+    
     if (itemCancelForm) {
       itemCancelForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1908,7 +1974,7 @@ if (actionsElement) {
         
         const submitBtn = document.getElementById('itemCancelSubmitBtn');
         this.setButtonLoading(submitBtn, true);
-        
+
         try {
           await this.handleItemCancel(formData);
         } finally {

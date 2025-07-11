@@ -127,9 +127,14 @@ console.log("SUCCESS");
 
     } else {
 
+      console.log(result);
+      
+
       return res.status(400).json(result);
     }
   } catch (err) {
+    console.log(err);
+    
     return res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -157,6 +162,7 @@ const renderOrderPyamentSuccessPage = async (req,res) => {
 
 
 const cancelFullOrder = async (req, res) => {
+
   try {
     const { cancellationReason, additionalComments = '' } = req.body
     if (!cancellationReason) return res.status(400).json({ message: 'cancellationReason required' })
@@ -166,13 +172,16 @@ const cancelFullOrder = async (req, res) => {
       userId: req.user._id,
       reason: cancellationReason,
       note: additionalComments
-    })
-    res.json({ success: true, data })
+    });
+
+    res.status(200).json({ success: true, data });
+
   } catch (err) {
     console.log(err);
     
     res.status(500).json({ message: err.message })
   }
+  
 }
 
 

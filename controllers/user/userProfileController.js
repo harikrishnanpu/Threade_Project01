@@ -1,6 +1,5 @@
 const userProfileService = require("../../services/userProfileServices")
 const { findOneUserById, findOneUserByEmail } = require("../../services/userServices")
-const bcrypt = require("bcrypt")
 const { generateOtp } = require("../../utils/otp")
 const otpModel = require("../../models/otpModel")
 const { sendOtpToEmail, verifyEmailOtp } = require("../../services/emailVerificationService")
@@ -10,7 +9,8 @@ const { getUserOrders, getUserOrderById } = require("../../services/userOrderSer
 const walletService = require('../../services/userWalletServices');
 const paymentService = require('../../services/userPaymentServices');
 const crypto = require('crypto');
-const Orders = require("../../models/orderModel")
+const Orders = require("../../models/orderModel");
+const Coupon = require('../../models/coupounModel');
 
 
 
@@ -144,19 +144,24 @@ const renderOrderDetailsPage = async (req, res) => {
     const orderId = req.params.id;
 
     const order = await getUserOrderById(userId, orderId);
+    const coupon = await Coupon.findOne({ code: order?.coupon?.code });
 
+    
     if (!order) {
-      return res.status(404).render('error', {
-        message: 'Order not found or access denied'
-      });
+      throw new Error('order not found');
     }
 
-    res.render('user/order-details', {
-      order
-    });
+    console.log(coupon);
+    
+
+
+    res.render('user/order-details', { order, coupon: coupon ? coupon : null});
+
   } catch (err) {
-    console.error('Error loading order details:', err);
-    res.status(500).render('error', { message: 'Failed to load order details' });
+
+    console.log(err);
+    
+    res.status(500).json({ message: err.message });
   }
 };
 
