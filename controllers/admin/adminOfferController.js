@@ -64,7 +64,7 @@ const createOffer = async (req, res) => {
     console.log(path.join(__dirname, '../../uploads/offers'))
     const body = req.body;
 
-    if (req.file) body.image = `/uploads/offers/${req.file.filename}`;
+    if (req.file) body.image = req.file.path;
     const offer = await offerService.createOffer(body);
     const updated = await offerService.updateAllProductSalePrices();
     
@@ -82,6 +82,7 @@ const createOffer = async (req, res) => {
 };
 
 const updateOffer = async (req, res) => {
+
   try {
 
     const body = req.body;
@@ -89,7 +90,7 @@ const updateOffer = async (req, res) => {
     console.log(req.file);
     
 
-    if (req.file) body.image = `/uploads/offers/${req.file.filename}`;
+    if (req.file) body.image = req.file.path;
 
     const updtoffer = await offerService.updateOffer(req.params.id, body);
     const updated = await offerService.updateAllProductSalePrices();
@@ -98,6 +99,7 @@ const updateOffer = async (req, res) => {
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
+
 };
 
 const toggleOfferStatus = async (req, res) => {
@@ -106,7 +108,9 @@ const toggleOfferStatus = async (req, res) => {
 
     const offerSts = await offerService.toggleOfferStatus(req.params.id, isActive);
      const updated = await offerService.updateAllProductSalePrices();
+     
     res.status(200).json({ success: true, message: 'Status updated' });
+
   } catch (err) {
 
 

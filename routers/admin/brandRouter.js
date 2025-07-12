@@ -1,50 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const brandController = require('../../controllers/admin/brandController');
 const { validateBrandListQuery } = require('../../validators/QueryValidator');
 const { handleValidationErrors } = require('../../validators/validator');
 const { validateBrandIdParam } = require('../../validators/ParamValidator');
 const { validateBrandBody } = require('../../validators/bodyValidator');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 
-const uploadDir = 'uploads/brands';
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLODINARY_API_KEY,
+  api_secret: process.env.CLODINARY_API_SECRET
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `brand-${uniqueSuffix}${path.extname(file.originalname)}`);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'products',
+    allowed_formats: ['jpg', 'png']
   }
 });
 
-
-
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-  
-  if (extname && mimetype) {
-    return cb(null, true);
-  }
-  cb(new Error('invalid file type. Only JPG, PNG, and WebP are allowed.'));
-};
-
-
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  onError: (err, next) => {
-    console.error('Multer error:', err);
-    next(err);
-  }
-});
+const upload = multer({ storage });
 
 router.get('/all', validateBrandListQuery,handleValidationErrors, brandController.renderAllBrands);
 

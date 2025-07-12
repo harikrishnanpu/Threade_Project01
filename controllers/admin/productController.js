@@ -224,7 +224,7 @@ const uploadProductImage = async (req, res) => {
       return res.status(400).json({success: false,message: 'no image file provided' });
     }
     
-    const imageUrl = `/uploads/products/${req.file.filename}`;
+    const imageUrl = req.file.path;
     
     res.status(200).json({success: true,message:'sucess',imageUrl: imageUrl});
 
