@@ -219,7 +219,6 @@ for (let subCat of subCategoiries) {
 
 const toggleCategoryStatusById = async (catId, isActive) => {
 
-
   try {
 
     const category = await Category.findById(catId);
@@ -239,10 +238,10 @@ const toggleCategoryStatusById = async (catId, isActive) => {
 
   const subCategoryIds = subCategoiries.map(cat =>  cat._id);
 
-  const updateProds = await productModel.updateMany(
-          { category: { $in: [category._id, ...subCategoryIds ] } },
-          { $set: { isActive: true, 'variants.$[].isActive' : true } }
-        )
+  // const updateProds = await productModel.updateMany(
+  //         { category: { $in: [category._id, ...subCategoryIds ] } },
+  //         { $set: { isActive: true, 'variants.$[].isActive' : true } }
+  //       )
 
 
 for (let subCat of subCategoiries) {
@@ -258,10 +257,10 @@ for (let subCat of subCategoiries) {
 
   const subCategoryIds = subCategoiries.map(cat =>  cat._id);
 
-  const updateProds = await productModel.updateMany(
-          { category: { $in: [category._id, ...subCategoryIds ] } },
-          { $set: { isActive: false, 'variants.$[].isActive' : false } }
-        )
+  // const updateProds = await productModel.updateMany(
+  //         { category: { $in: [category._id, ...subCategoryIds ] } },
+  //         { $set: { isActive: false, 'variants.$[].isActive' : false } }
+  //       )
 
 
 for (let subCat of subCategoiries) {
@@ -276,9 +275,11 @@ for (let subCat of subCategoiries) {
     category.isActive = isActive;
 
     return await category.save();
+    
   } catch (err) {
     throw new Error(err.message);
   }
+
 };
 
 module.exports = {

@@ -237,7 +237,7 @@
     display:flex !important;
   }
   
-  .my-modal{
+  .my-modal {
     background:var(--white);
     border-radius:var(--radius);
     max-width:500px;
@@ -836,13 +836,6 @@ a:hover{
               <span>Subtotal</span>
               <span>₹<%= order.subtotal.toFixed(2) %></span>
             </div>
-
-            <% if(order.items.some(itm => itm.status == 'cancelled') ) { %>
-                 <div class="summary-row">
-                   <span>Item Cancelled:</span>
-                   <span><%= order.refundAmount %></span>
-                  </div>
-                   <% } %>
             
             <% if (order.coupon && order.coupon.discountAmount > 0) { %>
               <div class="summary-row">
@@ -857,9 +850,16 @@ a:hover{
             </div>
             
             <div class="summary-row total">
-              <span>Total Amount</span>
+              <span>Order Total Amount</span>
               <span>₹<%= order.totalAmount.toFixed(2) %></span>
             </div>
+
+              <% if(order.items.some(itm => itm.status == 'cancelled') ) { %>
+                 <div class="summary-row text-danger">
+                   <span>refunded Amount:</span>
+                   <span>₹<%= order.refundAmount %></span>
+                  </div>
+                   <% } %>
           </div>
         </div>
 
@@ -1649,29 +1649,28 @@ if (actionsElement) {
     const itemSizeHidden = document.getElementById('cancelItemSizeHidden');
 
 
-          const couponString = `<%- JSON.stringify(coupon) %>`;
+const couponString = `<%- JSON.stringify(coupon) %>`;
 const couponObject = JSON.parse(couponString);
 
 const orderString = `<%- JSON.stringify(order) %>`;
 const orderObject = JSON.parse(orderString);
 
 const totalAmountAfterCancel = orderObject.items?.reduce((total, itm) => {
-  if (itm.productId !== itemId && !itm.isCancelled) {
+  if (itm._id !== itemId && !itm.isCancelled) {
     total += parseInt(itm.quantity) * parseInt(itm.price);
   }
   return total;
 }, 0);
 
-
+console.log(orderObject);
 console.log("Total:", totalAmountAfterCancel);
 console.log("Coupon:", couponObject);
 
-if(couponObject){
+if(couponObject && totalAmountAfterCancel < parseInt(couponObject.minOrderAmount)){
 
-  if (totalAmountAfterCancel < parseInt(couponObject.minOrderAmount)) {
+  // alert("ff")
     document.getElementById('coupon-deactivated-confirm-modal').classList.remove('hidden')
     document.getElementById('coupon-deactivated-confirm-modal').classList.add('show')
-  }
 
   document.getElementById('coupon-deactivated-confirm-modal-yes').addEventListener('click', ()=>{
     cancelItemProceed();
@@ -1689,9 +1688,8 @@ if(couponObject){
     
 }
 
-
     function cancelItemProceed () {
-            itemIdInput.value = itemId;
+      itemIdInput.value = itemId;
       itemNameSpan.textContent = itemName;
       if (itemColorSpan) itemColorSpan.textContent = itemColor;
       if (itemSizeSpan) itemSizeSpan.textContent = itemSize.toUpperCase();
@@ -1700,6 +1698,7 @@ if(couponObject){
       modal.classList.add('show');
       document.body.style.overflow = 'hidden';
     }
+
 
   },
 
