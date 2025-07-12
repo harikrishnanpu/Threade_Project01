@@ -94,6 +94,7 @@ ProductSchema.virtual('discountPercentage').get(function () {
 
 
 ProductSchema.pre('save', function(next) {
+  
   if (this.variants && this.variants.length) {
     const prices     = this.variants.map(v => v.price).filter(p => p > 0);
     const stockArr = this.variants.map(v => v.stock);
@@ -114,6 +115,7 @@ ProductSchema.pre('save', function(next) {
   if (this.color) this.color = this.color.toLowerCase();
 
   next();
+
 });
 
 module.exports = mongoose.model('Product', ProductSchema);

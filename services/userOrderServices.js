@@ -8,6 +8,7 @@ const UserWallet = require('../models/userWalletModel');
 const mongoose = require('mongoose');
 const Users = require('../models/userModel');
 const StockRegistry = require('../models/stockRegsitryModel');
+const Category = require('../models/categoryModel');
 
 const findUserOrder = async (orderId, userId) => {
   const order = await Order.findOne({ _id: orderId, user: userId });
@@ -29,8 +30,11 @@ const createCodOrder = async (userId) => {
 
 
     const cart = await Cart.findOne({ userId }).populate('items.product');
+    const cartItemCategoryIds = cart.items.map(itm => itm.product.category);
 
     // console.log(cart);
+    // console.log(cartItemCategoryIds);
+    
 
     if (!cart || cart.items.length === 0) throw new Error('cart is empty');
 
@@ -43,11 +47,15 @@ const createCodOrder = async (userId) => {
     const address = await Address.findOne({ _id: session.addressId, user: userId });
     if (!address) throw new Error('delivery address not found');
 
-    const hasInactive = cart.items.some(item => !item.product || !item.product.isActive);
+    const categories = await Category.find({ _id: { $in: cartItemCategoryIds } }).lean();
+    
+
+    const hasInactive = cart.items.some(item => !item.product || !item.product.isActive || !categories.find(cat => cat._id.toString() == item.product.category.toString() )?.isActive );
     if (hasInactive) throw new Error('cart contains inactive products');
 
 
     const inactiveVariants = cart.items.filter(item => {
+
       return item.product.variants.some((variant) =>
         variant.color == item.variant.color &&
         variant.size == item.variant.size &&
@@ -222,6 +230,7 @@ throw new Error('cash on delivery is not available for orders above ₹1000')
 
 
 const createWalletOrder = async (userId) => {
+
   try {
 
     const cart = await Cart.findOne({ userId }).populate('items.product');
@@ -239,7 +248,12 @@ const createWalletOrder = async (userId) => {
     const address = await Address.findOne({ _id: session.addressId, user: userId });
     if (!address) throw new Error('delivery address not found');
 
-    const hasInactive = cart.items.some(item => !item.product || !item.product.isActive);
+
+    const cartItemCategoryIds = cart.items.map(itm => itm.product.category);
+    const categories = await Category.find({ _id: { $in: cartItemCategoryIds } }).lean();
+    
+
+    const hasInactive = cart.items.some(item => !item.product || !item.product.isActive || !categories.find(cat => cat._id.toString() == item.product.category.toString() )?.isActive );
     if (hasInactive) throw new Error('cart contains inactive products');
 
 
@@ -452,7 +466,11 @@ const prepareOnlineOrder = async (userId) => {
     const address = await Address.findOne({ _id: session.addressId, user: userId });
     if (!address) throw new Error('delivery address not found');
 
-    const hasInactive = cart.items.some(item => !item.product || !item.product.isActive);
+    const cartItemCategoryIds = cart.items.map(itm => itm.product.category);
+    const categories = await Category.find({ _id: { $in: cartItemCategoryIds } }).lean();
+    
+
+    const hasInactive = cart.items.some(item => !item.product || !item.product.isActive || !categories.find(cat => cat._id.toString() == item.product.category.toString() )?.isActive );
     if (hasInactive) throw new Error('cart contains inactive products');
 
 
@@ -782,7 +800,9 @@ if (order.coupon && order.coupon.discountAmount) {
 
 
 const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
+
   try {
+
     const order = await findUserOrder(orderId, userId);
 
     console.log(order);
@@ -865,8 +885,10 @@ const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
 
 
 
-    const itemTotal = price * quantity;
-    const totalAmount = order.totalAmount;
+  const itemTotal = price * quantity;
+const itemsSubtotal = order.items.reduce((total, itm) => {
+  return total + (itm.price * itm.quantity);
+}, 0);
 
     console.log("ITEMTOTAL",itemTotal);
 
@@ -905,7 +927,7 @@ console.log(eligible);
 if (order.coupon && order.coupon.discountAmount && eligible) {
 
   const discountAmount = order.coupon.discountAmount || 0;
-  const refundItemPrice = itemTotal - ((itemTotal / totalAmount) * discountAmount);
+  const refundItemPrice = itemTotal - ((itemTotal / itemsSubtotal) * discountAmount);
   refundAmount = Math.round(refundItemPrice);
 
 } else if(order.coupon && order.coupon.discountAmount && !eligible) {

@@ -21,7 +21,7 @@ const renderCartPage = async (req,res) =>{
 const updatedCartItems = cartItems.items.map(item => {
   const matchedProduct = productMap.get(item.product.toString());
 
-  if (!matchedProduct || !matchedProduct.isActive) {
+  if (!matchedProduct || !matchedProduct.isActive || !matchedProduct.category.isActive || !matchedProduct.brand.isActive) {
     return {
       ...item,
       isActive: false,

@@ -270,7 +270,13 @@ p{
             <% if(!noFooter) { %>
                 <%- include('../partials/user/footer') %>
                 <% } %>
+
+                <% if(user) {  %>
+                <%- include('../partials/user/chat') %>
+                <% } %>
+
             </div>
+
 
 
 <div id="sidebarOverlay" onclick="closeVariantSidebar()"></div>

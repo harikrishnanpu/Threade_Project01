@@ -88,10 +88,7 @@ console.log(userProductSuggestions);
       wishlistItemIds,
         });
   } catch (err) {
-    res.status(500).json({
-      message: 'Failed to load home page',
-      err: err.message
-    });
+    res.status(500).json({ message: 'Failed to load home page',err: err.message });
   }
 };
 
