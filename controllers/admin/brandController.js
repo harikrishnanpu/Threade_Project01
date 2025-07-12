@@ -260,14 +260,16 @@ async function toggleBrandListed(req, res, next) {
 
 async function uploadImage(req, res, next) {
   try {
+
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No image file provided'
+        message: 'no image file provided'
       });
     }
 
-    const imageUrl = `/uploads/brands/${req.file.filename}`;
+    const imageUrl = req.file.path;
     
     res.status(200).json({ 
       success: true, 
@@ -279,7 +281,7 @@ async function uploadImage(req, res, next) {
     });
     
   } catch (error) {
-    console.error('Error uploading image:', error);
+    
     res.status(500).json({
       success: false,
       message: 'Failed to upload image'
