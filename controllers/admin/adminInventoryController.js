@@ -9,7 +9,7 @@ const getInventoryPage = async (req, res) => {
 
     const categories = [];
 
-    console.log(inventory);
+    // console.log(inventory);
     
 
     res.render('admin/inventory', {
@@ -29,7 +29,7 @@ const getInventoryPage = async (req, res) => {
 
 
   } catch(err) {
-    console.log(err);
+    // console.log(err);
     res.status(500).json({message: err.message})
   }
 };

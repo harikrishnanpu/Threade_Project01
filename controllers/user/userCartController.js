@@ -52,7 +52,7 @@ const updatedCartItems = cartItems.items.map(item => {
     res.render('user/cart', { cartItems: updatedCartItems || [], products })
 
   }catch(err){
-    console.log(err);
+    // console.log(err);
     
     res.render('user/cart', { error: err.message, cartItems: [], products: []})
   }
@@ -66,7 +66,7 @@ const addToCart = async (req, res) => {
     const { variant, quantity } = req.body;
     const userId = req.user._id;
 
-    console.log("IBUBUJBHBUBHBUHBHUB");
+    // console.log("IBUBUJBHBUBHBUHBHUB");
     
   
     const result = await cartService.addToCart(productId,variant,quantity,userId);
@@ -146,7 +146,7 @@ const renderCheckout = async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     res.redirect(`/user/cart?error=${err.message}`)
     // res.status(500).json({ message: err.message });
@@ -168,7 +168,7 @@ const verifyAndRedirectCheckout = async (req, res) => {
 
     const productsMap = new Map(products.map(item => [item._id.toString(), item]));
     
-    console.log(productsMap);
+    // console.log(productsMap);
     
 
     if (!cartItems || cartItems.length === 0) {
@@ -188,7 +188,7 @@ for (const item of cartItems) {
     v.color == item.variant.color && v.size == item.variant.size && v.isActive
   );
 
-  console.log("VARIANTKJNJHBHJB",variantMatch);
+  // console.log("VARIANTKJNJHBHJB",variantMatch);
   
 
   if (!variantMatch || !product.isActive) {
@@ -236,7 +236,7 @@ const renderPaymentPage = async (req, res) => {
       return res.redirect('/cart'); 
     }
 
-    console.log(cart);
+    // console.log(cart);
     
 
     const orderItems = cart.items.map(item => {
@@ -296,7 +296,7 @@ res.render('user/payment', {
 
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     res.status(500).json({message: err.message});
   }
@@ -318,7 +318,7 @@ const getCheckoutSession = async (req,res) => {
     const userId = req.user._id;
     try{
         const session = await cartService.getCheckoutSession(userId);
-        console.log(session);
+        // console.log(session);
         res.status(200).json({session, success:true})
     }catch(err){
         res.status(500).json({message: err.message, success:false})
@@ -331,7 +331,7 @@ const updateCart = async (req, res) => {
   const { quantity, variant } = req.body;
   const userId = req.user._id;
 
-  console.log("TEST ");
+  // console.log("TEST ");
   
 
   try {
@@ -339,14 +339,14 @@ const updateCart = async (req, res) => {
 
 
     if(result.isNotActive){
-      console.log("1");
+      // console.log("1");
       
   return res.status(400).json({
     success:false,
     code:'UNAVAILABLE',
   });
     }else if(result.outOfStock){
-      console.log("2");
+      // console.log("2");
 
   return res.status(400).json({
     success:false,
@@ -354,7 +354,7 @@ const updateCart = async (req, res) => {
     stock: result.stock
   });
     }else if(result.maxCartCount){
-      console.log("3");
+      // console.log("3");
 
   return res.status(400).json({
     success:false,
@@ -369,7 +369,7 @@ const updateCart = async (req, res) => {
 
   } catch (err) {
 
-    console.log(err);
+    // console.log(err);
     res.status(500).json({ message: err.message, success: false });
   }
 
@@ -381,7 +381,7 @@ const applyCoupon = async (req, res) => {
     const userId = req.user._id;
     const { code, subTotal } = req.body;
 
-    console.log(req.body);
+    // console.log(req.body);
 
     if (!code || !userId || !subTotal) {
       return res.status(400).json({ success: false, message: 'all fields required' });
@@ -434,7 +434,7 @@ const createCheckoutSession = async (req, res) => {
     const userId = req.user._id; 
     const { addressId, shippingMethod, couponCode } = req.body;
 
-    console.log(req.body);
+    // console.log(req.body);
     
 
     if (!addressId || !shippingMethod) {

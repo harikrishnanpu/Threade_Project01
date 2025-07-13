@@ -51,7 +51,7 @@ const removeFromWishlist = async (userId, itemId) => {
   const wishlist = await Wishlist.findOne({ user: userId }).populate('items.product');
   if (!wishlist) throw new Error('Wishlist not found');
 
-  console.log(wishlist);
+  // console.log(wishlist);
   
 
   wishlist.items = wishlist?.items.filter(

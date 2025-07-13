@@ -80,8 +80,8 @@ const showEditProductPage = async (req, res) => {
     
     const [product, categoriesResult, brandsResult] = await Promise.all([
       findOneProductById(id),
-      getAllCategories({ status: 'active', limit: 1000 }),
-      getAllBrands({ status: 'active', limit: 1000 })
+      getAllCategories({ status: 'active', limit: 100}),
+      getAllBrands({ status: 'active', limit: 100 })
     ]);
 
     res.render('admin/editProduct', {
@@ -90,6 +90,8 @@ const showEditProductPage = async (req, res) => {
       brands: brandsResult,
       messages: []
     });
+
+
   } catch (error) {
     console.error('Error loading edit product page:', error);
     res.redirect('/admin/products/all');
@@ -124,8 +126,10 @@ const ApilistProducts = async (req, res) => {
       sortOrder
     });
   } catch (error) {
-    console.error('Error listing products:', error);
-    res.status(500).json({ message: 'Internal Server Error', success: false });
+
+    console.log(error);
+
+    res.status(500).json({ message: error.message, success: false });
   }
 };
 
@@ -141,7 +145,9 @@ const getProductById = async (req, res) => {
 
 const updateProductById = async (req, res) => {
   const { id } = req.params;
+
   try {
+
     const updateData = {
       ...req.body,
       createdBy: req.admin._id
@@ -155,12 +161,14 @@ const updateProductById = async (req, res) => {
       success: true, 
       data: updatedProduct,
     });
+
   } catch (err) {
     res.status(500).json({ message: err.message, success: false });
   }
 };
 
 const createNewProduct = async (req, res) => {
+
   try {
 
     const productData = {
@@ -168,7 +176,7 @@ const createNewProduct = async (req, res) => {
       createdBy: req.admin._id,
     };
 
-    console.log(req.body);
+    // console.log(req.body);
     
 
     const newProduct = await insertOneProduct(productData);
@@ -177,24 +185,32 @@ const createNewProduct = async (req, res) => {
       success: true, 
       data: newProduct
     });
+
   } catch (err) {
+
     res.status(500).json({ message: err.message, success: false });
+
   }
 };
 
 const toggleProductStatus = async (req, res) => {
+
   const { id } = req.params;
   const { active } = req.body;
   
   try {
+
     const updatedProduct = await toggleProductStatusById(id, active);
     res.status(200).json({
       message: `Product ${active ? 'activated' : 'deactivated'} successfully`,
       success: true,
       data: updatedProduct
     });
+
   } catch (err) {
+
     res.status(500).json({ message: err.message, success: false });
+    
   }
 };
 
@@ -229,7 +245,7 @@ const uploadProductImage = async (req, res) => {
     res.status(200).json({success: true,message:'sucess',imageUrl: imageUrl});
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
 
     res.status(500).json({success: false, message: err.message});
   }

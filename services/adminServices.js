@@ -303,7 +303,7 @@ const getDashboardData = async (query) => {
       filters.paymentMethod = paymentMethod;
     }
 
-console.log(filters); 
+// console.log(filters); 
 
 
 
@@ -457,7 +457,7 @@ const recentOrders = await Orders.find({ createdAt: filters.createdAt }).sort({ 
     return {  totals, startDate, endDate, paymentMethod, status , dateRange , chartData, topSellingProducts, topSellingCategories , topSellingBrands, recentOrders}
 
   }catch(err){
-    console.log(err);
+    // console.log(err);
     
     throw new Error(err.message);
   }

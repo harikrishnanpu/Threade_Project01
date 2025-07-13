@@ -8,7 +8,6 @@ adminOrderRouter.get('/:orderId/invoice', orderController.renderInvoice);
 
 adminOrderRouter.get('/api/order/:orderId', orderController.getOneOrder);
 
-
 adminOrderRouter.post('/update-status', orderController.updateOrderStatus);
 
 adminOrderRouter.post('/:orderId/status', orderController.orderDetailsStatusUpdate);

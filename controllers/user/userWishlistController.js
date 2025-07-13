@@ -13,7 +13,7 @@ const renderWishlistPage = async (req, res) => {
     
     res.render('user/wishlist', { wishlistItems, allMainCatsbySub, wishlistItemIds });
   } catch (err) {
-    console.log(err);
+    // console.log(err);
 
     res.status(500).send('Something went wrong');
   }
@@ -25,7 +25,7 @@ const getWishlistItems = async (req, res) => {
     const wishlistItems = await wishlistService.getWishlist(userId);
     res.status(200).json({ success: true, wishlistItems });
   } catch (err) {
-    console.log(err);
+    // console.log(err);
 
     res.status(500).json({ success: false , message: err.message });
   }
@@ -49,14 +49,14 @@ const addToWishlist = async (req, res) => {
     const userId = req.user._id;
     const { productId, size, color } = req.body;
 
-    console.log("req.body");
+    // console.log("req.body");
     
 
     const item = await wishlistService.addToWishlist(userId, productId, size, color);
 
     res.status(200).json({ success: true, item });
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     res.status(500).json({ success: false, message: err.message });
   }
@@ -72,7 +72,7 @@ const removeFromWishlist = async (req, res) => {
     res.status(200).json({ success: true });
 
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

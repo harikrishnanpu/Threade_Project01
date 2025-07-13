@@ -58,7 +58,7 @@ const createCoupon = async (data) => {
     
     const { code, discount, maxDiscount, minOrderAmount, maxUsuage, onlyFor, expiresAt, isActive  } = data;
 
-    console.log(data);
+    // console.log(data);
     
     if(code.trim() == ""  || !discount || !maxDiscount){
       throw new Error('all fields are required')
@@ -77,7 +77,7 @@ const createCoupon = async (data) => {
     const coupon = await Coupon.create(data);
     return coupon;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     throw new Error(err.message);
   }

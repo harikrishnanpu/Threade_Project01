@@ -27,6 +27,12 @@
 
 
 <style>
+
+  a:hover{
+    text-decoration: none;
+    color: inherit;
+  }
+
 @media (min-width: 700px){
   .product-grid{
     grid-template-columns: repeat(3, 1fr);
@@ -111,21 +117,6 @@ a.active{
                   </div>
                 </div>
 
-                <% if(subCategories.length){ %>
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#subCatCollapse">Sub-Categories</a></div>
-                  <div id="subCatCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <ul class="shop__sidebar__categories nice-scroll">
-                        <% subCategories.forEach(sc=>{ %>
-                          <li><a href="#" class="<%= sc._id.toString()===queryOptions.subCat?'active':'' %>" onclick="shopUpdate('subCat','<%= sc._id %>')"><%= sc.name %></a></li>
-                        <% }) %>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <% } %>
-
                 <div class="card">
                   <div class="card-heading"><a data-toggle="collapse" data-target="#brandCollapse">Brand</a></div>
                   <div id="brandCollapse" class="collapse show" data-parent="#shopSidebar">
@@ -167,20 +158,6 @@ a.active{
                 </div>
                 <% } %>
 
-                <% if(variantColors.length){ %>
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#colorCollapse">Colors</a></div>
-                  <div id="colorCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <div class="shop__sidebar__color">
-                        <% variantColors.forEach((c,i)=>{ %>
-                          <label class="c-<%= i+1 %> <%= queryOptions.color===c?'active':'' %>"><input type="radio" onchange="shopUpdate('color','<%= c %>')" <%= queryOptions.color===c?'checked':'' %>></label>
-                        <% }) %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <% } %>
 
                 <% if(tags.length){ %>
                 <div class="card">

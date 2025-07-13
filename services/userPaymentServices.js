@@ -34,7 +34,7 @@ const createRazorpayOrder = async (userId) => {
   };
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     throw new Error(err.message);
   }
@@ -167,7 +167,7 @@ const verifyWalletPayment = async ({
 
     return { success: true, message: 'Wallet updated successfully' };
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return { success: false, message: 'Server error' };
   }
 
@@ -240,7 +240,7 @@ const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, r
 
     return { success: true, message: 'Payment verified and order updated' };
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     throw new Error(err.message);
   }

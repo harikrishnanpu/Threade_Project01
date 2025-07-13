@@ -132,7 +132,7 @@ const renderOrdersPage = async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
 
     res.status(500).json({ message: err.message });
   }
@@ -140,6 +140,7 @@ const renderOrdersPage = async (req, res) => {
 
 const renderOrderDetailsPage = async (req, res) => {
   try {
+
     const userId = req.user._id;
     const orderId = req.params.id;
 
@@ -151,17 +152,17 @@ const renderOrderDetailsPage = async (req, res) => {
       throw new Error('order not found');
     }
 
-    console.log(coupon);
+    // console.log(coupon);
     
 
 
-    res.render('user/order-details', { order, coupon: coupon ? coupon : null});
+    res.render('user/order-details', { order, coupon: coupon ? coupon : null });
 
   } catch (err) {
 
-    console.log(err);
-    
-    res.status(500).json({ message: err.message });
+    // console.log(err);
+    next(err)
+
   }
 };
 
@@ -175,7 +176,7 @@ const renderWalletPage = async (req, res) => {
     })
 
   } catch (err) {
-    console.log(err.message)
+    // console.log(err.message)
     res.status(500).render('error', { message: err.message })
   }
 }
@@ -230,9 +231,9 @@ const updateProfile = async (req, res) => {
   const userId = req.user._id;
   const { name, email, phone, dateOfBirth } = req.body;
 
-  console.log(req.body);
+  // console.log(req.body);
 
-  console.log(req.file);
+  // console.log(req.file);
   
 
 const nameRE   = /^[A-Za-z\s]{2,}$/;                      
@@ -291,7 +292,7 @@ if (existingUser) {
     await Users.findByIdAndUpdate(userId, updatedData);
 
         const otp = generateOtp();
-        console.log(otp);
+        // console.log(otp);
 
         await otpModel.deleteOne({ email });
 
@@ -313,7 +314,7 @@ if (existingUser) {
     };
 
     if(req.file){ 
-      console.log(req.file);
+      // console.log(req.file);
       
        updatedData.profileImage = `/uploads/profiles/${req.file.filename}`
     }
@@ -331,7 +332,7 @@ if (existingUser) {
     return res.status(200).json({ success: true, message: "Profile updated successfully." , verifyEmail: false});
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     return res.status(500).json({ message: err.message});
   }
@@ -347,12 +348,12 @@ const verifyUserProfileEmail = async (req,res) => {
 
     if(isOtpValid){
 
-      console.log(req.body);
+      // console.log(req.body);
       
 
       const user = await findOneUserByEmail(oldEmail);
 
-      console.log(user);
+      // console.log(user);
       
 
       const existingUser = await Users.findOne({ email });
@@ -475,7 +476,7 @@ const addAddress = async (req, res) => {
   } catch (err) {
     // console.log(err)
 
-    console.log(err.message);
+    // console.log(err.message);
     
 
     res.status(400).json({ message: err.message })
@@ -501,7 +502,7 @@ const editAddress = async (req, res) => {
 
   } catch (err) {
 
-    console.log(err)
+    // console.log(err)
     res.status(400).json({ message: err.message })
 
   }

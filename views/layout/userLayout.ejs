@@ -266,14 +266,16 @@ p{
         <% if(!noHeader) { %>
             <%- include('../partials/user/header') %> 
             <% } %>
+
             <main><%- body %></main>
+            
             <% if(!noFooter) { %>
                 <%- include('../partials/user/footer') %>
-                <% } %>
+            <% } %>
 
-                <% if(user) {  %>
+            <% if( user ) {  %>
                 <%- include('../partials/user/chat') %>
-                <% } %>
+            <% } %>
 
             </div>
 

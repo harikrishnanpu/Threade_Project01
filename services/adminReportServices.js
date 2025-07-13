@@ -9,7 +9,7 @@ const getSalesReport = async (req,res) => {
 
         const result = await Order.find({}).populate('user' , 'name email').populate()
 
-        console.log(result);
+        // console.log(result);
         
         return false;
 

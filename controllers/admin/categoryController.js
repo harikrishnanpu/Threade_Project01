@@ -87,7 +87,7 @@ const getCategoryById = async (req, res) => {
 const createNewCategory = async (req, res) => {
   try {
 
-    console.log(req.body);
+    // console.log(req.body);
     
 
     const createCategory = await insertOneCategory(req.body);
@@ -128,7 +128,7 @@ const toggleCategoryStatus = async (req, res) => {
   const { id } = req.params;
   const { active } = req.body;
 
-  console.log(active);
+  // console.log(active);
   
 
   try {

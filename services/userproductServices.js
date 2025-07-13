@@ -31,10 +31,10 @@ const getProducts = async (filters = {}, sortOptions = { createdAt: -1 }, page =
         as: 'brand'
       }
       },{$unwind: '$brand' },
-      {$match: { 'category.isActive' : true , 'brand.isActive' : true }},
-      {$sort: sortOptions},
+      {$match: { 'category.isActive' : true , 'brand.isActive' : true } },
+      {$sort: sortOptions },
       {$skip: (page - 1) * limit },
-      {$limit: limit}
+      {$limit: limit }
     ]);
     
 
@@ -115,7 +115,7 @@ const getAllVariants = async (mainCat) => {
         foreignField: '_id',
         as: 'category'
       } },
-      {$unwind:  'category'},
+      {$unwind:  '$category'},
       {$match: { 'category.isActive' : true  } },
       {$unwind: '$variants'},
       {
@@ -399,7 +399,7 @@ const getRelatedProducts = async (productId, categoryId, limit = 4) => {
     return products;
   } catch (error) {
 
-    console.log('ERORR PRODUCTS RELATED', error);
+    // console.log('ERORR PRODUCTS RELATED', error);
     throw error;
 
   }
@@ -534,7 +534,7 @@ const productSuggestions = async (userId='684d0b00b80e185db0828a81' , limit = 5)
 if (userId) {
   const userOrders = await Order.find({ user: new mongoose.Types.ObjectId(userId) }).select('_id').lean();
   orderIds = userOrders.map(order => order._id);
-  console.log(orderIds);
+  // console.log(orderIds);
 }
 
 if (!Array.isArray(orderIds)) {
@@ -619,13 +619,13 @@ if (!Array.isArray(orderIds)) {
       ])
 
     }
-    console.log(result);
+    // console.log(result);
 
     
 
     return result;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw new Error(err.message);
   }
 };
@@ -637,8 +637,8 @@ const getDealOfTheDayProducts = async(limit = 5) => {
   try{
 
     const result = await Product.aggregate([
-         { $match: { isActive: true , isCategoryActive: true, isBrandActive: true } },
-              {$lookup: {
+        { $match: { isActive: true , isCategoryActive: true, isBrandActive: true } },
+        {$lookup: {
         from: 'categories',
         localField: 'category',
         foreignField: '_id',

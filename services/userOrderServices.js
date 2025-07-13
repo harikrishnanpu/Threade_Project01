@@ -38,7 +38,7 @@ const createCodOrder = async (userId) => {
 
     if (!cart || cart.items.length === 0) throw new Error('cart is empty');
 
-    console.log(cart.grandTotal);
+    // console.log(cart.grandTotal);
 
 
     const session = await CheckoutSession.findOne({ userId });
@@ -221,7 +221,7 @@ throw new Error('cash on delivery is not available for orders above ₹1000')
 
   } catch (err) {
 
-    console.log(err);
+    // console.log(err);
     
 
     throw new Error(err.message);
@@ -438,7 +438,7 @@ const orderNumber = `ORD-${Date.now()}-${userId}`;
 
   } catch (err) {
 
-    console.log(err);
+    // console.log(err);
     
 
     throw new Error(err.message);
@@ -663,8 +663,11 @@ const getUserOrders = async (userId, filters, page = 1, limit = 10) => {
 
 const getUserOrderById = async (userId, orderId) => {
   try{
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) return null;
+
     const order = await Order.findOne({ _id: orderId, user: userId }).lean();
+    
     return order || null;
   }catch(err){
     throw new Error(err.message);
@@ -675,7 +678,9 @@ const getUserOrderById = async (userId, orderId) => {
 
 
 const cancelFullOrder = async ({ orderId, userId, reason, note }) => {
+  
   try {
+
     const order = await findUserOrder(orderId, userId);
 
     if (!['pending', 'confirmed'].includes(order.orderStatus)) {
@@ -805,7 +810,7 @@ const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
 
     const order = await findUserOrder(orderId, userId);
 
-    console.log(order);
+    // console.log(order);
     
     if (!['pending', 'confirmed'].includes(order.orderStatus)) {
       throw new Error('cannot cancel items now');
@@ -890,7 +895,7 @@ const itemsSubtotal = order.items.reduce((total, itm) => {
   return total + (itm.price * itm.quantity);
 }, 0);
 
-    console.log("ITEMTOTAL",itemTotal);
+    // console.log("ITEMTOTAL",itemTotal);
 
 
     const isProductEligible = async (order,proId,variant) => {
@@ -901,7 +906,7 @@ const itemsSubtotal = order.items.reduce((total, itm) => {
   if (!coupon) return false;
 
   const totalOrderAmountAfter = order.items.reduce((total, itm) => {
-    console.log(itm);
+    // console.log(itm);
     
     if (
       !(itm.productId.toString() == proId.toString() && itm.variant.color == variant.color && itm.variant.size == variant.size) &&
@@ -909,6 +914,7 @@ const itemsSubtotal = order.items.reduce((total, itm) => {
     ) {
       total += itm.quantity * itm.price;
     }
+
     return total;
   }, 0);
 
@@ -921,7 +927,7 @@ const itemsSubtotal = order.items.reduce((total, itm) => {
     
 
 const eligible = await isProductEligible(order,productId,variant);
-console.log(eligible);
+// console.log(eligible);
 
 
 if (order.coupon && order.coupon.discountAmount && eligible) {
@@ -931,7 +937,9 @@ if (order.coupon && order.coupon.discountAmount && eligible) {
   refundAmount = Math.round(refundItemPrice);
 
 } else if(order.coupon && order.coupon.discountAmount && !eligible) {
-  refundAmount = Math.round(itemTotal) - (order.coupon?.discountAmount || 0);
+        const discountAmount = order.coupon.discountAmount || 0;
+        const refundItemPrice = itemTotal - ((itemTotal / itemsSubtotal) * discountAmount);
+        refundAmount = Math.round(refundItemPrice);
   await Coupon.findOneAndUpdate({code: order.coupon.code },{  $inc: { usedCount: -1  } , $pull: { usedBy: userId  }  });
     order.coupon.code = null;
   order.coupon.discountAmount = null;
@@ -953,7 +961,7 @@ if (order.coupon && order.coupon.discountAmount && eligible) {
 
     let totalShippingCharge = 0;
 
-    console.log(order.items);
+    // console.log(order.items);
     
 
     if(order.items.every(itm => itm.status == 'cancelled')){
@@ -962,7 +970,7 @@ if (order.coupon && order.coupon.discountAmount && eligible) {
 
     const finalRefundAmount = parseInt(refundAmount) + parseInt(totalShippingCharge);
 
-    console.log("SINGLEITEMREFUND: ", finalRefundAmount);
+    // console.log("SINGLEITEMREFUND: ", finalRefundAmount);
     
 
     if(finalRefundAmount > 0 && order.paymentStatus == 'paid')  {
@@ -1046,7 +1054,7 @@ const returnSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
   return order.save();
 
 }catch(err){
-  console.log(err);
+  // console.log(err);
   throw new Error(err.message)
 }
 }

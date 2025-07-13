@@ -11,13 +11,13 @@ const { getUserProductFiltersAndSort } = require('../../utils/queries/getAllProd
 const renderShopPage = async (req, res) => {
   try {
     
-    const { filters, sortOptions, pageNum, limitNum, queryOptions } = await getUserProductFiltersAndSort(req.query)
-    const allVariants            = await productService.getAllVariants(queryOptions.mainCat)
-    const result                 = await productService.getProducts(filters, sortOptions, pageNum, limitNum)
-    const allMainCatsbySub       = await productService.getAllCategoriesBySubCategories(8)
-    const userProductSuggestions = await productService.productSuggestions(5)
-    const userWishlist           = await Wishlist.findOne({ user: req.user?._id }).lean()
-    const wishlistItemIds        = userWishlist?.items.map(i => i.product.toString()) || []
+    const { filters, sortOptions, pageNum, limitNum, queryOptions } = await getUserProductFiltersAndSort(req.query);
+    const allVariants  = await productService.getAllVariants(queryOptions.mainCat);
+    const result = await productService.getProducts(filters, sortOptions, pageNum, limitNum);
+    const allMainCatsbySub    = await productService.getAllCategoriesBySubCategories(8);
+    const userProductSuggestions = await productService.productSuggestions(5);
+    const userWishlist   = await Wishlist.findOne({ user: req.user?._id }).lean();
+    const wishlistItemIds  = userWishlist?.items.map(i => i.product.toString()) || []
     const dealsOfTheDayProducts = await productService.getDealOfTheDayProducts();
 
     const [mainCategories, subCategories, brands, tags] = await Promise.all([
@@ -58,7 +58,8 @@ const renderShopPage = async (req, res) => {
 const renderProductById = async (req,res) => {
   const {id} = req.params;
   try{
-    console.log(id);
+
+    // console.log(id);
     
     const product = await productService.getProductById(id);
     const activeVariants = product.variants.map(v => v.isActive)
@@ -68,18 +69,20 @@ const renderProductById = async (req,res) => {
       const wishlistItemIds  = userWishlist?.items.map(i => i.product.toString()) || []
 
       
-      const allMainCatsbySub       = await productService.getAllCategoriesBySubCategories(8);
+      const allMainCatsbySub = await productService.getAllCategoriesBySubCategories(8);
 
       const reviews = await productReviewModel.find({ product: id, isActive: true }).populate('user').lean()
     
-      console.log(product);
+      // console.log(product);
       
-    if(activeVariants.length == 0) throw new Error('no active variants for this product') 
-    const relatedProducts = await productService.getRelatedProducts(id, product.category._id,4)
+    if(activeVariants.length == 0) throw new Error('no active variants for this product')
+
+    const relatedProducts = await productService.getRelatedProducts(id, product.category._id,4);
+
     res.render('user/productDetail',{product, error: null, relatedProducts, allMainCatsbySub, wishlistItemIds, reviews})
 
   }catch(err){
-    console.log(err);
+    // console.log(err);
     res.render('user/productDetail',{error: err.message, product: null,relatedProducts: null, allMainCatsbySub: [], wishlistItemIds:[ ], reviews: []})
 
   }
@@ -188,13 +191,16 @@ if (priceRange) {
       totalPages: result.totalPages,
       currentPage: pageNum
     });
+
   } catch (error) {
-    console.error('Error in getAllProducts controller:', error);
+    console.error(error);
+
     res.status(500).json({
       success: false,
       message: 'Failed to fetch products',
       error: error.message
     });
+
   }
 };
 
@@ -280,7 +286,7 @@ const addReview = async (req, res) => {
     const userId = req.user?._id; 
     const { productId, size, color, rating, comment } = req.body;
 
-    console.log(req.body);
+    // console.log(req.body);
     
 
     if (!userId || !productId || !size || !color || !rating || !comment) {
@@ -330,6 +336,34 @@ await product.save();
 };
 
 
+const deleteReview = async (req,res) => {
+
+  try{
+    const userId = req.user?._id; 
+    const { productId } = req.body;
+
+    // console.log(req.body);
+    
+
+    if (!userId || !productId) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const UserReview = await productReviewModel.findOne({ product: productId, user: req.user?._id, isActive: true  });
+
+    if(!UserReview){
+      return res.status(400).json({message: 'review not found'})
+    }
+
+    UserReview.isActive = false;
+    await UserReview.save();
+
+  }catch(err){
+    res.status(500).json({message: err.message})
+  }
+
+}
+
 
 
 
@@ -342,5 +376,6 @@ module.exports = {
   getNewProducts,
   renderShopPage,
   renderProductById,
-  addReview
+  addReview,
+  deleteReview
 };

@@ -65,7 +65,7 @@ const retryOrderPayment = async (req, res) => {
 
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     return res.status(500).json({ success: false, message: err.message });
   }
@@ -79,7 +79,7 @@ const renderOrderSuccessPage = async (req,res) => {
     
     const order = await orderService.getUserOrderById(req.user._id,req.params.id);
 
-    console.log(order);
+    // console.log(order);
     
     if(!order){
       throw new Error('order not found')
@@ -100,7 +100,7 @@ const renderOrderFailurePage = async (req,res) => {
     
     const order = await orderService.getUserOrderById(req.user._id,req.params.id);
 
-    console.log(order);
+    // console.log(order);
     
     if(!order){
       throw new Error('order not found')
@@ -115,25 +115,25 @@ const renderOrderFailurePage = async (req,res) => {
 
 const verifyRazorpayPayment = async (req, res) => {
   try {
-console.log(req.body);
+// console.log(req.body);
 
 
     const result = await paymentService.verifyRazorpayPayment(req.body);
     if (result.success) {
-console.log("SUCCESS");
+// console.log("SUCCESS");
 
 
       return res.status(200).json(result);
 
     } else {
 
-      console.log(result);
+      // console.log(result);
       
 
       return res.status(400).json(result);
     }
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     return res.status(500).json({ success: false, message: err.message });
   }
@@ -146,7 +146,7 @@ const renderOrderPyamentSuccessPage = async (req,res) => {
     
     const order = await orderService.getUserOrderById(req.user._id,req.params.id);
 
-    console.log(order);
+    // console.log(order);
     
     if(!order){
       throw new Error('order not found')
@@ -177,7 +177,7 @@ const cancelFullOrder = async (req, res) => {
     res.status(200).json({ success: true, data });
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     res.status(500).json({ message: err.message })
   }
@@ -202,7 +202,7 @@ const cancelSingleItem = async (req, res) => {
 
     res.status(200).json({ success: true, data })
   } catch (err) {
-    console.log(err);
+    // console.log(err);
 
     res.status(500).json({ message: err.message, success: false })
   }
@@ -234,7 +234,7 @@ const returnSingleItem = async (req, res) => {
 
 
     const { itemId, returnReason, returnNote } = req.body
-    console.log(itemId);
+    // console.log(itemId);
     
     if (!itemId) return res.status(400).json({ message: 'itemId required' })
     if (!returnReason || !returnNote) return res.status(400).json({ message: 'returnReason and returnNote required' })
@@ -248,7 +248,7 @@ const returnSingleItem = async (req, res) => {
     })
     res.json({ success: true, data })
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     res.status(400).json({ message: err.message })
   }
@@ -304,7 +304,7 @@ const getOrderPdf = async (req,res) => {
         res.send(pdfBuffer);
 
   }catch(err){
-    console.log(err);
+    // console.log(err);
     
     res.status(500).json({message: err.message, success: false})
 
