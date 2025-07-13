@@ -43,7 +43,16 @@ app.get('/', checkAndRedirect);
 app.use('/user', userRouter);
 app.use('/admin', adminRouter);
 
-const httpServer = http.createServer(app);      
+app.use((req, res, next) => {
+  res.status(404).render('404',{ noHeader: true, noFooter: true, user: null })
+});
+
+app.use((err, req, res, next) => {
+  res.status(500).render('500',{ message: err.message, noHeader: true, noFooter: true, user:  req.user})
+});
+
+const httpServer = http.createServer(app);   
+
 const io = new Server(httpServer, {
   cors: {origin: '*' }
 })

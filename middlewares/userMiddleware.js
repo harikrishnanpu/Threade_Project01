@@ -90,6 +90,7 @@ const checkIsUserAuthenticated = async (req, res, next) => {
     res.locals.cartCount = cartCount;
     res.locals.wishlistCount = wishlistCount;
     req.user = user;
+    
     return next(); 
   } catch (err) {
     return next();
@@ -199,7 +200,7 @@ const [
       dealsOfTheDayProducts });
   } catch (err) {
 
-    console.log(err);
+    // console.log(err);
     
     res.locals.user = null;
     return res.render('user/landing',{ noHeader: false, user: null, noFooter: false, wishlistItemIds:[], isSubheaderHidden: false,       data,
@@ -217,7 +218,7 @@ const [
 
 
 }catch(err){
-  console.log(err);
+  // console.log(err);
   
   return res.status(500).json({message: err.message})
 }
@@ -255,7 +256,7 @@ const checkResetPasswordTokenValid = async (req,res,next) =>{
 const checkIsResetPasswordLinkValid = async (req,res,next) =>{
     const {token} = req.query;
 
-    console.log(req.query);
+    // console.log(req.query);
     
 
   if(!token){

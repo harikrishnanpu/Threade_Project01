@@ -27,7 +27,7 @@ const insertOneUserAddressById = async (userId, reqBody) => {
 
   const { fullName, phone, street, city, state, pincode, type, isDefault } = reqBody;
 
-  console.log(reqBody);
+  // console.log(reqBody);
   
 
   try {
@@ -71,7 +71,7 @@ const updateUserAddressById = async (userId, addressId, reqBody) => {
       throw new Error("all address fields are required")
     }
 
-    console.log(isDefault);
+    // console.log(isDefault);
     
 
     if (isDefault == "on") {

@@ -151,7 +151,7 @@ const toggleBannerStatusById = async (req, res) => {
   const { id } = req.params;
   const { active } = req.body;
 
-  console.log(active);
+  // console.log(active);
   
   
   try {
@@ -185,7 +185,7 @@ const uploadBannerImage = async (req, res) => {
     });
   } catch (error) {
 
-    console.log(error.message);
+    // console.log(error.message);
 
     res.status(500).json({
       success: false,

@@ -854,9 +854,9 @@ a:hover{
               <span>₹<%= order.totalAmount.toFixed(2) %></span>
             </div>
 
-              <% if(order.items.some(itm => itm.status == 'cancelled') ) { %>
+              <% if(order.items.some(itm => ['cancelled','return-complete'].includes(itm.status) && parseInt(order.refundAmount) > 0 ) ) { %>
                  <div class="summary-row text-danger">
-                   <span>refunded Amount:</span>
+                   <span>Refunded Amount:</span>
                    <span>₹<%= order.refundAmount %></span>
                   </div>
                    <% } %>
@@ -1787,8 +1787,7 @@ if(couponObject && totalAmountAfterCancel < parseInt(couponObject.minOrderAmount
         this.showToast(result.message || 'Failed to cancel order', 'error');
       }
     } catch (error) {
-      this.showToast('An error occurred while cancelling the order', 'error');
-      console.error('Cancel order error:', error);
+      this.showToast(error.message, 'error');
     }
   },
 

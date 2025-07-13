@@ -790,6 +790,21 @@
 
 
     <div class="stats-grid">
+
+
+                  <div class="stat-card primary">
+        <div class="stat-header">
+          <div class="stat-title">Total Order Amount</div>
+          <div class="stat-icon primary">
+            <i class="fas fa-chart-line"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="total-sales">₹<%= totalOrderAmount ? totalOrderAmount.toFixed(2) : '0.00' %></div>
+        <div class="stat-change positive" id="sales-change">
+        </div>
+      </div>
+
+      
       <div class="stat-card primary">
         <div class="stat-header">
           <div class="stat-title">Total Sales</div>
@@ -801,6 +816,7 @@
         <div class="stat-change positive" id="sales-change">
         </div>
       </div>
+
 
       <div class="stat-card success">
         <div class="stat-header">

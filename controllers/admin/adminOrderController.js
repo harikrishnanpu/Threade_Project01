@@ -93,8 +93,7 @@ const updateFullOrder = async (req, res) => {
 const orderDetailsStatusUpdate = async (req, res) => {
   try {
     const {orderId} = req.params
-    console.log(req.body);
-    
+    // console.log(req.body);
     const result = await orderService.quickStatusUpdate(orderId,req.body);
     return res.status(200).json(result);
   } catch (err) {
@@ -161,7 +160,7 @@ const returnRequestAction = async (req, res) => {
     const orderId = req.params.id;
     const { itemIndex, actionType, notes, pickupDate } = req.body;
 
-    console.log(req.body);
+    // console.log(req.body);
     
 
     const result = await orderService.updateReturnReuqestAction(orderId, {

@@ -66,6 +66,8 @@ const getFilteredProductList = async (queryParams) => {
 }
 
 const getUserProductFiltersAndSort = async query => {
+
+
   const {
     search = '', mainCat, subCat, brand, priceRange, size, color, tag,
     rating, isNew, isSale, isFeatured, inStock,
@@ -76,15 +78,24 @@ const getUserProductFiltersAndSort = async query => {
   const filters = { isActive: true }
   if (search) filters.name = { $regex: search, $options: 'i' }
 
-  if (mainCatfromUser && subCat) filters.category = new mongoose.Types.ObjectId(subCat)
+  if (mainCatfromUser && subCat){
+    console.log("fff",subCat);
+    
+    filters.category = new mongoose.Types.ObjectId(subCat)
+  }
+
   else if (mainCatfromUser) {
-    const subCatIds = await Category.find({ parentCategory: mainCatfromUser, isActive: true }).select('_id').lean()
-    if (subCatIds.length) filters.category = { $in: subCatIds.map(s => new mongoose.Types.ObjectId(s._id)) }
-    else filters.category = new mongoose.Types.ObjectId(mainCatfromUser)
-  } else {
-    const catId = await Category.findOne({ isActive: true }).sort({ createdAt: 1 }).lean()
-    mainCatfromUser = catId._id.toString()
-    filters.category = catId._id.toString()
+
+    const subCatIds = await Category.find({ parentCategory: mainCatfromUser, isActive: true }).select('_id').lean();
+    if (subCatIds.length) filters.category = { $in: [...subCatIds.map(s => new mongoose.Types.ObjectId(s._id)), new mongoose.Types.ObjectId(mainCatfromUser) ]  };
+    else filters.category = new mongoose.Types.ObjectId(mainCatfromUser);
+
+  }else {
+
+    const catId = await Category.findOne({ parentCategory: null ,isActive: true }).sort({ createdAt: -1 }).lean();
+    mainCatfromUser = catId._id.toString();
+    const subCatIds = await Category.find({ parentCategory: mainCatfromUser, isActive: true }).select('_id').lean();
+   filters.category = { $in: [...subCatIds.map(s => new mongoose.Types.ObjectId(s._id)), catId._id] };
   }
 
   if (brand) filters.brand = brand
@@ -98,6 +109,7 @@ const getUserProductFiltersAndSort = async query => {
   if (inStock === 'true') filters.stock = { $gt: 0 }
 
   if (priceRange) {
+
     switch (priceRange) {
       case '0-50': filters.regularPrice = { $gte: 0, $lte: 50 }; break
       case '50-100': filters.regularPrice = { $gte: 50, $lte: 100 }; break
@@ -110,13 +122,17 @@ const getUserProductFiltersAndSort = async query => {
           if (!isNaN(min) && !isNaN(max)) filters.regularPrice = { $gte: min, $lte: max }
         }
     }
+
   }
 
   const sortMap = {
+
     newest: { createdAt: -1 }, 'price-low': { regularPrice: 1 }, 'price-high': { regularPrice: -1 },
     'name-asc': { name: 1 }, 'name-desc': { name: -1 }, 'rating-high': { rating: -1 },
     popular: { rating: -1, createdAt: -1 }
+
   }
+  
 
   return {
     filters,

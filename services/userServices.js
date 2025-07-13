@@ -122,7 +122,7 @@ const loginUser = async (email,password) => {
     try{
         
         const user = await Users.findOne({email});
-        console.log(user);
+        // console.log(user);
         
 
         if(!user){

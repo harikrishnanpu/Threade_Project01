@@ -90,7 +90,18 @@ const getSalesReport = async (req, res) => {
     .limit(limit).populate('user', 'name email').lean();
 
     const totalRecords = totalOrderDateWise.length;
-    const totalSales = totalOrderDateWise.reduce((sum, o) => sum + o.totalAmount, 0);
+    const totalSales = totalOrderDateWise.reduce((sum, o)=> { 
+      if(!['cancelled','return-complete','pending'].includes(o.orderStatus)){        
+        sum += o.totalAmount 
+      }
+
+      return sum
+    }, 0);
+
+    const totalOrderAmount =  totalOrderDateWise.reduce((sum, o)=> { 
+        sum += o.totalAmount
+      return sum
+    }, 0);
     const totalOrders = totalOrderDateWise.length;
     const totalDiscounts = totalOrderDateWise.reduce((sum, o) =>  sum + (o?.coupon?.discountAmount || 0), 0);
 
@@ -125,6 +136,7 @@ const getSalesReport = async (req, res) => {
     res.render('admin/salesReport', {
       totalSales,
       totalOrders,
+      totalOrderAmount,
       totalDiscounts,
       chartData: {
         salesTrend,
@@ -145,7 +157,7 @@ const getSalesReport = async (req, res) => {
     });
 
   } catch (err) {
-    console.log('Error in getSalesReport:', err.message);
+    // console.log('Error in getSalesReport:', err.message);
     res.status(500).send('Server Error');
   }
 };

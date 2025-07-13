@@ -14,7 +14,7 @@ const wishlistController = require('../../controllers/user/userWishlistControlle
 const userRouter = express.Router();
 
 
-userRouter.use((req,res,next)=>{
+userRouter.use((req,res,next) => {
       res.locals.noHeader = false;
       res.locals.noFooter = false;
       res.locals.isSubheaderHidden = false;

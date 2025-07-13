@@ -52,7 +52,7 @@ const listInventory = async (q = {}) => {
       sortOrder =  q.sortOrder == 'desc' ? -1 : 1;
     }
   
-    console.log(sortOrder);
+    // console.log(sortOrder);
     
     const dir = sortOrder;
 
@@ -67,7 +67,7 @@ const listInventory = async (q = {}) => {
     return { success: true, data: { items, total } };
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     return { success: false, message: err.message };
   }

@@ -61,21 +61,21 @@ const getOffer = async (req, res) => {
 
 const createOffer = async (req, res) => {
   try {
-    console.log(path.join(__dirname, '../../uploads/offers'))
+    // console.log(path.join(__dirname, '../../uploads/offers'))
     const body = req.body;
 
     if (req.file) body.image = req.file.path;
     const offer = await offerService.createOffer(body);
     const updated = await offerService.updateAllProductSalePrices();
     
-    console.log(updated.updatedCount);
+    // console.log(updated.updatedCount);
 
 
     res.status(200).json({ success: true });
 
     
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     res.status(400).json({ success: false, message: err.message });
   }
@@ -87,7 +87,7 @@ const updateOffer = async (req, res) => {
 
     const body = req.body;
 
-    console.log(req.file);
+    // console.log(req.file);
     
 
     if (req.file) body.image = req.file.path;

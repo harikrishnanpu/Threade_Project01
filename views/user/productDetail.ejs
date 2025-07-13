@@ -711,6 +711,7 @@
       border-top: 1px solid var(--border);
       padding: 1.5rem 2rem;
       background: var(--light-gray);
+      width: 100%;
     }
 
     .btn {
@@ -1108,7 +1109,10 @@
             <div class="review-item">
               <div class="review-header">
                 <div>
-                  <div class="review-author"><%= review.user.name || 'Anonymous' %></div>
+                  <div class="d-flex ">
+                    <div class="review-author"><%= review.user.name || 'Anonymous' %></div>
+                    <i style="cursor: pointer;" class="fa fa-trash text-danger ml-4" ></i>
+                  </div>
                   <div class="review-date">
                     <%= new Date(review.createdAt || review.date).toLocaleDateString('en-IN', {
                       day: 'numeric',

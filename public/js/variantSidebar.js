@@ -192,7 +192,7 @@ window.updateWishlistCount = async function() {
       const r = await fetch("/user/wishlist/count");
       const d = await r.json();
 document.querySelectorAll(".HeaderwishCount").forEach(el => {
-  console.log(el);
+  // console.log(el);
   if (r.ok && el) el.textContent = d.count;
 });
     } catch (e) {

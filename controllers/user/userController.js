@@ -67,9 +67,9 @@ const wishlistItemIds = userWishlist?.items.map(i => i.product.toString()) || []
 
 
 
-console.log(allMainCatsbySub);
+// console.log(allMainCatsbySub);
 
-console.log(userProductSuggestions);
+// console.log(userProductSuggestions);
 
 
     
@@ -88,7 +88,7 @@ console.log(userProductSuggestions);
       wishlistItemIds,
         });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to load home page',err: err.message });
+    res.status(500).json({ message: err.message});
   }
 };
 
@@ -162,7 +162,7 @@ const registerNewUser = async (req, res) => {
     
     const newUser = await insertOneUser({ name, phone, email, password, referredBy });
 
-    console.log(newUser);
+    // console.log(newUser);
     
     const otp = generateOtp();
 
@@ -184,7 +184,7 @@ const registerNewUser = async (req, res) => {
     });
 
   } catch (err) {
-    console.log('Registration Error:', err.message);
+    // console.log('Registration Error:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -233,7 +233,7 @@ res.cookie('token', token, {
     });
 
     }catch(err){
-    console.log('Login Error:', err.message);
+    // console.log('Login Error:', err.message);
     res.status(500).json({ success: false, redirected: false, message: err.message });
     }
 }
@@ -322,7 +322,7 @@ const resendUserEmailOtp = async (req,res) =>{
     if(deleted){
       const otp = generateOtp();
 
-      console.log("RESET",otp);
+      // console.log("RESET",otp);
       
       await otpModel.create({
       email,

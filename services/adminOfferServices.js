@@ -30,7 +30,7 @@ const updateAllProductSalePrices = async () => {
         return matchProduct || matchCategory;
       });
 
-      console.log(matchedOffers);
+      // console.log(matchedOffers);
       
 
       let isUpdated = false;
@@ -45,7 +45,7 @@ const updateAllProductSalePrices = async () => {
 
           for (const offer of matchedOffers) {
 
-            console.log("MAX",offer.maxDiscountAmount);
+            // console.log("MAX",offer.maxDiscountAmount);
             
             const maxDiscount = offer.maxDiscountAmount || 0;
 
@@ -81,15 +81,15 @@ const updateAllProductSalePrices = async () => {
 
     }
 
-    console.log("UPDATEDCOUNT",updatedCount);
+    // console.log("UPDATEDCOUNT",updatedCount);
     
 
     return { success: true, updatedCount };
   } catch (err) {
-    console.log(err.message);
+    // console.log(err.message);
     
 
-    console.log(err);
+    // console.log(err);
 
     throw new Error(err.message);
   }
@@ -99,7 +99,7 @@ const updateAllProductSalePrices = async () => {
 
 const createOffer = async (data) => {
   try {
-    console.log(data);
+    // console.log(data);
 
  const { title, description, discount, maxDiscountAmount, applicableOn, startDate, endDate, isActive, products, categories   } = data;
 
@@ -138,7 +138,7 @@ const createOffer = async (data) => {
 
 const updateOffer = async (id, data) => {
   try {
-    console.log(data);
+    // console.log(data);
 
     const { title, description, discount, maxDiscountAmount, applicableOn, startDate, endDate, isActive, products, categories   } = data;
 

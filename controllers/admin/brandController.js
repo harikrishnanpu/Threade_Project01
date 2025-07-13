@@ -179,7 +179,7 @@ async function toggleBrandStatus(req, res, next) {
 
   } catch (error) {
 
-    console.log(error);
+    // console.log(error);
     
 
     if (error.message === 'Brand not found') {
