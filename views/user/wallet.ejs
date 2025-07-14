@@ -1,4 +1,6 @@
 <!-- views/user/profile/wallet.ejs -->
+<% const page = typeof pageNo !== 'undefined' ? pageNo : 1; %>
+<% const totalPages = typeof totalPagesBck !== 'undefined' ? totalPagesBck : 1; %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,7 +91,7 @@
     .txn-amt.credit{color:var(--credit)}
     .txn-amt.debit{color:var(--debit)}
 
-    /* ---------- WALLET MODAL (conflict-free) ---------- */
+    /* ---------- Wallet Modal ---------- */
     .wallet-modal{display:none;position:fixed;inset:0;background:#0005;z-index:900;align-items:center;justify-content:center}
     .wallet-modal.show{display:flex}
     .wallet-dialog{background:var(--white);border-radius:var(--radius);padding:1.5rem;max-width:320px;width:90%;box-shadow:var(--shadow);animation:walletFade .25s ease}
@@ -102,6 +104,15 @@
     .wallet-modal-btn.secondary{background:#f3f4f6}
     .wallet-modal-btn.primary:disabled{opacity:.6;cursor:not-allowed}
     @keyframes walletFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    /* ---------- Pagination (added) ---------- */
+    .txn-pagination{display:flex;justify-content:center;align-items:center;gap:.5rem;margin-top:1.5rem}
+    .pg-btn{border:1px solid #d1d5db;background:var(--white);padding:.4rem .75rem;font-size:.8rem;border-radius:8px;cursor:pointer;transition:background var(--tr)}
+    .pg-btn[disabled]{opacity:.4;cursor:not-allowed}
+    .pg-btn:hover:not([disabled]){background:#f3f4f6}
+    .pg-page{border:none;background:none;width:32px;height:32px;display:grid;place-items:center;border-radius:8px;font-size:.8rem;cursor:pointer}
+    .pg-page.active{background:var(--accent);color:#fff}
+    .pg-page:hover:not(.active){background:#f3f4f6}
 
     /* ---------- Responsive ---------- */
     @media(max-width:768px){
@@ -181,17 +192,53 @@
         <div class="card-body">
           <% if(wallet.transactions.length){ %>
           <div class="txn-list">
-            <% wallet.transactions.slice().reverse().forEach(txn=>{ %>
+            <% wallet.transactions.forEach(txn=>{ %>
               <div class="txn-item">
                 <div class="txn-icon <%= txn.type %>"><i class="fas <%= txn.type==='credit'?'fa-arrow-down':'fa-arrow-up' %>"></i></div>
                 <div class="txn-info">
                   <div class="txn-desc"><%= txn.description %></div>
-                  <div class="txn-meta"><%= new Date(txn.createdAt).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'}) %> • Ref: <%= txn.reference || '—' %></div>
+                  <div class="txn-meta"><%= new Date(txn.createdAt).toLocaleDateString('en-IN',{ hour: '2-digit', minute: '2-digit' }) %> • Ref: <%= txn.reference || '—' %></div>
                 </div>
                 <div class="txn-amt <%= txn.type %>"><%= txn.type==='credit'?'+':'-' %>₹<%= txn.amount.toFixed(2) %></div>
               </div>
             <% }) %>
           </div>
+
+          <!-- Pagination controls -->
+         <% if (totalPages > 1) { %>
+  <nav class="txn-pagination">
+
+    <!-- Prev button -->
+    <% if (page > 1) { %>
+      <a class="pg-btn" href="?page=<%= page - 1 %>">&laquo; Prev</a>
+    <% } else { %>
+      <span class="pg-btn" style="opacity:.4;cursor:not-allowed">&laquo; Prev</span>
+    <% } %>
+
+    <!-- Page numbers (max 3 visible) -->
+    <% 
+      const startPage = Math.max(page - 1, 1);
+      const endPage = Math.min(startPage + 2, totalPages);
+      for (let p = startPage; p <= endPage; p++) { 
+    %>
+      <% if (p === page) { %>
+        <span class="pg-page active"><%= p %></span>
+      <% } else { %>
+        <a class="pg-page" href="?page=<%= p %>"><%= p %></a>
+      <% } %>
+    <% } %>
+
+    <!-- Next button -->
+    <% if (page < totalPages) { %>
+      <a class="pg-btn" href="?page=<%= page + 1 %>">Next &raquo;</a>
+    <% } else { %>
+      <span class="pg-btn" style="opacity:.4;cursor:not-allowed">Next &raquo;</span>
+    <% } %>
+
+  </nav>
+<% } %>
+
+
           <% } else { %>
             <p style="color:var(--muted);text-align:center">No transactions yet.</p>
           <% } %>
@@ -214,15 +261,15 @@
   </div>
 
   <!-- Scripts -->
-   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     /* Sidebar toggle */
     const sidebar = document.getElementById('profileSide');
-    const overlay  = document.querySelector('.profile-overlay');
-    function toggleSidebar(){ sidebar.classList.toggle('open'); overlay.classList.toggle('show'); }
+    const walletoverlay  = document.querySelector('.profile-overlay');
+    function toggleSidebar(){ sidebar.classList.toggle('open'); walletoverlay.classList.toggle('show'); }
 
     /* ---- Wallet modal helpers ---- */
-    const modal        = document.getElementById('walletModal');
+    const walletmodal        = document.getElementById('walletModal');
     const amtInput     = document.getElementById('amtInput');
     const modalPrimary = document.getElementById('modalPrimary');
     const modalTitle   = document.getElementById('modalTitle');
@@ -232,12 +279,12 @@
       currentAction          = action;
       amtInput.value         = '';
       modalPrimary.disabled  = true;
-      modalTitle.textContent = action==='deposit' ? 'Add funds to wallet' : 'Withdraw from wallet';
-      modalPrimary.textContent = action==='deposit' ? 'Add' : 'Withdraw';
-      modal.classList.add('show');
+      modalTitle.textContent = action ==='deposit' ? 'Add funds to wallet' : 'Withdraw from wallet';
+      modalPrimary.textContent = action ==='deposit' ? 'Add' : 'Withdraw';
+      walletmodal.classList.add('show');
       amtInput.focus();
     }
-    function closeModal(){ modal.classList.remove('show'); }
+    function closeModal(){ walletmodal.classList.remove('show'); }
 
     amtInput.addEventListener('input',()=> modalPrimary.disabled = !amtInput.value.trim() || Number(amtInput.value)<=0);
 
@@ -256,13 +303,16 @@
         if(!res.ok) alert(message||'request failed');
 
       const options = {
+
         key: razorpay.key,
         amount: razorpay.amount,
         currency: razorpay.currency,
         name: "Threade",
         description: "Wallet Payment",
         order_id: razorpay.razorpayOrderId,
+
 handler: async function (response) {
+
   try {
     const verify = await fetch(`/user/profile/wallet/payment/verify`, {
       method: 'POST',
@@ -271,7 +321,7 @@ handler: async function (response) {
         razorpay_order_id: response.razorpay_order_id,
         razorpay_payment_id: response.razorpay_payment_id,
         razorpay_signature: response.razorpay_signature,
-        orderId: razorpay.orderId
+        walletId: razorpay.walletId
       })
     });
 
@@ -280,17 +330,31 @@ handler: async function (response) {
     console.log(result);
     
     if (result.success) {
-      alert('success')
+      console.log("kjbfjkbf");
+        showGlobalToast('payment successfully completed','success')
+
     } else {
-      alert('failed')
-        }
+      console.log("dfkfgf");
+      
+        showGlobalToast('payment failed','error')
+      
+      }
   
    }catch(err){
- alert('failed')
-   } },
+    console.log(err);
+    
+        showGlobalToast('payment failed','error')
+   }finally{
+          closeModal();
+        setTimeout(()=>{ window.location.reload() },2000)
+   } 
+  
+  },
         modal: {
-          ondismiss: function () {
-            alert('failed')
+            ondismiss: function () {
+                        closeModal();
+        setTimeout(()=>{ window.location.reload() },2000)
+            showGlobalToast('payment failed','error')
           }
         },
         prefill: {
@@ -306,22 +370,28 @@ handler: async function (response) {
       const rzp = new Razorpay(options);
 
       rzp.on('payment.failed', function () {
-        alert('failed')
+        showGlobalToast('payment failed','error')
       });
 
       rzp.open();
       return;
-  }catch(err){ alert(err.message||'Request failed'); 
+  }catch(err){
+    console.log(err);
+    
+   showGlobalToast(err.message || 'error ocuured','error')
 
   }finally{
         modalPrimary.disabled=false;
         modalPrimary.textContent = currentAction === 'deposit' ? 'Add': 'Withdraw';
-      }
+  }
+
+
     });
 
     /* Close modal on Esc or outside click */
     window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
-    modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+    walletmodal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+
   </script>
 </body>
 </html>

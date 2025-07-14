@@ -821,6 +821,7 @@ const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
     let originalItem = null;
 
     order.items.forEach(itm => {
+
       if (itm._id.toString() === itemId && !itm.isCancelled ) {
         changed++;
         originalItem = itm;
@@ -830,6 +831,7 @@ const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
         itm.cancelledAt = new Date();
         itm.status = 'cancelled';
       }
+
     });
 
     if (!changed) {
@@ -934,14 +936,17 @@ if (order.coupon && order.coupon.discountAmount && eligible) {
 
   const discountAmount = order.coupon.discountAmount || 0;
   const refundItemPrice = itemTotal - ((itemTotal / itemsSubtotal) * discountAmount);
-  refundAmount = Math.round(refundItemPrice);
+  refundAmount = Math.round(itemTotal) - Math.round(refundItemPrice);
 
 } else if(order.coupon && order.coupon.discountAmount && !eligible) {
-        const discountAmount = order.coupon.discountAmount || 0;
-        const refundItemPrice = itemTotal - ((itemTotal / itemsSubtotal) * discountAmount);
-        refundAmount = Math.round(refundItemPrice);
+
+  const discountAmount = order.coupon.discountAmount || 0;
+  const refundItemPrice = itemTotal -  discountAmount; 
+
+  refundAmount = Math.round(refundItemPrice);
+
   await Coupon.findOneAndUpdate({code: order.coupon.code },{  $inc: { usedCount: -1  } , $pull: { usedBy: userId  }  });
-    order.coupon.code = null;
+  order.coupon.code = null;
   order.coupon.discountAmount = null;
 
 }else {
@@ -984,7 +989,7 @@ if (order.coupon && order.coupon.discountAmount && eligible) {
 
     });
 
-    order.refundAmount = finalRefundAmount;
+    order.refundAmount += finalRefundAmount;
 
     await wallet.save();
 

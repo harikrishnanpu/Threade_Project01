@@ -7,6 +7,7 @@ const Users = require("../../models/userModel")
 const { hashPassword, comparePassword } = require("../../utils/bcrypt")
 const { getUserOrders, getUserOrderById } = require("../../services/userOrderServices")
 const walletService = require('../../services/userWalletServices');
+const Wallet = require('../../models/userWalletModel');
 const paymentService = require('../../services/userPaymentServices');
 const crypto = require('crypto');
 const Orders = require("../../models/orderModel");
@@ -169,17 +170,38 @@ const renderOrderDetailsPage = async (req, res) => {
 
 const renderWalletPage = async (req, res) => {
   try {
-    const wallet = await walletService.getWallet(req.user._id)
+    const limit = 5; 
+
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+
+    const wallet = await Wallet.findOne({ user: req.user._id }).lean();
+
+    if (!wallet) {
+      throw new Error('wallet not found for user')
+    }
+
+    const totalTxns   = wallet.transactions.length;
+
+    const totalPages  = Math.max(Math.ceil(totalTxns / limit), 1);
+
+    const startIndex  = (page - 1) * limit;
+    const endIndex    = startIndex + limit;
+
+    wallet.transactions = wallet.transactions.slice().reverse().slice(startIndex, endIndex);
+    
+
     res.render('user/wallet', {
-      wallet,
-      transactions: wallet.transactions
-    })
+      wallet,                
+      pageNo: page,
+      totalPagesBck: totalPages,
+    });
 
   } catch (err) {
-    // console.log(err.message)
-    res.status(500).render('error', { message: err.message })
+    console.log("KJRNFBHJBFJBJBCVJHBFJHHBV",err);
+    res.status(500).json({message: err.message})
   }
-}
+};
+
 
 
 
@@ -193,16 +215,21 @@ const addMoneyToWallet = async (req,res) => {
       throw new Error('enter valid amount');
     }
 
-    const razorpayOrder = await paymentService.addToWallet(amount,req.user?._id);
+    const razorpayOrder = await paymentService.addToWallet(amount, req.user?._id);
+
+    console.log(razorpayOrder);
+    
 
   return res.status(200).json({
     success: true,
     razorpay: razorpayOrder,
-    customer: razorpayOrder.customer
+    customer: razorpayOrder.customer,
+    message: 'success'
   });
 
-
   }catch(err){
+    console.log(err);
+    
     res.status(500).json({ message: err.message })
   }
 
@@ -213,14 +240,23 @@ const addMoneyToWallet = async (req,res) => {
 const verifyWalletPayment = async (req,res) => {
 
   try{
-    const {    razorpay_order_id,
+
+    const {   razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
-        orderId   } = req.body;
+        walletId   } = req.body;
 
-    const result = await paymentService.verifyWalletPayment(req.body)
+    const result = await paymentService.verifyWalletPayment({...req.body, userId: req.user._id});
+
+    if(result.success){
+      res.status(200).json({message: 'successfully submitted', success: true})
+    }else{
+      res.status(500).json({message: 'error occured in adding payment to wallet', success:false})
+    }
 
   }catch(err){
+    console.log(err);
+    
     res.status(500).json({ message: err.message})
   }
 

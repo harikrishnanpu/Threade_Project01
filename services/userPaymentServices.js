@@ -102,15 +102,18 @@ const addToWallet = async (amount, userId) => {
       wallet = await UserWallet.create({ user: user._id });
     }
 
+    wallet.lastRequestedAmount = amount;
+
     const razorpayOrder = await razorpay.orders.create({
       amount: amount * 100,
       currency: 'INR',
       receipt: wallet._id.toString(),
-      payment_capture: 1,
     });
+    
+    await wallet.save();
 
     return {
-      orderId: razorpayOrder.id,
+      walletId: wallet._id,
       razorpayOrderId: razorpayOrder.id,
       amount: amount,
       currency: 'INR',
@@ -122,7 +125,10 @@ const addToWallet = async (amount, userId) => {
       },
     };
 
+
   } catch (err) {
+    console.log(err);
+    
     throw new Error(err.message);
   }
 };
@@ -133,7 +139,8 @@ const verifyWalletPayment = async ({
   razorpay_order_id,
   razorpay_payment_id,
   razorpay_signature,
-  orderId
+  walletId,
+  userId
 }) => {
 
   try {
@@ -147,27 +154,33 @@ const verifyWalletPayment = async ({
       return { success: false, message: 'invalid Razorpay signature' };
     }
 
-    const wallet = await UserWallet.findById(orderId).populate('user');
+    const wallet = await UserWallet.findOne({ _id: walletId , user: userId }).populate('user');
 
     if (!wallet) {
       return { success: false, message: 'wallet not found' };
     }
 
-    wallet.transactions.push({
-      type: 'credit',
-      amount: wallet.lastRequestedAmount || 0, 
-      description: 'wallet top-up via Razorpay',
-      reference: razorpay_payment_id,
-      createdAt: new Date()
-    });
+    const lastRequestedAmount = wallet.lastRequestedAmount;
 
-    wallet.balance += wallet.lastRequestedAmount || 0;
-    
-    await wallet.save();
+    if(lastRequestedAmount > 0){
+
+      wallet.transactions.push({
+        type: 'credit',
+        amount: wallet.lastRequestedAmount || 0, 
+        description: 'wallet top-up via Razorpay',
+        reference: razorpay_payment_id,
+        createdAt: new Date()
+      });
+      
+      wallet.balance += wallet.lastRequestedAmount || 0;
+      
+      await wallet.save();
+      
+    }
 
     return { success: true, message: 'Wallet updated successfully' };
   } catch (err) {
-    // console.log(err);
+    console.log(err);
     return { success: false, message: 'Server error' };
   }
 
