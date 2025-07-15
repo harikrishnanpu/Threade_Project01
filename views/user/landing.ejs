@@ -253,8 +253,8 @@
                   <% mainCat.subCategories.forEach((cat)=> { %>
                   <li class="sidebar-submenu-category">
                     <a href="#" class="sidebar-submenu-title">
-                      <p class="product-name"><%= cat.name %></p>
-                      <data value="300" class="stock" title="Available Stock">300</data>
+                      <a style="color: #000000b7;font-size: .8rem;font-weight: 800;" href="/user/products/shop?mainCat=<%= mainCat._id  %>" class="product-name"><%= cat.name %></a>
+                      <!-- <data value="300" class="stock" title="Available Stock"></data> -->
                     </a>
                   </li>
 

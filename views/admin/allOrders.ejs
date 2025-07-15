@@ -358,24 +358,12 @@
                           <i class="lni lni-checkmark"></i>
                           <span class="btn-text">Confirm</span>
                         </button>
-                        <button class="btn btn-sm btn-danger cancel-btn" 
-                                onclick="cancelOrder('<%= order._id %>')"
-                                title="Cancel Order">
-                          <i class="lni lni-close"></i>
-                          <span class="btn-text">Cancel</span>
-                        </button>
                       <% } else if (order.orderStatus === 'confirmed') { %>
                         <button class="btn btn-sm btn-info ship-btn" 
                                 onclick="shipOrder('<%= order._id %>')"
                                 title="Mark as Shipped">
                           <i class="lni lni-delivery"></i>
                           <span class="btn-text">Ship</span>
-                        </button>
-                        <button class="btn btn-sm btn-danger cancel-btn" 
-                                onclick="cancelOrder('<%= order._id %>')"
-                                title="Cancel Order">
-                          <i class="lni lni-close"></i>
-                          <span class="btn-text">Cancel</span>
                         </button>
                       <% } else if (order.orderStatus === 'shipped') { %>
                         <button class="btn btn-sm btn-success deliver-btn" 
@@ -1236,9 +1224,7 @@
   }
 
   function deliverOrder(orderId) {
-    if (confirm('Mark this order as delivered?')) {
       updateOrderStatus(orderId, 'delivered');
-    }
   }
 
   function updateOrderStatus(orderId, newStatus, additionalData = {}) {

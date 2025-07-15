@@ -499,6 +499,7 @@ const prepareOnlineOrder = async (userId) => {
     let couponData = null;
 
     if (session.couponCode) {
+
       const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase() });
       if (!coupon) throw new Error('coupon is no longer valid');
 
@@ -821,6 +822,7 @@ const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
     let originalItem = null;
 
     order.items.forEach(itm => {
+
       if (itm._id.toString() === itemId && !itm.isCancelled ) {
         changed++;
         originalItem = itm;
@@ -830,6 +832,7 @@ const cancelSingleItem = async ({ orderId, userId, itemId, reason, note }) => {
         itm.cancelledAt = new Date();
         itm.status = 'cancelled';
       }
+
     });
 
     if (!changed) {
@@ -933,22 +936,48 @@ const eligible = await isProductEligible(order,productId,variant);
 if (order.coupon && order.coupon.discountAmount && eligible) {
 
   const discountAmount = order.coupon.discountAmount || 0;
-  const refundItemPrice = itemTotal - ((itemTotal / itemsSubtotal) * discountAmount);
-  refundAmount = Math.round(refundItemPrice);
 
-} else if(order.coupon && order.coupon.discountAmount && !eligible) {
-        const discountAmount = order.coupon.discountAmount || 0;
-        const refundItemPrice = itemTotal - ((itemTotal / itemsSubtotal) * discountAmount);
-        refundAmount = Math.round(refundItemPrice);
-  await Coupon.findOneAndUpdate({code: order.coupon.code },{  $inc: { usedCount: -1  } , $pull: { usedBy: userId  }  });
-    order.coupon.code = null;
-  order.coupon.discountAmount = null;
+  const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
 
-}else {
-  refundAmount = Math.round(itemTotal);
+  refundAmount = Math.round(itemTotal - itemDiscountShare);
+
+} else if (order.coupon && order.coupon.discountAmount && !eligible) { 
+
+  const discountAmount = order.coupon.discountAmount;
+const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
+const itemPaidAmount = Math.round(itemTotal - itemDiscountShare);
+
+const remainingItemsDiscountEarned = order.items.reduce((total, itm) => {
+
+  if (
+    !(itm.productId.toString() === productId.toString() &&
+      itm.variant.color === variant.color &&
+      itm.variant.size === variant.size) &&
+    !['pending', 'cancelled', 'return-complete', 'return-requested', 'return-processing', 'return-pickup', 'return-rejected'].includes(itm.status)
+  ) {
+    const itemPrice = itm.quantity * itm.price;
+    const itemShare = (itemPrice / itemsSubtotal) * discountAmount;
+    total += itemShare;
+  }
+  return total;
+}, 0);
+
+
+refundAmount = Math.round(itemPaidAmount - remainingItemsDiscountEarned);
+
+refundAmount = Math.max(refundAmount, 0);
+
+await Coupon.findOneAndUpdate(
+  { code: order.coupon.code },
+  { $inc: { usedCount: -1 }, $pull: { usedBy: userId } }
+);
+
+order.coupon.code = null;
+order.coupon.discountAmount = null;
+
+}else{
+  refundAmount += Math.round(itemTotal);
 }
-
-
 
     let wallet = await UserWallet.findOne({ user: userId });
 
@@ -984,7 +1013,7 @@ if (order.coupon && order.coupon.discountAmount && eligible) {
 
     });
 
-    order.refundAmount = finalRefundAmount;
+    order.refundAmount += finalRefundAmount;
 
     await wallet.save();
 

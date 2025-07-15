@@ -119,14 +119,14 @@
                     </div>
                     
                     <div class="return-actions">
-                      <button class="btn btn-success" onclick="acceptOrderReturnRequest()">
+                      <!-- <button class="btn btn-success" onclick="acceptOrderReturnRequest()">
                         <i class="lni lni-checkmark"></i>
                         Accept Order Return
                       </button>
                       <button class="btn btn-danger" onclick="rejectOrderReturnRequest()">
                         <i class="lni lni-close"></i>
                         Reject Order Return
-                      </button>
+                      </button> -->
                     </div>
                   </div>
                   <% } else if (order.orderStatus === 'return-pickup') { %>
@@ -759,19 +759,19 @@
                       Mark as Delivered
                     </button>
                   <% } else if (order.orderStatus === 'delivered') { %>
-                    <button class="btn btn-warning btn-block mb-2" onclick="quickStatusUpdate('return-requested')">
+                    <!-- <button class="btn btn-warning btn-block mb-2" onclick="quickStatusUpdate('return-requested')">
                       <i class="lni lni-reload"></i>
                       Process Return
-                    </button>
+                    </button> -->
                   <% } else if (order.orderStatus === 'return-requested') { %>
-                    <button class="btn btn-success btn-block mb-2" onclick="acceptOrderReturnRequest()">
+                    <!-- <button class="btn btn-success btn-block mb-2" onclick="acceptOrderReturnRequest()">
                       <i class="lni lni-checkmark"></i>
                       Accept Return Request
                     </button>
                     <button class="btn btn-danger btn-block mb-2" onclick="rejectOrderReturnRequest()">
                       <i class="lni lni-close"></i>
                       Reject Return Request
-                    </button>
+                    </button> -->
                   <% } else if (order.orderStatus === 'return-pickup') { %>
                     <button class="btn btn-primary btn-block mb-2" onclick="markOrderReturnProcess()">
                       <i class="lni lni-reload"></i>
@@ -2696,6 +2696,15 @@ function updateOrderSummary(){
     // Return request form submission
     document.getElementById('return-request-form').addEventListener('submit', function(e) {
       e.preventDefault();
+
+        const pickupGroup = document.getElementById('pickup-date-group');
+  const pickupDateInput = document.getElementById('return-pickup-date');
+
+  if (pickupGroup.style.display === 'none') {
+    pickupDateInput.removeAttribute('required');
+  } else {
+    pickupDateInput.setAttribute('required', 'required');
+  }
       
 
       const formData = new FormData(this);

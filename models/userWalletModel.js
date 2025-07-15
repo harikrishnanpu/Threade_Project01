@@ -14,9 +14,10 @@ const transactionSchema = new mongoose.Schema(
 
 
 const UserWalletSchema = new mongoose.Schema({
-    user: { type: mongoose.Types.ObjectId, ref: 'User', unique: true, required: true },
+    user: { type: mongoose.Types.ObjectId, ref: 'users', unique: true, required: true },
     balance: { type: Number, default: 0 },
-    transactions: [transactionSchema]
+    transactions: [transactionSchema],
+    lastRequestedAmount: { type: Number, default: 0 }
   },
   { timestamps: true }
 )

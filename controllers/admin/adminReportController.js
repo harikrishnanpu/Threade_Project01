@@ -86,10 +86,10 @@ const getSalesReport = async (req, res) => {
 
     const totalOrderDateWise = await Order.find(filters).populate('user','name email').populate('items.productId').lean();    
 
-    const orders = await Order.find(filters).sort({ [sortField]: sortOrder === 'asc' ? 1 : -1 }).skip((page - 1) * limit)
-    .limit(limit).populate('user', 'name email').lean();
+    const orders = await Order.find(filters).sort({[sortField]: sortOrder == 'asc' ? 1 : -1 }).skip((page - 1) * limit).limit(limit).populate('user', 'name email').lean();
 
     const totalRecords = totalOrderDateWise.length;
+
     const totalSales = totalOrderDateWise.reduce((sum, o)=> { 
       if(!['cancelled','return-complete','pending'].includes(o.orderStatus)){        
         sum += o.totalAmount 
@@ -102,6 +102,7 @@ const getSalesReport = async (req, res) => {
         sum += o.totalAmount
       return sum
     }, 0);
+
     const totalOrders = totalOrderDateWise.length;
     const totalDiscounts = totalOrderDateWise.reduce((sum, o) =>  sum + (o?.coupon?.discountAmount || 0), 0);
 

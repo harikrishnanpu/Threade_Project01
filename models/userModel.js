@@ -14,10 +14,8 @@ const UserSchema = mongoose.Schema({
     isBlocked: { type: Boolean, default: false },
 
     isListed: { type: Boolean, default: true },
-    
 referralCode: {
     type: String,
-    unique: true,
     uppercase: true,
     trim: true
   },

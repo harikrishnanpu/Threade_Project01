@@ -259,7 +259,7 @@ const updateOrderStatus = async (data) => {
         });
         
         
-        order.refundAmount = refundAmount;
+        order.refundAmount += refundAmount;
         
         await wallet.save();
         
@@ -533,7 +533,7 @@ const quickStatusUpdate = async (orderId, {
         });
     
     
-        order.refundAmount = refundAmount;
+        order.refundAmount += refundAmount;
     
         await wallet.save();
     
@@ -753,12 +753,39 @@ if (actionType === 'return-approved') {
         refundAmount = Math.round(refundItemPrice);
       
       } else if(order.coupon && order.coupon.discountAmount && !eligible) {
-        const discountAmount = order.coupon.discountAmount || 0;
-        const refundItemPrice = itemTotal - ((itemTotal / itemsSubtotal) * discountAmount);
-        refundAmount = Math.round(refundItemPrice);
-        await Coupon.findOneAndUpdate({code: order.coupon.code },{  $inc: { usedCount: -1  } , $pull: { usedBy: userId  }  });
-          order.coupon.code = null;
-        order.coupon.discountAmount = null;
+       
+         const discountAmount = order.coupon.discountAmount;
+       const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
+       const itemPaidAmount = Math.round(itemTotal - itemDiscountShare);
+       
+       const remainingItemsDiscountEarned = order.items.reduce((total, itm) => {
+       
+         if (
+           !(itm.productId.toString() === item.productId.toString() &&
+             itm.variant.color === item.variant.color &&
+             itm.variant.size === item.variant.size) &&
+           !['pending', 'cancelled', 'return-complete'].includes(itm.status)
+         ) {
+           const itemPrice = itm.quantity * itm.price;
+           const itemShare = (itemPrice / itemsSubtotal) * discountAmount;
+           total += itemShare;
+         }
+         return total;
+       }, 0);
+       
+       
+       refundAmount = Math.round(itemPaidAmount - remainingItemsDiscountEarned);
+       
+       refundAmount = Math.max(refundAmount, 0);
+       
+       await Coupon.findOneAndUpdate(
+         { code: order.coupon.code },
+         { $inc: { usedCount: -1 }, $pull: { usedBy: userId } }
+       );
+       
+       order.coupon.code = null;
+       order.coupon.discountAmount = null;
+       
       
       }else {
         refundAmount = Math.round(itemTotal);
@@ -800,7 +827,7 @@ if (actionType === 'return-approved') {
       
           });
       
-          order.refundAmount = finalRefundAmount;
+          order.refundAmount += finalRefundAmount;
       
           await wallet.save();
       

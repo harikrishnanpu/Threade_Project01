@@ -30,6 +30,7 @@ module.exports = io => {
       const history = await Message.find({ roomId: room._id })
                                    .sort({ createdAt: 1 })
                                    .lean();
+                                   
       socket.emit('load_messages', history);
 
       const payload = {
@@ -44,7 +45,7 @@ module.exports = io => {
     });
 
     socket.on('get_online_users', async () => {
-      const users = await User.find({ isOnline: true }).select('_id name isOnline currentRoomId').lean();
+      const users = await User.find({ isOnline: true }).select('-password').lean();
       socket.emit('online_users', users);
     });
 

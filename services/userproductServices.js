@@ -63,7 +63,7 @@ if (!product) {
   throw new Error('Product not found');
 }
 
-console.log(getProductById);
+// console.log(getProductById);
 
 
 if (!product.isActive || !product.isCategoryActive || !product.isBrandActive || !product.category.isActive) {

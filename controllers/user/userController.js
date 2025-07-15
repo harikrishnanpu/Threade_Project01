@@ -120,6 +120,8 @@ const getGoogleAuthCallback = [
     failureRedirect: '/user/login?error=blocked'
   }),
   (req, res) => {
+    console.log(req);
+    
     const user = req.user;
     const token = generateToken(user._id);
 
@@ -155,9 +157,8 @@ const registerNewUser = async (req, res) => {
       if (!referrer) {
         return res.status(400).json({ success: false, message: 'invalid referral code' });
       }
-      
+
       referredBy = referrer._id;
-      
     }
     
     const newUser = await insertOneUser({ name, phone, email, password, referredBy });
@@ -179,7 +180,7 @@ const registerNewUser = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'User created. Please verify your email using the OTP sent.',
+      message: 'User created. Please verify your email using the OTP.',
       userId: newUser._id
     });
 
@@ -190,7 +191,7 @@ const registerNewUser = async (req, res) => {
 };
 
 
-const loginUserAccount = async (req,res) =>{
+const loginUserAccount = async (req,res) => {
     const {email,password} = req.body;
 
     try{
