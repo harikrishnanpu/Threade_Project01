@@ -1035,7 +1035,7 @@ a:hover{
         
         <div class="form-group">
           <label class="form-label">Cancellation Reason *</label>
-          <select name="cancellationReason" class="form-control" required>
+          <select name="cancellationReason" class="form-control" >
             <option value="">Select a reason</option>
             <option value="Changed my mind">Changed my mind</option>
             <option value="Found better price elsewhere">Found better price elsewhere</option>
@@ -1094,7 +1094,7 @@ a:hover{
         
         <div class="form-group">
           <label class="form-label">Cancellation Reason *</label>
-          <select name="cancellationReason" class="form-control" required>
+          <select name="cancellationReason" class="form-control" >
             <option value="">Select a reason</option>
             <option value="Changed my mind">Changed my mind</option>
             <option value="Found better price elsewhere">Found better price elsewhere</option>
@@ -1145,7 +1145,7 @@ a:hover{
         
         <div class="form-group">
           <label class="form-label">Return Reason *</label>
-          <select name="returnReason" class="form-control" required>
+          <select name="returnReason" class="form-control" >
             <option value="">Select a reason</option>
             <option value="Defective/Damaged product">Defective/Damaged product</option>
             <option value="Wrong item received">Wrong item received</option>
@@ -1161,7 +1161,7 @@ a:hover{
         
         <div class="form-group">
           <label class="form-label">Detailed Description *</label>
-          <textarea name="returnNote" class="form-control textarea" required
+          <textarea name="returnNote" class="form-control textarea" 
                     placeholder="Please describe the issue in detail. This will help us process your return faster..."></textarea>
         </div>
         
@@ -1207,7 +1207,7 @@ a:hover{
         
         <div class="form-group">
           <label class="form-label">Return Reason *</label>
-          <select name="returnReason" class="form-control" required>
+          <select name="returnReason" class="form-control" >
             <option value="">Select a reason</option>
             <option value="Defective/Damaged product">Defective/Damaged product</option>
             <option value="Wrong item received">Wrong item received</option>
@@ -1221,7 +1221,7 @@ a:hover{
         
         <div class="form-group">
           <label class="form-label">Detailed Description *</label>
-          <textarea name="returnNote" class="form-control textarea" required
+          <textarea name="returnNote" class="form-control textarea" 
                     placeholder="Please describe the issue in detail. This will help us process your return faster..."></textarea>
         </div>
         
@@ -1674,12 +1674,14 @@ if(couponObject && totalAmountAfterCancel < parseInt(couponObject.minOrderAmount
 
   document.getElementById('coupon-deactivated-confirm-modal-yes').addEventListener('click', ()=>{
     cancelItemProceed();
+        document.getElementById('coupon-deactivated-confirm-modal').classList.add('hidden');
+        document.getElementById('coupon-deactivated-confirm-modal').classList.remove('show');
+
   })
 
   document.getElementById('coupon-deactivated-confirm-modal-no').addEventListener('click', ()=>{
     document.getElementById('coupon-deactivated-confirm-modal').classList.add('hidden')
     document.getElementById('coupon-deactivated-confirm-modal').classList.remove('show')
-
   })
   
 }else if (modal && itemIdInput && itemNameSpan) {
@@ -1697,6 +1699,8 @@ if(couponObject && totalAmountAfterCancel < parseInt(couponObject.minOrderAmount
       if (itemSizeHidden) itemSizeHidden.value = itemSize;
       modal.classList.add('show');
       document.body.style.overflow = 'hidden';
+      document.getElementById('coupon-deactivated-confirm-modal').classList.add('hidden');
+      document.getElementById('coupon-deactivated-confirm-modal').classList.remove('show');
     }
 
 
@@ -1709,6 +1713,9 @@ if(couponObject && totalAmountAfterCancel < parseInt(couponObject.minOrderAmount
       modal.classList.remove('show');
       document.body.style.overflow = '';
     }
+
+            document.getElementById('coupon-deactivated-confirm-modal').classList.add('hidden');
+        document.getElementById('coupon-deactivated-confirm-modal').classList.remove('show');
   },
 
   // Full Order Return Modal
@@ -1785,9 +1792,12 @@ if(couponObject && totalAmountAfterCancel < parseInt(couponObject.minOrderAmount
         });
       } else {
         this.showToast(result.message || 'Failed to cancel order', 'error');
+        setTimeout(()=>{window.location.reload()},1000)
       }
     } catch (error) {
       this.showToast(error.message, 'error');
+      setTimeout(()=>{window.location.reload()},1000)
+
     }
   },
 
@@ -1813,6 +1823,8 @@ if(couponObject && totalAmountAfterCancel < parseInt(couponObject.minOrderAmount
         this.showToast('Item cancelled successfully', 'success');
         this.updateItemStatus(data.itemId, 'cancelled', data.cancellationReason);
         this.hideItemCancelModal();
+        setTimeout(()=>{window.location.reload()},1000)
+
       } else {
         this.showToast(result.message || 'Failed to cancel item', 'error');
       }

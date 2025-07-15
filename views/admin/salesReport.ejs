@@ -1000,7 +1000,7 @@
                     <% } %>
                   </div>
                 </th>
-                <th>Payment Method</th>
+                <th>Refund</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -1025,7 +1025,7 @@
                   </div>
                 </td>
                 <td class="amount-cell">
-                  ₹<%= order.totalAmount.toFixed(2) %>
+                  ₹<%= order.items?.reduce((total,itm)=>  total + itm.price * itm.quantity,0) %>
                 </td>
                 <td class="discount-cell">
                   <% if (order.coupon && order.coupon.discountAmount > 0) { %>
@@ -1037,11 +1037,12 @@
                   <% } %>
                 </td>
                 <td class="amount-cell">
-                  <strong>₹<%= (order.totalAmount - (order.coupon ? order.coupon.discountAmount : 0)).toFixed(2) %></strong>
+                  <strong>₹<%= (order.totalAmount) %></strong>
+                  <p>shipping: ₹<%= order.shippingCharge %></p>
                 </td>
                 <td>
-                  <span class="badge badge-<%= order.paymentMethod %>">
-                    <%= order.paymentMethod.toUpperCase() %>
+                  <span class="badge badge-<%= order.refundAmount %>">
+                    <p>₹<%= order.refundAmount || 0 %></p>
                   </span>
                 </td>
                 <td>
