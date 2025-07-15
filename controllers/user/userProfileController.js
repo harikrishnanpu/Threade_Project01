@@ -174,10 +174,10 @@ const renderWalletPage = async (req, res) => {
 
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
 
-    const wallet = await Wallet.findOne({ user: req.user._id }).lean();
+    let wallet = await Wallet.findOne({ user: req.user._id }).lean();
 
     if (!wallet) {
-      throw new Error('wallet not found for user')
+      wallet = await Wallet.create({ user: req.user._id });
     }
 
     const totalTxns   = wallet.transactions.length;
