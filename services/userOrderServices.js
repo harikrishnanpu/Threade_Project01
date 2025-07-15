@@ -913,7 +913,7 @@ const itemsSubtotal = order.items.reduce((total, itm) => {
     
     if (
       !(itm.productId.toString() == proId.toString() && itm.variant.color == variant.color && itm.variant.size == variant.size) &&
-      !['pending', 'cancelled', 'return-complete', 'return-requested', 'return-processing', 'return-pickup', 'return-rejected'].includes(itm.status)
+      !['pending', 'cancelled', 'return-complete'].includes(itm.status)
     ) {
       total += itm.quantity * itm.price;
     }
@@ -953,7 +953,7 @@ const remainingItemsDiscountEarned = order.items.reduce((total, itm) => {
     !(itm.productId.toString() === productId.toString() &&
       itm.variant.color === variant.color &&
       itm.variant.size === variant.size) &&
-    !['pending', 'cancelled', 'return-complete', 'return-requested', 'return-processing', 'return-pickup', 'return-rejected'].includes(itm.status)
+    !['pending', 'cancelled', 'return-complete' ].includes(itm.status)
   ) {
     const itemPrice = itm.quantity * itm.price;
     const itemShare = (itemPrice / itemsSubtotal) * discountAmount;
