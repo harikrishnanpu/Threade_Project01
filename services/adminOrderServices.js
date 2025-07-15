@@ -124,11 +124,12 @@ const updateOrderStatus = async (data) => {
     
     if (status === 'confirmed') {
       for (const item of order.items) {
+
         if (item.isCancelled || item.status.includes('return')) continue;
         
-        const product = await Product.findById(item.productId);
+        const product = await Product.findById(item.productId).populate('category');
         
-        if (!product || !product.isActive) continue;
+        if (!product || !product.isActive || !product.category.isActive) continue;
         
         const variant = product.variants.find(v =>  v.size == item.variant.size && v.color == item.variant.color );
         
@@ -166,7 +167,8 @@ const updateOrderStatus = async (data) => {
         const product = await Product.findById(item.productId);
         
         if (!item.isCancelled &&
-          !item.status.includes('return')
+          !item.status.includes('return') &&
+          !item.status.includes('pending')
         ) {
           
           order.cancelledBy = 'admin'
@@ -478,23 +480,84 @@ const quickStatusUpdate = async (orderId, {
       }
 
     
-    if (order.coupon && order.coupon.discountAmount) {
+  const isProductEligible = async (order,proId,variant) => {
+
+  if (!order.coupon || !order.coupon.code) return false;
+
+  const coupon = await Coupon.findOne({ code: order.coupon.code });
+  if (!coupon) return false;
+
+  const totalOrderAmountAfter = order.items.reduce((total, itm) => {
+    // console.log(itm);
     
-      const totalOrderPrice = order.items.reduce((acc, i) => {
-        return acc + (i.price * i.quantity);
-      }, 0);
-    
-      const itemSubtotal = item.price * item.quantity;
-      const itemDiscount = (itemSubtotal / totalOrderPrice) * order.coupon.discountAmount;
-      const itemRefund = itemSubtotal - itemDiscount;
-    
-      refundPrice += itemRefund;
-    
-    
-    
-    } else {
-      refundPrice += item.price * item.quantity;
+    if (
+      !(itm.productId.toString() == proId.toString() && itm.variant.color == variant.color && itm.variant.size == variant.size) &&
+      !['pending', 'cancelled', 'return-complete'].includes(itm.status)
+    ) {
+      total += itm.quantity * itm.price;
     }
+
+    return total;
+  }, 0);
+
+  return totalOrderAmountAfter >= coupon.minOrderAmount;
+  
+};
+
+
+
+    
+
+const eligible = await isProductEligible(order,item.productId,item.variant);
+// console.log(eligible);
+
+
+  const itemTotal = item.price * item.quantity;
+const itemsSubtotal = order.items.reduce((total, itm) => {
+  return total + (itm.price * itm.quantity);
+}, 0);
+
+
+if (order.coupon && order.coupon.discountAmount && eligible) {
+
+  const discountAmount = order.coupon.discountAmount || 0;
+
+  const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
+
+  refundPrice = Math.round(itemTotal - itemDiscountShare);
+
+} else if (order.coupon && order.coupon.discountAmount && !eligible) { 
+
+  const discountAmount = order.coupon.discountAmount;
+const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
+const itemPaidAmount = Math.round(itemTotal - itemDiscountShare);
+
+const remainingItemsDiscountEarned = order.items.reduce((total, itm) => {
+
+  if (
+    !(itm.productId.toString() === item.productId.toString() &&
+      itm.variant.color === item.variant.color &&
+      itm.variant.size === item.variant.size) &&
+    !['pending', 'cancelled', 'return-complete'].includes(itm.status)
+  ) {
+    const itemPrice = itm.quantity * itm.price;
+    const itemShare = (itemPrice / itemsSubtotal) * discountAmount;
+    total += itemShare;
+  }
+  return total;
+}, 0);
+
+
+refundPrice = Math.round(itemPaidAmount - remainingItemsDiscountEarned);
+
+refundPrice = Math.max(refundPrice, 0);
+
+order.coupon.code = null;
+order.coupon.discountAmount = null;
+
+}else{
+  refundPrice += Math.round(itemTotal);
+}
     
           item.isCancelled = true;
           item.cancellationReason = reason;
@@ -536,6 +599,7 @@ const quickStatusUpdate = async (orderId, {
         order.refundAmount += refundAmount;
     
         await wallet.save();
+        await order.save();
     
       }
 
@@ -555,9 +619,9 @@ const quickStatusUpdate = async (orderId, {
         !item.isCancelled &&
         !item.status.includes('return')
       ) {
-        const product = await Product.findById(item.productId);
-        if (!product) continue;
-
+        const product = await Product.findById(item.productId).populate('category');
+        
+        if (!product || !product.isActive || !product.category.isActive) continue;
         // console.log(product.name);
 
         const variant = product.variants.find(
