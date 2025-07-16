@@ -21,10 +21,10 @@ const sendOtpToEmail = async (email, otp) => {
   const mailOptions = {
     from: `"THREADE Support" <${process.env.MAIL_USER}>`,
     to: email,
-    subject: 'Email Verification OTP',
+    subject: 'Email Verification Otp',
     html: `<p>Your OTP for verifying your email is:</p>
            <h2>${otp}</h2>
-           <p>This OTP is valid for 10 minutes.</p>`,
+           <p>This OTP is valid for 2 minutes.</p>`,
   };
 
   try {
@@ -56,8 +56,8 @@ const sendResetPasswordLinkToEmail = async (email, link) => {
   const mailOptions = {
     from: `"THREADE Support" <${process.env.MAIL_USER}>`,
     to: email,
-    subject: 'Email Verification OTP',
-    html: `<p>Your Reset Lnk for reseting your account password is:</p>
+    subject: 'Reset Password',
+    html: `<p> We received a reset password request. if it is not you please contact our customer support and report the issue and Your Reset Link for reseting your account password is:</p>
            <h2>${link}</h2>
            <p>This link is valid only for 15 minutes.</p>`,
   };
