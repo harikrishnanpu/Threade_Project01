@@ -6,7 +6,7 @@
     <p class="login-sub">Enter the 6-digit OTP sent to your email: <%= email.slice(0,-9) %>xxxxxxx </p>
     <p class="success-msg" id="resent-msg"></p>
 
-    <form id="verify-otp-form">
+    <form id="verify-otp-form" class="mt-5">
       <input type="hidden" name="email" id="email" value="<%= email %>" />
 
       <div class="input-group floating">
@@ -24,8 +24,8 @@
 
       <button type="submit" class="login-btn primary">Verify</button>
 
-      <p class="login-hint">
-        Didn't get the code? <button class="resent-email-btn" onclick="resendOtp(`<%= email %>`)">Resend OTP</button>
+      <p class="login-hint d-flex">
+        Didn't get the code? <button class="resent-email-btn ml-2" onclick="resendOtp(`<%= email %>`)">Resend OTP</button>
       </p>
     </form>
   </div>

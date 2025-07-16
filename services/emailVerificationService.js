@@ -89,7 +89,7 @@ const verifyEmailOtp = async (email, otp) => {
 
     if (dbOtp.expiresAt < Date.now()) {
       await dbOtp.deleteOne({ email });
-      throw new Error ('OTP has expired');
+      throw new Error ('OTP is expired');
     }
 
     if (dbOtp.otp !== otp) {

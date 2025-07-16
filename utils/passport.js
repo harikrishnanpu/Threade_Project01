@@ -11,27 +11,38 @@ passport.use(new GoogleStrategy({
   try {
     const googleId = profile.id;
     const email = profile.emails?.[0]?.value;
+    const profileImage = profile.photos?.length > 0 ? profile.photos[0].value : null;
+
 
     let user = await Users.findOne({ $or: [ {email} , {googleId} ] });
 
     if (!user) {
-      // If user doesn't exist, create a new one
+
       user = new Users({
         googleId,
         name: profile.displayName,
         email,
-        isVerified: true
+        isVerified: true,
       });
 
-      await user.save();
     }
+
+    if(!user.profileImage){
+      user.profileImage = profileImage
+    }
+
+
+    await user.save();
 
     if (user.isBlocked) {
       return done(null, false, { message: 'Your account is blocked. Contact support.' });
     }else{
       return done(null, user);
     }
+
   } catch (err) {
+    console.log(err);
+    
     return done(err, null);
   }
 }));
