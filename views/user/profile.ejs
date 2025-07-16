@@ -139,7 +139,7 @@
         
         <div class="profile-avatar-mini">
             <% if(user.profileImage){ %>
-            <img src="<%= user.profileImage %>" alt="profile" />
+            <img src="<%= user.profileImage %>" alt="profile" loading="lazy" />
             <% }else{ %> <%= user.name[0].toUpperCase() %> <% } %>
           </div>
 
@@ -173,7 +173,7 @@
       <!-- Hero -->
       <div class="profile-hero">
         <% if (user.profileImage) { %>
-          <div class="profile-avatar-lg"><img src="<%= user.profileImage %>" alt="Profile photo"></div>
+          <div class="profile-avatar-lg"><img src="<%= user.profileImage %>" alt="Profile photo" loading="lazy"></div>
         <% } else { %>
           <div class="profile-avatar-lg"><%= user.name[0].toUpperCase() %></div>
         <% } %>
