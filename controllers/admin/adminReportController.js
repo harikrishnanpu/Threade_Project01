@@ -110,8 +110,10 @@ const getSalesReport = async (req, res) => {
     const salesTrendMap = new Map();
 
     for (const order of totalOrderDateWise) {
-      const date = new Date(order.createdAt).toISOString().split('T')[0];
-      salesTrendMap.set(date, ( salesTrendMap.get(date) || 0) + order.totalAmount );
+      if(!['pending','cancelled','return-complete'].includes(order.orderStatus)){
+        const date = new Date(order.createdAt).toISOString().split('T')[0];
+        salesTrendMap.set(date, ( salesTrendMap.get(date) || 0) + order.totalAmount );
+      }
     }
 
     const salesTrend = {
