@@ -225,8 +225,11 @@ const [
 
 };
 
-const checkResetPasswordTokenValid = async (req,res,next) =>{
+const checkResetPasswordTokenValid = async (req,res,next) => {
   const {token} = req.query;
+
+  console.log(token);
+  
   
 
   if(!token){
@@ -253,10 +256,10 @@ const checkResetPasswordTokenValid = async (req,res,next) =>{
 }
 
 
-const checkIsResetPasswordLinkValid = async (req,res,next) =>{
+const checkIsResetPasswordLinkValid = async (req,res,next) => {
     const {token} = req.query;
 
-    // console.log(req.query);
+    console.log(req.query);
     
 
   if(!token){

@@ -354,6 +354,7 @@ const forgottenUserPassword = async (req,res)=>{
   const {email} = req.body;
 
   try{
+    
     const resetLink = await getUserResetPasswordLink(email);
 
     await sendResetPasswordLinkToEmail(email,resetLink);
