@@ -388,6 +388,8 @@ const quickStatusUpdate = async (orderId, {
   try {
 
   const allowed = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'return-complete'];
+
+
     if (!allowed.includes(newStatus)) {
       return { success: false, message: 'invalid status' };
     }
@@ -428,6 +430,9 @@ const quickStatusUpdate = async (orderId, {
     const order = await Order.findById(orderId);
 
     if (!order) return { success: false, message: 'order not found' };
+    if(['cancelled','return-complete'].includes(order.orderStatus)) return { success: false, message: 'order status cannot be updated' };
+
+
     const userId = order.user;
 
 
@@ -684,6 +689,7 @@ const updateReturnReuqestAction = async (orderId, { itemIndex, actionType, notes
 
     const item = order.items[itemIndex];
     if (!item) return { success: false, message: 'Invalid item index' };
+    if(['return-complete','pending','cancelled'].includes(item.status)) return { success: false, message: 'item status cannot be changed'}
 
     const validStatuses = [
   'return-requested',
