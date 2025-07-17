@@ -2559,9 +2559,9 @@ function updateSortIndicators() {
 
 function updateHistory() {
   const url = buildUrl();
-  if (window.location.href !== url) {
-    window.history.pushState({ page: STATE.page, status: STATE.status, applicableFilter: STATE.applicableFilter, sortField: STATE.sortField, sortOrder: STATE.sortOrder, search: STATE.search, showExpired: STATE.showExpired }, '', url);
-  }
+  // if (window.location.href !== url) {
+  //   window.history.pushState({ page: STATE.page, status: STATE.status, applicableFilter: STATE.applicableFilter, sortField: STATE.sortField, sortOrder: STATE.sortOrder, search: STATE.search, showExpired: STATE.showExpired }, '', url);
+  // }
 }
 
 function goToPage(page) {

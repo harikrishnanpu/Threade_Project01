@@ -1,6 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const Category = require("../../models/categoryModel");
 const { escapeRegex } = require("../regex");
+const productModel = require("../../models/productModel");
 
 
 const getFilteredProductList = async (queryParams) => {
@@ -91,8 +92,8 @@ const getUserProductFiltersAndSort = async query => {
     else filters.category = new mongoose.Types.ObjectId(mainCatfromUser);
 
   }else {
-
-    const catId = await Category.findOne({ parentCategory: null ,isActive: true }).sort({ createdAt: -1 }).lean();
+    const randomProduct = await productModel.findOne().sort({ createdAt: -1 });
+    const catId = await Category.findOne({ $or: [{ _id: randomProduct.category , parentCategory: null, isActive: true } ,{ parentCategory: null ,isActive: true }]}).sort({ createdAt: -1 }).lean();
     mainCatfromUser = catId._id.toString();
     const subCatIds = await Category.find({ parentCategory: mainCatfromUser, isActive: true }).select('_id').lean();
    filters.category = { $in: [...subCatIds.map(s => new mongoose.Types.ObjectId(s._id)), catId._id] };

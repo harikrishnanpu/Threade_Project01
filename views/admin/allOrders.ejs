@@ -1739,19 +1739,7 @@ function updateSortIndicators() {
 }
 
 function updateHistory() {
-  const url = buildUrl();
-  if (window.location.href !== url) {
-    window.history.pushState({ 
-      page: STATE.page, 
-      status: STATE.status, 
-      paymentFilter: STATE.paymentFilter, 
-      dateRange: STATE.dateRange, 
-      amountRange: STATE.amountRange, 
-      sortField: STATE.sortField, 
-      sortOrder: STATE.sortOrder, 
-      search: STATE.search 
-    }, '', url);
-  }
+  // const url = buildUrl();
 }
 
 

@@ -159,11 +159,10 @@ if (parentCategory) {
 
         const subCategoiryIds = subCategoiries.map(cat => cat._id);
 
-      //  const updatedProds = await productModel.updateMany(
-
-      //   {category: {$in: [  cat._id, ...subCategoiryIds   ] } },
-      //   {$set: {isActive: false,'variants.$[].isActive': false}}
-      // );
+       const updatedProds = await productModel.updateMany(
+        {category: {$in: [  cat._id, ...subCategoiryIds   ] } },
+        {$set: {isActive: false,'variants.$[].isActive': false}}
+      );
 
 
 for (let subCat of subCategoiries) {
@@ -184,10 +183,10 @@ for (let subCat of subCategoiries) {
 
         const subCategoryIds = subCategoiries.map(cat =>  cat._id);
 
-        // const updateProds = await productModel.updateMany(
-        //   { category: { $in: [cat._id, ...subCategoryIds ] } },
-        //   { $set: { isActive: true, 'variants.$[].isActive' : true } }
-        // )
+        const updateProds = await productModel.updateMany(
+          { category: { $in: [cat._id, ...subCategoryIds ] } },
+          { $set: { isActive: true, 'variants.$[].isActive' : true } }
+        )
 
 
 for (let subCat of subCategoiries) {
@@ -239,10 +238,10 @@ const toggleCategoryStatusById = async (catId, isActive) => {
 
   const subCategoryIds = subCategoiries.map(cat =>  cat._id);
 
-  // const updateProds = await productModel.updateMany(
-  //         { category: { $in: [category._id, ...subCategoryIds ] } },
-  //         { $set: { isActive: true, 'variants.$[].isActive' : true } }
-  //       )
+  const updateProds = await productModel.updateMany(
+          { category: { $in: [category._id, ...subCategoryIds ] } },
+          { $set: { isActive: true, 'variants.$[].isActive' : true } }
+        )
 
 
 for (let subCat of subCategoiries) {
@@ -258,10 +257,10 @@ for (let subCat of subCategoiries) {
 
   const subCategoryIds = subCategoiries.map(cat =>  cat._id);
 
-  // const updateProds = await productModel.updateMany(
-  //         { category: { $in: [category._id, ...subCategoryIds ] } },
-  //         { $set: { isActive: false, 'variants.$[].isActive' : false } }
-  //       )
+  const updateProds = await productModel.updateMany(
+          { category: { $in: [category._id, ...subCategoryIds ] } },
+          { $set: { isActive: false, 'variants.$[].isActive' : false } }
+        )
 
 
 for (let subCat of subCategoiries) {

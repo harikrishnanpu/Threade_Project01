@@ -167,6 +167,168 @@ const getSalesReport = async (req, res) => {
 
 
 
+const getSalesReportList = async (req, res) => {
+
+  try {
+
+    let {
+      page = 1,
+      dateRange = 'month',
+      status = 'all',
+      paymentMethod = 'all',
+      category = 'all',
+      sortField = 'createdAt',
+      sortOrder = 'desc',
+      startDate = '',
+      endDate = '',
+      limit = 10
+    } = req.query;
+
+    page = parseInt(page);
+
+    const filters = {};
+
+    const now = new Date();
+    let from, to;
+
+    if (dateRange && dateRange !== 'custom') {
+      to = new Date();
+
+      switch (dateRange) {
+        case 'today':
+          from = new Date(now.setHours(0, 0, 0, 0));
+          break;
+        case 'yesterday':
+          from = new Date(now.setDate(now.getDate() - 1));
+          from.setHours(0, 0, 0, 0);
+          to = new Date(from);
+          to.setHours(23, 59, 59);
+          break;
+        case 'week':
+          from = new Date(now.setDate(now.getDate() - 7));
+          break;
+        case 'last-week':
+          from = new Date(now.setDate(now.getDate() - 14));
+          to = new Date(now.setDate(now.getDate() + 7));
+          break;
+        case 'month':
+          from = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case 'last-month':
+          from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+          break;
+        case 'year':
+          from = new Date(now.getFullYear(), 0, 1);
+          break;
+      }
+
+
+    } else if (dateRange === 'custom' && startDate && endDate) {
+      from = new Date(startDate);
+      from.setHours(0, 0, 0, 0);
+      to = new Date(endDate);
+      to.setHours(23, 59, 59);
+    }
+
+    if (from && to) {
+      filters.createdAt = { $gte: from, $lte: to };
+    }
+
+    if (status !== 'all') {
+      filters.orderStatus = status;
+    }
+
+    if (paymentMethod !== 'all') {
+      filters.paymentMethod = paymentMethod;
+    }
+
+
+    const totalOrderDateWise = await Order.find(filters).populate('user','name email').populate('items.productId').lean();    
+
+    const orders = await Order.find(filters).sort({[sortField]: sortOrder == 'asc' ? 1 : -1 }).skip((page - 1) * limit).limit(limit).populate('user', 'name email').lean();
+
+    const totalRecords = totalOrderDateWise.length;
+
+    const totalSales = totalOrderDateWise.reduce((sum, o)=> { 
+      if(!['cancelled','return-complete','pending'].includes(o.orderStatus)){        
+        sum += o.totalAmount 
+      }
+
+      return sum
+    }, 0);
+
+    const totalOrderAmount =  totalOrderDateWise.reduce((sum, o)=> { 
+        sum += o.totalAmount
+      return sum
+    }, 0);
+
+    const totalOrders = totalOrderDateWise.length;
+    const totalDiscounts = totalOrderDateWise.reduce((sum, o) =>  sum + (o?.coupon?.discountAmount || 0), 0);
+
+
+    const salesTrendMap = new Map();
+
+    for (const order of totalOrderDateWise) {
+      if(!['pending','cancelled','return-complete'].includes(order.orderStatus)){
+        const date = new Date(order.createdAt).toISOString().split('T')[0];
+        salesTrendMap.set(date, ( salesTrendMap.get(date) || 0) + order.totalAmount );
+      }
+    }
+
+    const salesTrend = {
+      labels: [...salesTrendMap.keys()],
+      data: [...salesTrendMap.values()]
+    };
+
+    const paymentMap = {};
+
+    for (const order of totalOrderDateWise) {
+      const method = order.paymentMethod;
+      paymentMap[method] = (paymentMap[method] || 0) + 1;
+    }
+
+    const paymentMethods = {
+      labels: Object.keys(paymentMap),
+      data: Object.values(paymentMap)
+    };
+
+
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.status(200).json({
+      succes: true,
+      totalSales,
+      totalOrders,
+      totalOrderAmount,
+      totalDiscounts,
+      chartData: {
+        salesTrend,
+        paymentMethods
+      },
+      salesData: orders,
+      dateRange,
+      status,
+      paymentMethod,
+      category,
+      startDate,
+      endDate,
+      currentPage: page,
+      totalPages,
+      totalRecords,
+      sortField,
+      sortOrder
+    });
+
+  } catch (err) {
+
+    res.status(500).send({message: err, success: false});
+
+  }
+};
+
+
+
 
 const getSalesPdfReport = async (req, res) => {
   try {
@@ -406,4 +568,4 @@ const getSalesExcelReport = async (req, res) => {
 
 
 
-module.exports = { getSalesReport , getSalesPdfReport , getSalesExcelReport};
+module.exports = { getSalesReport , getSalesPdfReport , getSalesExcelReport, getSalesReportList};

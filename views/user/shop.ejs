@@ -1,437 +1,503 @@
-
-
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet">
-
-
-  <link rel="stylesheet" href="/landing/css/style-prefix.css">
-
-  
-<!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-
-<!-- Css -->
-<link rel="stylesheet" href="/shop/css/bootstrap.min.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/font-awesome.min.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/elegant-icons.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/magnific-popup.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/nice-select.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/owl.carousel.min.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/slicknav.min.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/style.css" type="text/css">
-
-
-
-
-<style>
-
-  a:hover{
-    text-decoration: none;
-    color: inherit;
-  }
-
-@media (min-width: 700px){
-  .product-grid{
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-.shop__sidebar  ul li a{
-  color:#000;
-  font-size:.9rem;
-  border:1px solid #eee;
-  padding-inline:5px;
-  padding-block:5px;
-  margin-block:4px;
-  margin-inline:8px;
-}
-a.active{
-  color:#fff!important;
-  font-size:.9rem;
-  background-color:#000;
-  font-weight:800;
-}
-/* mobile sidebar */
-@media (max-width: 991.98px){
-  .shop__sidebar{
-    position:fixed;
-    top:0;
-    left:0;
-    height:100vh;
-    width:280px;
-    background:#fff;
-    z-index:1050;
-    overflow-y:auto;
-    padding:1.25rem 1rem;
-    transform:translateX(-100%);
-    transition:transform .3s ease-in-out;
-  }
-  .shop__sidebar.open{transform:translateX(0);}
-  .sidebar-close{
-    border:none;
-    background:transparent;
-    font-size:1.75rem;
-    line-height:1;
-    margin-bottom:.75rem;
-  }
-  .sidebar-backdrop{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    z-index:1049;
-    display:none;
-  }
-  .sidebar-backdrop.show{display:block;}
-}
-</style>
-
-<main style="padding-bottom:50px;">
-  <section class="shop">
-    <div class="container">
-      <div class="row">
-
-        <div class="col-lg-3">
-          <aside class="shop__sidebar">
-            <button class="sidebar-close d-lg-none" onclick="closeSidebar()">&times;</button>
-
-            <div class="header-search mb-4">
-              <input onkeydown="if(event.key === 'Enter') shopSubmit()"  name="search" type="text" value="<%= queryOptions.search %>" placeholder="Search products..." />
-              <button onclick="shopSubmit();" type="submit"><i class="fa fa-search"></i></button>
-            </div>
-
-            <div class="shop__sidebar__accordion">
-              <div class="accordion" id="shopSidebar">
-
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#catCollapse">Categories</a></div>
-                  <div id="catCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <ul class="shop__sidebar__categories nice-scroll">
-                        <% mainCategories.forEach(c=>{ %>
-                          <li><a href="#" class="<%= c._id.toString()===queryOptions.mainCat?'active':'' %>" onclick="shopUpdate('mainCat','<%= c._id %>')"><%= c.name %></a></li>
-                        <% }) %>
-                      </ul>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shop/css/bootstrap.min.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/elegant-icons.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/magnific-popup.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/nice-select.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/owl.carousel.min.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/slicknav.min.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/style.css" type="text/css">
+  <style>
+    a:hover {
+      text-decoration: none;
+      color: inherit;
+    }
+    @media (min-width: 700px) {
+      .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    .shop__sidebar ul li a {
+      color: #000;
+      font-size: .9rem;
+      border: 1px solid #eee;
+      padding-inline: 5px;
+      padding-block: 5px;
+      margin-block: 4px;
+      margin-inline: 8px;
+    }
+    a.active {
+      color: #fff !important;
+      font-size: .9rem;
+      background-color: #000;
+      font-weight: 800;
+    }
+    @media (max-width: 991.98px) {
+      .shop__sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        background: #fff;
+        z-index: 1050;
+        overflow-y: auto;
+        padding: 1.25rem 1rem;
+        transform: translateX(-100%);
+        transition: transform .3s ease-in-out;
+      }
+      .shop__sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-close {
+        border: none;
+        background: transparent;
+        font-size: 1.75rem;
+        line-height: 1;
+        margin-bottom: .75rem;
+      }
+      .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+        z-index: 1049;
+        display: none;
+      }
+      .sidebar-backdrop.show {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main style="padding-bottom:50px;">
+    <section class="shop">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-3">
+            <aside class="shop__sidebar">
+              <button class="sidebar-close d-lg-none" onclick="closeSidebar()">×</button>
+              <div class="header-search mb-4">
+                <input onkeydown="if(event.key === 'Enter') shopSubmit()" name="search" type="text" placeholder="Search products..." />
+                <button onclick="shopSubmit();" type="submit"><i class="fa fa-search"></i></button>
+              </div>
+              <div class="shop__sidebar__accordion">
+                <div class="accordion" id="shopSidebar">
+                  <div class="card">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#catCollapse">Categories</a></div>
+                    <div id="catCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <ul class="shop__sidebar__categories nice-scroll" id="categories-list"></ul>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#brandCollapse">Brand</a></div>
-                  <div id="brandCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <ul class="shop__sidebar__brand">
-                        <% brands.forEach(b=>{ %>
-                          <li><a href="#" class="<%= b._id.toString()===queryOptions.brand?'active':'' %>" onclick="shopUpdate('brand','<%= b._id %>')"><%= b.name %></a></li>
-                        <% }) %>
-                      </ul>
+                  <div class="card">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#brandCollapse">Brand</a></div>
+                    <div id="brandCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <ul class="shop__sidebar__brand" id="brands-list"></ul>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#priceCollapse">Price</a></div>
-                  <div id="priceCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <ul class="shop__sidebar__price">
-                        <% ['','0-50','50-100','100-150','150-200','200+'].forEach(r=>{ %>
-                          <li><a href="#" class="<%= queryOptions.priceRange===r?'active':'' %>" onclick="shopUpdate('priceRange','<%= r %>')"><%= r?('₹'+r.replace('-',' – ₹').replace('+','+')):'All' %></a></li>
-                        <% }) %>
-                      </ul>
+                  <div class="card">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#priceCollapse">Price</a></div>
+                    <div id="priceCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <ul class="shop__sidebar__price">
+                          <li><a href="#" class="price-filter" data-price-range="" onclick="shopUpdate('priceRange','')">All</a></li>
+                          <li><a href="#" class="price-filter" data-price-range="0-50" onclick="shopUpdate('priceRange','0-50')">₹0 – ₹50</a></li>
+                          <li><a href="#" class="price-filter" data-price-range="50-100" onclick="shopUpdate('priceRange','50-100')">₹50 – ₹100</a></li>
+                          <li><a href="#" class="price-filter" data-price-range="100-150" onclick="shopUpdate('priceRange','100-150')">₹100 – ₹150</a></li>
+                          <li><a href="#" class="price-filter" data-price-range="150-200" onclick="shopUpdate('priceRange','150-200')">₹150 – ₹200</a></li>
+                          <li><a href="#" class="price-filter" data-price-range="200+" onclick="shopUpdate('priceRange','200+')">₹200+</a></li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <% if(variantSizes.length){ %>
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#sizeCollapse">Size</a></div>
-                  <div id="sizeCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <div class="shop__sidebar__size">
-                        <% variantSizes.forEach(s=>{ %>
-                          <label class="<%= queryOptions.size===s?'active':'' %>"><%= s %><input type="radio" onchange="shopUpdate('size','<%= s %>')" <%= queryOptions.size===s?'checked':'' %>></label>
-                        <% }) %>
+                  <div class="card" id="size-card" style="display: none;">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#sizeCollapse">Size</a></div>
+                    <div id="sizeCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <div class="shop__sidebar__size" id="sizes-list"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card" id="tag-card" style="display: none;">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#tagCollapse">Tags</a></div>
+                    <div id="tagCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <div class="shop__sidebar__tags" id="tags-list"></div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <% } %>
-
-
-                <% if(tags.length){ %>
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#tagCollapse">Tags</a></div>
-                  <div id="tagCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <div class="shop__sidebar__tags">
-                        <% tags.forEach(t=>{ %>
-                          <a href="#" class="<%= queryOptions.tag===t?'active':'' %>" onclick="shopUpdate('tag','<%= t %>')"><%= t %></a>
-                        <% }) %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <% } %>
-
               </div>
-            </div>
-          </aside>
-        </div>
-
-        <div class="col-lg-9">
-          <button id="filterToggle" class="btn btn-dark d-lg-none mb-3"><i class="fa fa-sliders"></i> Filters</button>
-
-          <div class="shop__product__option">
-<div class="shop__active__filters">
-  <% const labelMap = {search:'Search',mainCat:'Category',subCat:'Sub-Category',brand:'Brand',priceRange:'Price',size:'Size',color:'Color',tag:'Tag',rating:'Rating'} %>
-  <% Object.entries(queryOptions).forEach(([k,v])=>{ if(!v || v===false) return
-     let display=v
-     if(k==='mainCat'){ const c=mainCategories.find(c=>c._id.toString()===v); if(c) display=c.name }
-     if(k==='subCat'){  const c=subCategories.find(c=>c._id.toString()===v);  if(c) display=c.name }
-     if(k==='brand'){   const b=brands.find(b=>b._id.toString()===v);        if(b) display=b.name }
-     if(k==='priceRange') display=v.replace('-',' – ₹').replace('+','+')
-  %>
-    <span class="filter-badge" onclick="shopUpdate('<%= k %>','')">
-      <%= (labelMap[k]||k)+': '+display %> &times;
-    </span>
-  <% }) %>
-  <% if(Object.values(queryOptions).some(v=>v && v!==false)){ %>
-    <button class="clear-all-btn" onclick="clearAllFilters()">Clear All</button>
-  <% } %>
-</div>
-
-            <div class="row">
-              <div class="col-lg-6 col-md-6"><div class="shop__product__option__left">Showing <%= products.length %> of <%= totalProducts %> products</div></div>
-              <div class="col-lg-6 col-md-6">
-                <div class="shop__product__option__right">
-                  <p>Sort by:</p>
-                  <select onchange="shopUpdate('sortBy',this.value)">
-                    <option value="newest"      <%= queryOptions.sortBy==='newest'?'selected':'' %>>Newest</option>
-                    <option value="price-low"   <%= queryOptions.sortBy==='price-low'?'selected':'' %>>Price: Low-High</option>
-                    <option value="price-high"  <%= queryOptions.sortBy==='price-high'?'selected':'' %>>Price: High-Low</option>
-                    <option value="name-asc"    <%= queryOptions.sortBy==='name-asc'?'selected':'' %>>Name: A-Z</option>
-                    <option value="name-desc"   <%= queryOptions.sortBy==='name-desc'?'selected':'' %>>Name: Z-A</option>
-                    <option value="rating-high" <%= queryOptions.sortBy==='rating-high'?'selected':'' %>>Top Rated</option>
-                    <option value="popular"     <%= queryOptions.sortBy==='popular'?'selected':'' %>>Popular</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+            </aside>
           </div>
-
-          <div class="product-container">
-            <div>
+          <div class="col-lg-9">
+            <button id="filterToggle" class="btn btn-dark d-lg-none mb-3"><i class="fa fa-sliders"></i> Filters</button>
+            <div class="shop__product__option">
+              <div class="shop__active__filters" id="active-filters"></div>
+              <div class="row">
+                <div class="col-lg-6 col-md-6">
+                  <div class="shop__product__option__left" id="product-count"></div>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                  <div class="shop__product__option__right">
+                    <p>Sort by:</p>
+                    <select onchange="shopUpdate('sortBy', this.value)">
+                      <option value="newest">Newest</option>
+                      <option value="price-low">Price: Low-High</option>
+                      <option value="price-high">Price: High-Low</option>
+                      <option value="name-asc">Name: A-Z</option>
+                      <option value="name-desc">Name: Z-A</option>
+                      <option value="rating-high">Top Rated</option>
+                      <option value="popular">Popular</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="product-container">
               <div class="product-box">
                 <div class="product-main">
-<div class="row mb-4">
-  <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
-
-    <h2 class="title mb-0">Showing Products</h2>
-
-    <% if (totalPages) { %>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-dark" 
-              <%= currentPage === 1 ? 'disabled' : '' %>
-              onclick="shopUpdate('page', <%= currentPage - 1 %>)">
-        Prev
-      </button>
-
-      <span class="px-2">Page <%= currentPage %> of <%= totalPages %></span>
-
-      <button class="btn btn-sm btn-outline-dark" 
-              <%= currentPage === totalPages ? 'disabled' : '' %>
-              onclick="shopUpdate('page', <%= currentPage + 1 %>)">
-        Next
-      </button>
-    </div>
-    <% } %>
-
-  </div>
-</div>
-
-                  <div class="product-grid">
-                    <% if(products && products.length > 0) { %>
-                      <% products.forEach((product)=> { %>
-                        <div class="showcase">
-                          <div class="showcase-banner">
-                            <img src="<%= product.images[0] %>" alt="product" width="300" class="product-img default">
-                            <img src="<%= product.images[1] %>" alt="product" width="300" class="product-img hover">
-                            <p class="showcase-badge">15%</p>
-                            <div class="showcase-actions">
-                              <button class="btn-action"><ion-icon name="heart-outline"></ion-icon></button>
-                              <button class="btn-action"><ion-icon name="eye-outline"></ion-icon></button>
-                              <button class="btn-action"><ion-icon name="repeat-outline"></ion-icon></button>
-                              <button class="btn-action"><ion-icon name="bag-add-outline"></ion-icon></button>
-                            </div>
-                          </div>
-                          <div class="showcase-content">
-                            <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
-                            <a href="<%= `/user/products/${product._id}` %>"><h3 class="showcase-title text-truncate"><%= product.name %></h3></a>
-                            <div class="showcase-rating"><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star-outline"></ion-icon><ion-icon name="star-outline"></ion-icon></div>
-                            <div class="price-box"><p class="price">₹<%= product.regularPrice %></p><del>₹<%= product.salePrice %></del></div>
-                            <div class="product-actions d-flex mb-2">
-                              <div>
-                                <a onclick="showVariantSidebar('<%= product._id %>')" style="color:#fff;" class="action-btn btn-dark text-truncate" href="javascript:void(0);">Add to cart 
-                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/><path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/><path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/></svg>
-                                </a>
-                              </div>
-                              <div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>" data-product-id="<%= product._id %>">
-                                <svg width="24" height="24" viewBox="0 0 24 24"><path d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z" stroke-width="1.8" stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>" fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>"></path></svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      <% }) } %>
+                  <div class="row mb-4">
+                    <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+                      <h2 class="title mb-0">Showing Products</h2>
+                      <div class="d-flex align-items-center gap-2" id="pagination"></div>
+                    </div>
                   </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-
-                    <div class="product-featured mt-4">
-
-            <h2 class="title">Deal of the day</h2>
-
-            <div class="showcase-wrapper has-scrollbar">
-
-              <% if(dealsOfTheDayProducts && dealsOfTheDayProducts.length > 0){ %>
-                <% dealsOfTheDayProducts.forEach((product)=>{ %>
-
-              <div class="showcase-container">
-                <div class="showcase">
-                  
-                  <div class="showcase-banner">
-                    <img src="<%= product.images[0] %>" alt="shampoo, conditioner & facewash packs" class="showcase-img">
-                  </div>
-
-                  <div class="showcase-content">
-                    
-                    <div class="showcase-rating">
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star-outline"></ion-icon>
-                      <ion-icon name="star-outline"></ion-icon>
-                    </div>
-
-                    <a href="<%= `/user/products/${product._id}` %>">
-                      <h3 class="showcase-title"><%= product.name %></h3>
-                    </a>
-
-                    <p class="showcase-desc">
-                      <%= product.description %>
-                    </p>
-
-                    <div class="price-box">
-                      <p class="price">₹<%= product.regularPrice %></p>
-
-                      <del>₹<%= product.salePrice %></del>
-                    </div>
-
-	<div class="product-actions d-flex mb-5">
-									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">Add to cart 
-											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
-												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
-												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
-												<path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
-											</svg>
-										</a>	
-																</div>
-<div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
-     data-product-id="<%= product._id %>">
-  <svg width="24" height="24" viewBox="0 0 24 24">
-    <path
-      d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z"
-      stroke-width="1.8"
-      stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>"
-      fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>">
-    </path>
-  </svg>
-</div>
-
-									</div>
-                    <div class="showcase-status">
-                      <div class="wrapper">
-                        <p>
-                          already sold: <b>50+</b>
-                        </p>
-
-                        <p>
-                          available: <b><%= product.stock %></b>
-                        </p>
-                      </div>
-
-                      <div class="showcase-status-bar"></div>
-                    </div>
-
-                    <div class="countdown-box">
-
-                      <p class="countdown-desc mb-2">
-                        Hurry Up! Offer ends in:
-                      </p>
-
- <div class="countdown" id="countdown">
-  <div class="countdown-content">
-    <p class="display-number" id="days">0</p>
-    <p class="display-text">Days</p>
-  </div>
-  <div class="countdown-content">
-    <p class="display-number" id="hours">9</p>
-    <p class="display-text">Hours</p>
-  </div>
-  <div class="countdown-content">
-    <p class="display-number" id="minutes">0</p>
-    <p class="display-text">Min</p>
-  </div>
-  <div class="countdown-content">
-    <p class="display-number" id="seconds">0</p>
-    <p class="display-text">Sec</p>
-  </div>
-</div>
-
-                    </div>
-
-                  </div>
-
+                  <div class="product-grid" id="product-grid"></div>
                 </div>
               </div>
-
-              <% }) } %>
-
             </div>
-
+            <div class="product-featured mt-4">
+              <h2 class="title">Deal of the day</h2>
+              <div class="showcase-wrapper has-scrollbar" id="deals-of-the-day"></div>
+            </div>
           </div>
-
         </div>
-
       </div>
-    </div>
-  </section>
-</main>
+    </section>
+  </main>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    let mainCategories = [], brands = [], variantSizes = [], tags = [];
 
-<script>
-const params=new URLSearchParams(window.location.search)
-function shopUpdate(key,value){if(key==='page'){params.set('page',value)}else{if(value===''){params.delete(key)}else{params.set(key,value)}params.set('page',1)}window.location.search=params.toString()}
-function shopSubmit(){const search=document.querySelector('input[name="search"]').value.trim();if(search){params.set('search',search)}else{params.delete('search')}params.set('page',1);window.location.search=params.toString()}
-async function toggleWishlist(id){try{const res=await fetch(`/wishlist/toggle/${id}`,{method:'POST',headers:{'X-Requested-With':'fetch'}});if(res.ok)location.reload()}catch(e){console.error(e)}}
-async function addToCart(id){try{const res=await fetch('/cart/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productId:id,qty:1})});if(res.ok)alert('Added to cart!')}catch(e){console.error(e)}}
-function clearAllFilters(){window.location.href=window.location.pathname}
+    async function fetchData() {
+      try {
+        const response = await fetch(`/user/products/shop/api/filtered/all?${params.toString()}`);
+        const data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('Error fetching data:', e);
+        return null;
+      }
+    }
 
-/* mobile sidebar */
-(function(){
-  const sidebar=document.querySelector('.shop__sidebar')
-  if(!sidebar)return
-  const backdrop=document.createElement('div')
-  backdrop.className='sidebar-backdrop'
-  document.body.appendChild(backdrop)
-  window.openSidebar=()=>{sidebar.classList.add('open');backdrop.classList.add('show')}
-  window.closeSidebar=()=>{sidebar.classList.remove('open');backdrop.classList.remove('show')}
-  document.getElementById('filterToggle').addEventListener('click',openSidebar)
-  backdrop.addEventListener('click',closeSidebar)
-  window.addEventListener('resize',()=>{if(window.innerWidth>=992){closeSidebar()}})
-})();
-</script>
+    async function updateUI() {
+      const data = await fetchData();
+      if (!data) return;
+
+      const { products, totalProducts, totalPages, currentPage, mainCategories: mc, brands: br, variantSizes: vs, tags: tg, dealsOfTheDayProducts, wishlistItemIds, queryOptions } = data;
+
+      mainCategories = mc;
+      brands = br;
+      variantSizes = vs;
+      tags = tg;
+
+      // Update categories
+      const categoriesList = document.getElementById('categories-list');
+      categoriesList.innerHTML = mc.map(c => `
+        <li><a href="#" class="${c._id === queryOptions.mainCat ? 'active' : ''}" onclick="shopUpdate('mainCat','${c._id}')">${c.name}</a></li>
+      `).join('');
+
+      // Update brands
+      const brandsList = document.getElementById('brands-list');
+      brandsList.innerHTML = br.map(b => `
+        <li><a href="#" class="${b._id === queryOptions.brand ? 'active' : ''}" onclick="shopUpdate('brand','${b._id}')">${b.name}</a></li>
+      `).join('');
+
+      // Update sizes
+      const sizeCard = document.getElementById('size-card');
+      const sizesList = document.getElementById('sizes-list');
+      if (vs.length) {
+        sizeCard.style.display = 'block';
+        sizesList.innerHTML = vs.map(s => `
+          <label class="${queryOptions.size === s ? 'active' : ''}">${s}
+            <input type="radio" onchange="shopUpdate('size','${s}')" ${queryOptions.size === s ? 'checked' : ''}>
+          </label>
+        `).join('');
+      } else {
+        sizeCard.style.display = 'none';
+      }
+
+      // Update tags
+      const tagCard = document.getElementById('tag-card');
+      const tagsList = document.getElementById('tags-list');
+      if (tg.length) {
+        tagCard.style.display = 'block';
+        tagsList.innerHTML = tg.map(t => `
+          <a href="#" class="${queryOptions.tag === t ? 'active' : ''}" onclick="shopUpdate('tag','${t}')">${t}</a>
+        `).join('');
+      } else {
+        tagCard.style.display = 'none';
+      }
+
+      // Update active filters
+      const labelMap = { search: 'Search', mainCat: 'Category', brand: 'Brand', priceRange: 'Price', size: 'Size', tag: 'Tag' };
+      const activeFilters = document.getElementById('active-filters');
+      activeFilters.innerHTML = Object.entries(queryOptions)
+        .filter(([k, v]) => v && v !== false)
+        .map(([k, v]) => {
+          let display = v;
+          if (k === 'mainCat') {
+            const c = mc.find(c => c._id === v);
+            if (c) display = c.name;
+          }
+          if (k === 'brand') {
+            const b = br.find(b => b._id === v);
+            if (b) display = b.name;
+          }
+          if (k === 'priceRange') display = v.replace('-', ' – ₹').replace('+', '+');
+          return `
+            <span class="filter-badge" onclick="shopUpdate('${k}','')">
+              ${labelMap[k] || k}: ${display} ×
+            </span>
+          `;
+        }).join('');
+      if (Object.values(queryOptions).some(v => v && v !== false)) {
+        activeFilters.innerHTML += `<button class="clear-all-btn" onclick="clearAllFilters()">Clear All</button>`;
+      }
+
+      // Update product count
+      document.getElementById('product-count').innerHTML = `Showing ${products.length} of ${totalProducts} products`;
+
+      // Update product grid
+      const productGrid = document.getElementById('product-grid');
+      productGrid.innerHTML = products.length > 0 ? products.map(product => `
+        <div class="showcase">
+          <div class="showcase-banner">
+            <img src="${product.images[0]}" alt="product" width="300" class="product-img default">
+            <img src="${product.images[1]}" alt="product" width="300" class="product-img hover">
+            <p class="showcase-badge">15%</p>
+            <div class="showcase-actions">
+              <button class="btn-action"><ion-icon name="heart-outline"></ion-icon></button>
+              <button class="btn-action"><ion-icon name="eye-outline"></ion-icon></button>
+              <button class="btn-action"><ion-icon name="repeat-outline"></ion-icon></button>
+              <button class="btn-action"><ion-icon name="bag-add-outline"></ion-icon></button>
+            </div>
+          </div>
+          <div class="showcase-content">
+            <a href="/user/products/${product._id}" class="showcase-category">${product.category.name}</a>
+            <a href="/user/products/${product._id}"><h3 class="showcase-title text-truncate">${product.name}</h3></a>
+            <div class="showcase-rating">
+              <ion-icon name="star"></ion-icon>
+              <ion-icon name="star"></ion-icon>
+              <ion-icon name="star"></ion-icon>
+              <ion-icon name="star-outline"></ion-icon>
+              <ion-icon name="star-outline"></ion-icon>
+            </div>
+            <div class="price-box"><p class="price">₹${product.regularPrice}</p><del>₹${product.salePrice}</del></div>
+            <div class="product-actions d-flex mb-2">
+              <div>
+                <a onclick="showVariantSidebar('${product._id}')" style="color:#fff;" class="action-btn btn-dark text-truncate" href="javascript:void(0);">Add to cart 
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
+                    <path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
+                    <path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
+                  </svg>
+                </a>
+              </div>
+              <div class="whishlist ${wishlistItemIds.includes(product._id) ? 'active pulse-continuous' : ''}" data-product-id="${product._id}">
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <path d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z" stroke-width="1.8" stroke="${wishlistItemIds.includes(product._id) ? '#e63946' : '#000'}" fill="${wishlistItemIds.includes(product._id) ? '#e63946' : 'none'}"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('') : '<p>No products found.</p>';
+
+      // Update pagination
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = totalPages ? `
+        <button class="btn btn-sm btn-outline-dark" ${currentPage === 1 ? 'disabled' : ''} onclick="shopUpdate('page', ${currentPage - 1})">Prev</button>
+        <span class="px-2">Page ${currentPage} of ${totalPages}</span>
+        <button class="btn btn-sm btn-outline-dark" ${currentPage === totalPages ? 'disabled' : ''} onclick="shopUpdate('page', ${currentPage + 1})">Next</button>
+      ` : '';
+
+      // Update deals of the day
+      const dealsContainer = document.getElementById('deals-of-the-day');
+      dealsContainer.innerHTML = dealsOfTheDayProducts.length > 0 ? dealsOfTheDayProducts.map(product => `
+        <div class="showcase-container">
+          <div class="showcase">
+            <div class="showcase-banner">
+              <img src="${product.images[0]}" alt="product" class="showcase-img">
+            </div>
+            <div class="showcase-content">
+              <div class="showcase-rating">
+                <ion-icon name="star"></ion-icon>
+                <ion-icon name="star"></ion-icon>
+                <ion-icon name="star"></ion-icon>
+                <ion-icon name="star-outline"></ion-icon>
+                <ion-icon name="star-outline"></ion-icon>
+              </div>
+              <a href="/user/products/${product._id}">
+                <h3 class="showcase-title">${product.name}</h3>
+              </a>
+              <p class="showcase-desc">${product.description}</p>
+              <div class="price-box">
+                <p class="price">₹${product.regularPrice}</p>
+                <del>₹${product.salePrice}</del>
+              </div>
+              <div class="product-actions d-flex mb-5">
+                <div>
+                  <a onclick="showVariantSidebar('${product._id}')" style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">Add to cart 
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
+                      <path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
+                      <path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
+                    </svg>
+                  </a>
+                </div>
+                <div class="whishlist ${wishlistItemIds.includes(product._id) ? 'active pulse-continuous' : ''}" data-product-id="${product._id}">
+                  <svg width="24" height="24" viewBox="0 0 24 24">
+                    <path d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z" stroke-width="1.8" stroke="${wishlistItemIds.includes(product._id) ? '#e63946' : '#000'}" fill="${wishlistItemIds.includes(product._id) ? '#e63946' : 'none'}"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="showcase-status">
+                <div class="wrapper">
+                  <p>already sold: <b>50+</b></p>
+                  <p>available: <b>${product.stock}</b></p>
+                </div>
+                <div class="showcase-status-bar"></div>
+              </div>
+              <div class="countdown-box">
+                <p class="countdown-desc mb-2">Hurry Up! Offer ends in:</p>
+                <div class="countdown" id="countdown">
+                  <div class="countdown-content">
+                    <p class="display-number" id="days">0</p>
+                    <p class="display-text">Days</p>
+                  </div>
+                  <div class="countdown-content">
+                    <p class="display-number" id="hours">9</p>
+                    <p class="display-text">Hours</p>
+                  </div>
+                  <div class="countdown-content">
+                    <p class="display-number" id="minutes">0</p>
+                    <p class="display-text">Min</p>
+                  </div>
+                  <div class="countdown-content">
+                    <p class="display-number" id="seconds">0</p>
+                    <p class="display-text">Sec</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('') : '<p>No deals available.</p>';
+    }
+
+    async function shopUpdate(key, value) {
+      if (key === 'page') {
+        params.set('page', value);
+      } else {
+        if (value === '') {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+        params.set('page', 1);
+      }
+      // history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+      await updateUI();
+    }
+
+    async function shopSubmit() {
+      const search = document.querySelector('input[name="search"]').value.trim();
+      if (search) {
+        params.set('search', search);
+      } else {
+        params.delete('search');
+      }
+      params.set('page', 1);
+      // history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+      await updateUI();
+    }
+
+    async function addToCart(id) {
+      try {
+        const res = await fetch('/cart/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: id, qty: 1 })
+        });
+        if (res.ok) alert('Added to cart!');
+      } catch (e) {
+        console.error('Error adding to cart:', e);
+      }
+    }
+
+    async function clearAllFilters() {
+      params.forEach((value, key) => params.delete(key));
+      // history.pushState({}, '', window.location.pathname);
+      await updateUI();
+    }
+
+    // Mobile sidebar
+    (function() {
+      const sidebar = document.querySelector('.shop__sidebar');
+      if (!sidebar) return;
+      const backdrop = document.createElement('div');
+      backdrop.className = 'sidebar-backdrop';
+      document.body.appendChild(backdrop);
+      window.openSidebar = () => {
+        sidebar.classList.add('open');
+        backdrop.classList.add('show');
+      };
+      window.closeSidebar = () => {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('show');
+      };
+      document.getElementById('filterToggle').addEventListener('click', openSidebar);
+      backdrop.addEventListener('click', closeSidebar);
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 992) closeSidebar();
+      });
+    })();
+
+    // Event delegation for wishlist buttons
+    document.addEventListener('click', (event) => {
+      const wishlistButton = event.target.closest('.whishlist');
+      if (wishlistButton) {
+        const productId = wishlistButton.getAttribute('data-product-id');
+        if (productId && typeof toggleWishlist === 'function') {
+          toggleWishlist(productId).then(() => {
+            // Re-render UI to reflect updated wishlist state
+            updateUI();
+          }).catch((error) => {
+            console.error('Error toggling wishlist:', error);
+          });
+        } else {
+          console.error('toggleWishlist function not found or invalid product ID');
+        }
+      }
+    });
+
+    // Initialize the page
+    updateUI();
+  </script>
+</body>
+</html>
