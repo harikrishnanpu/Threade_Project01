@@ -11,7 +11,8 @@ const {
   toggleProductFeatured,
   uploadProductImage,
   showCreateProductPage,
-  showEditProductPage
+  showEditProductPage,
+  getProductsFilteredList
 } = require('../../controllers/admin/productController');
 const { createProductValidator } = require('../../validators/bodyValidator');
 const { handleValidationErrors } = require('../../validators/validator');
@@ -44,6 +45,7 @@ productRouter.get('/edit/:id', validateProductId, handleValidationErrors, showEd
 
 productRouter.get('/api/all', ApilistProducts);
 productRouter.get('/api/product/:id', validateProductId, handleValidationErrors, getProductById);
+productRouter.get('/api/all', getProductsFilteredList)
 
 productRouter.post('/api/create',createProductValidator, handleValidationErrors, createNewProduct);
 productRouter.put('/api/update/:id', validateProductId, createProductValidator , handleValidationErrors , updateProductById);

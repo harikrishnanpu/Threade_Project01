@@ -1671,8 +1671,8 @@ function resetCategorySelection() {
   }
 
   function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
+    // showLoading();
+   refetchAndUpdateOffers()
   }
 
   function goToPage(page) {
@@ -2121,7 +2121,7 @@ if (applicableOn === 'category') {
     .then(data => {
       if (data.success) {
         showSuccess(data.message || 'Offer status updated successfully');
-        setTimeout(() => window.location.reload(), 1000);
+         refetchAndUpdateOffers()
       } else {
         hideLoading();
         showError(data.message || 'Failed to update offer status');
@@ -2145,7 +2145,7 @@ if (applicableOn === 'category') {
     .then(data => {
       if (data.success) {
         showSuccess(data.message || 'Offer deleted successfully');
-        setTimeout(() => window.location.reload(), 1000);
+          refetchAndUpdateOffers()
       } else {
         hideLoading();
         showError(data.message || 'Failed to delete offer');
@@ -2229,7 +2229,7 @@ if (applicableOn === 'product') {
           showModalSuccess(isEdit ? 'Offer updated successfully' : 'Offer created successfully');
           setTimeout(() => {
             closeOfferModal();
-            window.location.reload();
+        refetchAndUpdateOffers()
           }, 1500);
         } else {
           if (result.errors) {
@@ -2349,4 +2349,440 @@ document.getElementById('category-search-input').addEventListener('keypress', fu
   window.addEventListener('load', function() {
     hideLoading();
   });
+
+
+
+  async function refetchAndUpdateOffers() {
+  showLoading();
+
+  try {
+    const params = new URLSearchParams();
+    params.set('page', STATE.page);
+    if (STATE.status !== 'all') params.set('status', STATE.status);
+    if (STATE.applicableFilter !== 'all') params.set('applicableFilter', STATE.applicableFilter);
+    params.set('sortField', STATE.sortField);
+    params.set('sortOrder', STATE.sortOrder);
+    if (STATE.search) params.set('search', STATE.search);
+    if (STATE.showExpired) params.set('showExpired', STATE.showExpired);
+
+    console.debug('Fetching offers with params:', params.toString());
+    const response = await fetch(`${BASE_URL}/admin/offers/api/filtered/all?${params.toString()}`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.debug('Fetch response:', data);
+
+    if (data.success) {
+      if (!data.offers || !Array.isArray(data.offers)) {
+        throw new Error('Invalid offers data: Expected an array');
+      }
+      updateTable(data.offers, data.totalOffers, data.totalPages);
+      updatePagination(data.currentPage, data.totalPages);
+      updateStats(data.offers.length, data.totalOffers);
+      updateSortIndicators();
+      updateHistory();
+    } else {
+      console.error('Fetch failed:', data.message);
+      showError(data.message || 'Failed to fetch offers');
+    }
+  } catch (error) {
+    console.error('Error in refetchAndUpdateOffers:', error);
+    showError('Error loading offers: ' + error.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+function updateTable(offers, totalOffers, totalPages) {
+  const tableBody = document.querySelector('#offers-table tbody');
+  tableBody.innerHTML = '';
+
+  if (offers && offers.length > 0) {
+    offers.forEach(offer => {
+      const now = new Date();
+      const startDate = new Date(offer.startDate);
+      const endDate = new Date(offer.endDate);
+      const isExpired = endDate < now;
+      const isUpcoming = startDate > now;
+      const isActive = offer.isActive && !isExpired && !isUpcoming;
+
+      const row = document.createElement('tr');
+      row.className = `offer-row ${(!offer.isActive || isExpired) ? 'inactive-offer' : ''}`;
+      row.dataset.offerId = offer._id;
+
+      row.innerHTML = `
+        <td class="offer-image">
+          <div class="image-container">
+            ${offer.image 
+              ? `<img src="${offer.image}" alt="${offer.title || 'Offer'}" class="offer-img">`
+              : `<div class="no-image"><i class="lni lni-image"></i></div>`}
+          </div>
+        </td>
+        <td class="offer-title">
+          <div class="title-info">
+            <span class="title-text">${offer.title || 'N/A'}</span>
+            ${offer.description 
+              ? `<small class="description-text">${offer.description.substring(0, 50)}${offer.description.length > 50 ? '...' : ''}</small>`
+              : ''}
+          </div>
+        </td>
+        <td class="offer-discount">
+          <span class="discount-value">${offer.discount}% OFF</span>
+        </td>
+        <td class="applicable-on">
+          <span class="applicable-badge ${offer.applicableOn}">
+            ${offer.applicableOn === 'product' ? 'Products' : 'Categories'}
+          </span>
+          ${offer.applicableOn === 'product' && offer.products && offer.products.length > 0 
+            ? `<small class="count-text">${offer.products.length} product(s)</small>`
+            : offer.applicableOn === 'category' && offer.categories && offer.categories.length > 0 
+              ? `<small class="count-text">${offer.categories.length} category(s)</small>`
+              : ''}
+        </td>
+        <td class="max-discount">
+          ${offer.maxDiscountAmount > 0 
+            ? `₹${offer.maxDiscountAmount.toFixed(2)}` 
+            : '<span class="text-muted">No limit</span>'}
+        </td>
+        <td class="start-date">
+          <span class="date-text ${isUpcoming ? 'upcoming' : ''}">
+            ${startDate.toLocaleDateString()}
+          </span>
+        </td>
+        <td class="end-date">
+          <span class="date-text ${isExpired ? 'expired' : ''}">
+            ${endDate.toLocaleDateString()}
+          </span>
+          ${isExpired ? '<span class="expired-badge">EXPIRED</span>' : ''}
+        </td>
+        <td class="offer-status">
+          <div class="status-badges">
+            <span class="status-badge ${isActive ? 'active' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'inactive'}">
+              ${isActive ? 'Active' : isExpired ? 'Expired' : isUpcoming ? 'Upcoming' : 'Inactive'}
+            </span>
+          </div>
+        </td>
+        <td class="offer-actions">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary edit-btn" 
+                    onclick="openOfferModal('edit', '${offer._id}')"
+                    title="Edit Offer">
+              <i class="lni lni-pencil"></i>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button class="btn btn-sm ${offer.isActive ? 'btn-outline-danger' : 'btn-outline-success'} toggle-status-btn" 
+                    onclick="toggleStatus('${offer._id}', '${offer.title || 'Offer'}', '${offer.isActive}')"
+                    title="${offer.isActive ? 'Deactivate' : 'Activate'} Offer">
+              <i class="lni lni-${offer.isActive ? 'lock' : 'unlock'}"></i>
+              <span class="btn-text">${offer.isActive ? 'Deactivate' : 'Activate'}</span>
+            </button>
+          </div>
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+    });
+  } else {
+    tableBody.innerHTML = `
+      <tr class="no-data-row">
+        <td colspan="9" class="no-data-cell">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="lni lni-offer"></i>
+            </div>
+            <p>No offers found</p>
+            ${STATE.search || STATE.status !== 'all' || STATE.applicableFilter !== 'all' || STATE.showExpired
+              ? '<button class="btn btn-link" onclick="resetFilters()">Clear filters</button>'
+              : '<button class="btn btn-primary" onclick="openOfferModal(\'create\')"><i class="lni lni-plus"></i> Create First Offer</button>'
+            }
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function updatePagination(currentPage, totalPages) {
+  STATE.page = currentPage;
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const pageInput = document.getElementById('page-number');
+  const pageTotal = document.querySelector('.page-total');
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInput.value = currentPage;
+  pageInput.max = totalPages;
+  pageTotal.textContent = `of ${totalPages}`;
+
+  prevBtn.setAttribute('onclick', `goToPage(${currentPage - 1})`);
+  nextBtn.setAttribute('onclick', `goToPage(${currentPage + 1})`);
+}
+
+function updateStats(resultCount, totalOffers) {
+  const resultCountEl = document.getElementById('result-count');
+  const totalCountEl = document.getElementById('total-count');
+
+  resultCountEl.textContent = resultCount;
+  totalCountEl.textContent = totalOffers;
+}
+
+function updateSortIndicators() {
+  const headers = document.querySelectorAll('.sortable-header');
+  headers.forEach(header => {
+    const content = header.querySelector('.header-content');
+    const field = header.getAttribute('onclick').match(/'([^']+)'/)[1];
+    const indicator = content.querySelector('.sort-indicator');
+
+    if (field === STATE.sortField) {
+      if (!indicator) {
+        const span = document.createElement('span');
+        span.className = 'sort-indicator';
+        span.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+        content.appendChild(span);
+      } else {
+        indicator.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+      }
+    } else if (indicator) {
+      indicator.remove();
+    }
+  });
+
+  const sortOrderBtn = document.getElementById('sort-order');
+  sortOrderBtn.querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+}
+
+function updateHistory() {
+  const url = buildUrl();
+  if (window.location.href !== url) {
+    window.history.pushState({ page: STATE.page, status: STATE.status, applicableFilter: STATE.applicableFilter, sortField: STATE.sortField, sortOrder: STATE.sortOrder, search: STATE.search, showExpired: STATE.showExpired }, '', url);
+  }
+}
+
+function goToPage(page) {
+  const pageNum = parseInt(page);
+  const maxPages = parseInt(document.getElementById('page-number').max) || 1;
+  if (pageNum < 1 || pageNum > maxPages) return;
+
+  STATE.page = pageNum;
+  refetchAndUpdateOffers();
+}
+
+function setSortField(field) {
+  const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+  STATE.sortField = field;
+  STATE.sortOrder = newOrder;
+  STATE.page = 1;
+  refetchAndUpdateOffers();
+}
+
+function resetFilters() {
+  STATE.page = 1;
+  STATE.status = 'all';
+  STATE.applicableFilter = 'all';
+  STATE.sortField = 'createdAt';
+  STATE.sortOrder = 'desc';
+  STATE.search = '';
+  STATE.showExpired = false;
+
+  document.getElementById('status-filter').value = 'all';
+  document.getElementById('applicable-filter').value = 'all';
+  document.getElementById('show-expired').checked = false;
+  document.getElementById('sort-field').value = 'createdAt';
+  document.getElementById('sort-order').querySelector('.sort-icon').textContent = '↓';
+  document.getElementById('search-input').value = '';
+
+  refetchAndUpdateOffers();
+}
+
+async function performToggleStatus(offerId, isActive) {
+  if (STATE.isLoading) {
+    console.warn('Toggle status skipped: Loading in progress');
+    return;
+  }
+
+  showLoading();
+
+  try {
+    console.debug('Toggling status for offer:', { offerId, isActive });
+    const response = await fetch(`${BASE_URL}/admin/offers/toggle-status/${offerId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isActive: isActive !== 'true' }) // Invert string to boolean
+    });
+
+    const data = await response.json();
+    console.debug('Toggle status response:', data);
+
+    if (data.success) {
+      showSuccess(data.message || `Offer ${isActive !== 'true' ? 'activated' : 'deactivated'} successfully`);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Delay for backend sync
+      await refetchAndUpdateOffers();
+    } else {
+      console.error('Toggle failed:', data.message);
+      showError(data.message || 'Failed to update offer status');
+    }
+  } catch (error) {
+    console.error('Error in performToggleStatus:', error);
+    showError('An error occurred while updating the offer status');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function performDeleteOffer(offerId) {
+  if (STATE.isLoading) {
+    console.warn('Delete skipped: Loading in progress');
+    return;
+  }
+
+  showLoading();
+
+  try {
+    console.debug('Deleting offer:', { offerId });
+    const response = await fetch(`${BASE_URL}/admin/offers/delete/${offerId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    console.debug('Delete response:', data);
+
+    if (data.success) {
+      showSuccess(data.message || 'Offer deleted successfully');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Delay for backend sync
+      await refetchAndUpdateOffers();
+    } else {
+      console.error('Delete failed:', data.message);
+      showError(data.message || 'Failed to delete offer');
+    }
+  } catch (error) {
+    console.error('Error in performDeleteOffer:', error);
+    showError('An error occurred while deleting the offer');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Updated Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+  // Offer form submission
+  document.getElementById('offer-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    showFormLoading(true);
+
+    try {
+      const formData = new FormData(this);
+
+      // Handle selected products/categories
+      const applicableOn = formData.get('applicableOn');
+      if (applicableOn === 'product') {
+        const selectedProducts = getSelectedProducts();
+        formData.delete('products');
+        selectedProducts.forEach(productId => {
+          formData.append('products', productId);
+        });
+      } else if (applicableOn === 'category') {
+        const selectedCategories = getSelectedCategories();
+        formData.delete('categories');
+        selectedCategories.forEach(categoryId => {
+          formData.append('categories', categoryId);
+        });
+      }
+
+      const isEdit = STATE.currentEditId;
+      const url = isEdit 
+        ? `${BASE_URL}/admin/offers/update/${STATE.currentEditId}`
+        : `${BASE_URL}/admin/offers/create`;
+
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showModalSuccess(isEdit ? 'Offer updated successfully' : 'Offer created successfully');
+        setTimeout(async () => {
+          closeOfferModal();
+          await refetchAndUpdateOffers();
+        }, 1500);
+      } else {
+        if (result.errors) {
+          Object.keys(result.errors).forEach(field => {
+            showFormError(field, result.errors[field]);
+          });
+        } else {
+          showModalError(result.message || 'Failed to save offer');
+        }
+      }
+    } catch (error) {
+      console.error('Error saving offer:', error);
+      showModalError('An error occurred while saving the offer');
+    } finally {
+      showFormLoading(false);
+    }
+  });
+
+  // Filter event listeners
+  document.getElementById('status-filter').addEventListener('change', function(e) {
+    STATE.status = e.target.value;
+    STATE.page = 1;
+    STATE.showExpired = e.target.value === 'expired' || e.target.value === 'all';
+    document.getElementById('show-expired').checked = STATE.showExpired;
+    refetchAndUpdateOffers();
+  });
+
+  document.getElementById('applicable-filter').addEventListener('change', function(e) {
+    STATE.applicableFilter = e.target.value;
+    STATE.page = 1;
+    refetchAndUpdateOffers();
+  });
+
+  document.getElementById('show-expired').addEventListener('change', function(e) {
+    STATE.showExpired = e.target.checked;
+    STATE.page = 1;
+    STATE.status = e.target.checked ? 'all' : 'active';
+    document.getElementById('status-filter').value = STATE.status;
+    refetchAndUpdateOffers();
+  });
+
+  document.getElementById('sort-field').addEventListener('change', function(e) {
+    STATE.sortField = e.target.value;
+    STATE.page = 1;
+    refetchAndUpdateOffers();
+  });
+
+  document.getElementById('sort-order').addEventListener('click', function() {
+    const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
+    STATE.sortOrder = newOrder;
+    STATE.page = 1;
+    refetchAndUpdateOffers();
+  });
+
+  document.getElementById('search-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const searchValue = document.getElementById('search-input').value.trim();
+    STATE.search = searchValue;
+    STATE.page = 1;
+    refetchAndUpdateOffers();
+  });
+
+  document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+  refetchAndUpdateOffers();
+});
 </script>

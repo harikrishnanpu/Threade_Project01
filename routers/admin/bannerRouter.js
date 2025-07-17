@@ -9,7 +9,8 @@ const {
   getBannerDetails, 
   updateBannerById, 
   toggleBannerStatusById, 
-  uploadBannerImage 
+  uploadBannerImage, 
+  getBannersList
 } = require('../../controllers/admin/bannerController');
 
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -30,13 +31,16 @@ const storage = new CloudinaryStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 
 
 
 
 bannerRouter.get('/', listBanners);
 
+bannerRouter.get('/api/filtered/all', getBannersList);
 bannerRouter.get('/api/list', apiBannerList);
 bannerRouter.get('/api/get/:id', getBannerDetails);
 bannerRouter.post('/api/create', createNewBanner);

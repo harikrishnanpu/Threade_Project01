@@ -27,6 +27,8 @@ const upload = multer({ storage });
 
 router.get('/all', validateBrandListQuery,handleValidationErrors, brandController.renderAllBrands);
 
+
+router.get('/api/filtered/all', validateBrandListQuery,handleValidationErrors, brandController.getFilteredBrands);
 router.get('/api/all',validateBrandListQuery, handleValidationErrors, brandController.getAllBrands);
 router.get('/api/brand/:id',validateBrandIdParam, handleValidationErrors, brandController.getBrandById);
 
@@ -35,7 +37,6 @@ router.put('/api/update/:id',validateBrandBody, brandController.updateBrand);
 
 router.post('/api/upload-image', upload.single('image'), brandController.uploadImage);
 router.patch('/toggle-status/:id', validateBrandIdParam, handleValidationErrors, brandController.toggleBrandStatus);
-router.patch('/toggle-listed/:id', validateBrandIdParam, handleValidationErrors, brandController.toggleBrandListed);
 
 
 

@@ -853,77 +853,54 @@
         </div>
       </div>
 
+<div class="row totals">
+  <div class="col-xl-3 col-lg-4 col-sm-6">
+    <div class="icon-card mb-30" id="total-orders-card">
+      <div class="icon purple">
+        <i class="lni lni-cart-full"></i>
+      </div>
+      <div class="content">
+        <h6 class="mb-10">Total Orders</h6>
+        <h3 class="text-bold mb-10" data-value="totalOrders"><%= totals.totalOrders %></h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-lg-4 col-sm-6">
+    <div class="icon-card mb-30" id="total-income-card">
+      <div class="icon success">
+        <i class="lni lni-rupee"></i>
+      </div>
+      <div class="content">
+        <h6 class="mb-10">Total Income</h6>
+        <h3 class="text-bold mb-10 totalIncome" data-value="totalIncome">₹<%= totals.totalIncome %></h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-lg-4 col-sm-6">
+    <div class="icon-card mb-30" id="total-pending-card">
+      <div class="icon primary">
+        <i class="lni lni-credit-cards"></i>
+      </div>
+      <div class="content">
+        <h6 class="mb-10">Total Pending</h6>
+        <h3 class="text-bold mb-10 totalPendings" data-value="totalPending">₹<%= totals.totalPendingAmt %></h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-lg-4 col-sm-6">
+    <div class="icon-card mb-30" id="total-users-card">
+      <div class="icon orange">
+        <i class="lni lni-user"></i>
+      </div>
+      <div class="content">
+        <h6 class="mb-10">All Users</h6>
+        <h3 class="text-bold mb-10 totalUsers" data-value="totalUsers"><%= totals.totalUsers %></h3>
+      </div>
+    </div>
+  </div>
+</div>
 
-          <div class="row">
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-              <div class="icon-card mb-30">
-                <div class="icon purple">
-                  <i class="lni lni-cart-full"></i>
-                </div>
-                <div class="content">
-                  <h6 class="mb-10">Total Orders</h6>
-                  <h3 class="text-bold mb-10"><%= totals.totalOrders %></h3>
-                  <!-- <p class="text-sm text-success">
-                    <i class="lni lni-arrow-up"></i> +2.00%
-                    <span class="text-gray">(30 days)</span>
-                  </p> -->
-                </div>
-              </div>
-              <!-- End Icon Cart -->
-            </div>
-            <!-- End Col -->
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-              <div class="icon-card mb-30">
-                <div class="icon success">
-                  <i class="lni lni-rupee"></i>
-                </div>
-                <div class="content">
-                  <h6 class="mb-10">Total Income</h6>
-                  <h3 class="text-bold mb-10">₹<%= totals.totalIncome %></h3>
-                  <!-- <p class="text-sm text-success">
-                    <i class="lni lni-arrow-up"></i> +5.45%
-                    <span class="text-gray">Increased</span>
-                  </p> -->
-                </div>
-              </div>
-              <!-- End Icon Cart -->
-            </div>
-            <!-- End Col -->
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-              <div class="icon-card mb-30">
-                <div class="icon primary">
-                  <i class="lni lni-credit-cards"></i>
-                </div>
-                <div class="content">
-                  <h6 class="mb-10">Total Pending</h6>
-                  <h3 class="text-bold mb-10">₹<%= totals.totalPendingAmt %></h3>
-                  <!-- <p class="text-sm text-danger">
-                    <i class="lni lni-arrow-down"></i> -2.00%
-                    <span class="text-gray">Expense</span>
-                  </p> -->
-                </div>
-              </div>
-              <!-- End Icon Cart -->
-            </div>
-            <!-- End Col -->
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-              <div class="icon-card mb-30">
-                <div class="icon orange">
-                  <i class="lni lni-user"></i>
-                </div>
-                <div class="content">
-                  <h6 class="mb-10">All Users</h6>
-                  <h3 class="text-bold mb-10"><%= totals.totalUsers %></h3>
-                  <!-- <p class="text-sm text-danger">
-                    <i class="lni lni-arrow-down"></i> -25.00%
-                    <span class="text-gray"> Earning</span>
-                  </p> -->
-                </div>
-              </div>
-              <!-- End Icon Cart -->
-            </div>
-            <!-- End Col -->
-          </div>
+
           <!-- End Row -->
           <div class="row">
             <div class="col-lg-7">
@@ -1302,22 +1279,6 @@
                   <div class="left">
                     <h6 class="text-medium mb-30">Recent Orders</h6>
                   </div>
-                  <div class="right">
-                    <div class="select-style-1">
-                      <div class="select-position select-sm">
-                        <select class="light-bg">
-                <option value="today" <%= dateRange === 'today' ? 'selected' : '' %>>Today</option>
-                <option value="yesterday" <%= dateRange === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
-                <option value="week" <%= dateRange === 'week' ? 'selected' : '' %>>This Week</option>
-                <option value="month" <%= dateRange === 'month' ? 'selected' : '' %>>This Month</option>
-                <option value="last-month" <%= dateRange === 'last-month' ? 'selected' : '' %>>Last Month</option>
-                <option value="year" <%= dateRange === 'year' ? 'selected' : '' %>>This Year</option>
-                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
-                        </select>
-                      </div>
-                    </div>
-                    <!-- end select -->
-                  </div>
                 </div>
                 <!-- End Title -->
                 <div class="table-responsive">
@@ -1406,506 +1367,576 @@
 
 
     <script>
+const BASE_URL = window.location.origin;
 
-    const STATE = {
-      dateRange: '<%= dateRange %>' || 'month',
-      status: '<%= status %>' || 'all',
-      paymentMethod: '<%= paymentMethod %>' || 'all',
-      startDate: '<%= startDate %>' || '',
-      endDate: '<%= endDate %>' || '',
-      isLoading: false
-    };
+// Global State
+const STATE = {
+  dateRange: '<%= dateRange %>' || 'month',
+  status: '<%= status %>' || 'all',
+  paymentMethod: '<%= paymentMethod %>' || 'all',
+  startDate: '<%= startDate %>' || '',
+  endDate: '<%= endDate %>' || '',
+  isLoading: false
+};
 
+// Utility Functions
+function showError(message) {
+  const errorMsg = document.getElementById('error-msg');
+  errorMsg.textContent = message;
+  errorMsg.classList.add('show');
+  setTimeout(() => {
+    errorMsg.classList.remove('show');
+  }, 5000);
+}
 
-        function showError(message) {
-      const errorMsg = document.getElementById('error-msg');
-      errorMsg.textContent = message;
-      errorMsg.classList.add('show');
-      setTimeout(() => {
-        errorMsg.classList.remove('show');
-      }, 5000);
+function showSuccess(message) {
+  const successMsg = document.getElementById('success-msg');
+  successMsg.textContent = message;
+  successMsg.classList.add('show');
+  setTimeout(() => {
+    successMsg.classList.remove('show');
+  }, 3000);
+}
+
+function showLoading() {
+  STATE.isLoading = true;
+  document.getElementById('loading-overlay').classList.add('active');
+}
+
+function hideLoading() {
+  STATE.isLoading = false;
+  document.getElementById('loading-overlay').classList.remove('active');
+}
+
+function buildUrl(overrides = {}) {
+  const params = {
+    dateRange: overrides.dateRange || STATE.dateRange,
+    status: overrides.status || STATE.status,
+    paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
+    startDate: overrides.startDate || STATE.startDate,
+    endDate: overrides.endDate || STATE.endDate
+  };
+
+  Object.keys(params).forEach(key => {
+    if (params[key] === '' || params[key] === null || params[key] === undefined ||
+        params[key] === 'all' || params[key] === 'month') {
+      delete params[key];
     }
+  });
 
-    function showSuccess(message) {
-      const successMsg = document.getElementById('success-msg');
-      successMsg.textContent = message;
-      successMsg.classList.add('show');
-      setTimeout(() => {
-        successMsg.classList.remove('show');
-      }, 3000);
+  const url = new URL('/admin/reports/api/filtered/all', BASE_URL);
+  Object.keys(params).forEach(key => {
+    url.searchParams.set(key, params[key]);
+  });
+
+  return url.toString();
+}
+
+function buildExportUrl(overrides = {}) {
+  const params = {
+    dateRange: overrides.dateRange || STATE.dateRange,
+    status: overrides.status || STATE.status,
+    paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
+    startDate: overrides.startDate || STATE.startDate,
+    endDate: overrides.endDate || STATE.endDate
+  };
+
+  Object.keys(params).forEach(key => {
+    if (params[key] === '' || params[key] === null || params[key] === undefined ||
+        params[key] === 'all' || params[key] === 'month') {
+      delete params[key];
     }
+  });
 
+  const url = new URL(`/admin/reports/${overrides.format}/sales`, BASE_URL);
+  Object.keys(params).forEach(key => {
+    url.searchParams.set(key, params[key]);
+  });
 
-    function buildUrl(overrides = {}) {
+  return url.toString();
+}
 
-      const params = {
-        page: overrides.page || STATE.page,
-        dateRange: overrides.dateRange || STATE.dateRange,
-        status: overrides.status || STATE.status,
-        paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
-        category: overrides.category || STATE.category,
-        sortField: overrides.sortField || STATE.sortField,
-        sortOrder: overrides.sortOrder || STATE.sortOrder,
-        startDate: overrides.startDate || STATE.startDate,
-        endDate: overrides.endDate || STATE.endDate
-      };
+// Dynamic Update Functions
+async function refetchAndUpdateDashboard() {
+  showLoading();
 
-      // Remove default/empty values
-      Object.keys(params).forEach(key => {
-        if (params[key] === '' || params[key] === null || params[key] === undefined || 
-            params[key] === 'all' || params[key] === 'month') {
-          delete params[key];
-        }
-      });
-
-      const url = new URL(window.location.pathname, window.location.origin);
-
-      Object.keys(params).forEach(key => {
-        url.searchParams.set(key, params[key]);
-      });
-
-      return url.toString();
-
-    }
-
-    function buildExportUrl(overrides = {}) {
-      const params = {
-        page: overrides.page || STATE.page,
-        dateRange: overrides.dateRange || STATE.dateRange,
-        status: overrides.status || STATE.status,
-        paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
-        category: overrides.category || STATE.category,
-        sortField: overrides.sortField || STATE.sortField,
-        sortOrder: overrides.sortOrder || STATE.sortOrder,
-        startDate: overrides.startDate || STATE.startDate,
-        endDate: overrides.endDate || STATE.endDate
-      };
-
-
-      Object.keys(params).forEach(key => {
-        if (params[key] === '' || params[key] === null || params[key] === undefined || 
-            params[key] === 'all' || params[key] === 'month') {
-          delete params[key];
-        }
-      });
-
-      const url = new URL(`/admin/reports/${overrides.format}/sales`, window.location.origin);
-
-      Object.keys(params).forEach(key => {
-        url.searchParams.set(key, params[key]);
-      });
-
-      return url.toString();
-
-    }
-
-    function navigateToUrl(url) {
-      showLoading();
-      window.location.href = url;
-    }
-
-
-    function applyFilters() {
-      const dateRange = document.getElementById('date-range-filter').value;
-      const status = document.getElementById('status-filter').value;
-      const paymentMethod = document.getElementById('payment-filter').value;
-
-      let params = {
-        page: 1,
-        dateRange,
-        status,
-        paymentMethod,
-      };
-
-      if (dateRange === 'custom') {
-        const startDate = document.getElementById('start-date').value;
-        const endDate = document.getElementById('end-date').value;
-        
-        if (!startDate || !endDate) {
-          showError('Please select both start and end dates for custom range');
-          return;
-        }
-        
-        if (new Date(startDate) > new Date(endDate)) {
-          showError('Start date cannot be after end date');
-          return;
-        }
-
-        if (new Date(endDate) > new Date()) {
-          showError('End date cannot be in future');
-          return;
-        }
-
-
-
-        params.startDate = startDate;
-        params.endDate = endDate;
-      }
-
-      navigateToUrl(buildUrl(params));
-    }
-
-    function resetFilters() {
-
-      navigateToUrl(buildUrl({
-        page: 1,
-        dateRange: 'month',
-        status: 'all',
-        paymentMethod: 'all',
-        category: 'all',
-        sortField: 'orderDate',
-        sortOrder: 'desc',
-        startDate: '',
-        endDate: ''
-      }));
-
-    }
-
-
-    function showLoading() {
-      STATE.isLoading = true;
-      document.getElementById('loading-overlay').classList.add('active');
-    }
-
-    function hideLoading() {
-      STATE.isLoading = false;
-      document.getElementById('loading-overlay').classList.remove('active');
-    }
-
-
-    async function exportReport(format) {
-      const btn = document.getElementById('export-btn');
-      btn.classList.add('loading');
-      
-      try {
-        const BASE_URL = window.location.origin;
-        let response;
-
-        if(format == 'pdf'){ 
-          const url = buildExportUrl({ format: 'pdf' })
-           response = await fetch(url);
-        }else if(format == 'excel'){
-          const url = buildExportUrl({ format: 'excel' })
-           response = await fetch(url);        
-          }
-        
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `sales-report-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-          
-          showSuccess(`Report exported successfully as ${format.toUpperCase()}`);
-        } else {
-          throw new Error('Export failed');
-        }
-      } catch (error) {
-        showError('Failed to export report. Please try again.');
-      } finally {
-        btn.classList.remove('loading');
-      }
-    }
-
-
-    document.addEventListener('DOMContentLoaded', function() {
-
-      document.getElementById('date-range-filter').addEventListener('change', function(e) {
-        const customSection = document.getElementById('custom-date-section');
-        if (e.target.value === 'custom') {
-          customSection.classList.add('show');
-        } else {
-          customSection.classList.remove('show');
-        }
-      });
-
-      // Show custom date section if already selected
-      if (STATE.dateRange === 'custom') {
-        document.getElementById('custom-date-section').classList.add('show');
-      }
-
-      // Filter buttons
-      document.getElementById('apply-filters').addEventListener('click', applyFilters);
-      document.getElementById('reset-filters').addEventListener('click', resetFilters);
-      document.getElementById('apply-custom-date').addEventListener('click', applyFilters);
-
-      // Auto-apply filters on change (except custom date)
-      ['status-filter', 'payment-filter'].forEach(id => {
-        document.getElementById(id).addEventListener('change', applyFilters);
-      });
-
-      document.getElementById('date-range-filter').addEventListener('change', function(e) {
-        if (e.target.value !== 'custom') {
-          applyFilters();
-        }
-      });
+  try {
+    const url = buildUrl();
+    console.debug('Fetching dashboard data with URL:', url);
+    const response = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' }
     });
 
-    const chartData = <%- JSON.stringify(chartData) %>;
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const data = await response.json();
+    console.debug('Fetch response:', data);
 
-      const ctx1 = document.getElementById("Chart1").getContext("2d");
-      const chart1 = new Chart(ctx1, {
-        type: "line",
-        data: {
-          labels: chartData?.salesTrend.labels,
-          datasets: [
-            {
-              label: "",
-              backgroundColor: "transparent",
-              borderColor: "#365CF5",
-              data: chartData?.salesTrend.data,
-              pointBackgroundColor: "transparent",
-              pointHoverBackgroundColor: "#365CF5",
-              pointBorderColor: "transparent",
-              pointHoverBorderColor: "#fff",
-              pointHoverBorderWidth: 5,
-              borderWidth: 5,
-              pointRadius: 8,
-              pointHoverRadius: 8,
-              cubicInterpolationMode: "monotone", // Add this line for curved line
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            tooltip: {
-              callbacks: {
-                labelColor: function (context) {
-                  return {
-                    backgroundColor: "#ffffff",
-                    color: "#171717"
-                  };
-                },
-              },
-              intersect: false,
-              backgroundColor: "#f9f9f9",
-              title: {
-                fontFamily: "Plus Jakarta Sans",
-                color: "#8F92A1",
-                fontSize: 12,
-              },
-              body: {
-                fontFamily: "Plus Jakarta Sans",
-                color: "#171717",
-                fontStyle: "bold",
-                fontSize: 16,
-              },
-              multiKeyBackground: "transparent",
-              displayColors: false,
-              padding: {
-                x: 30,
-                y: 10,
-              },
-              bodyAlign: "center",
-              titleAlign: "center",
-              titleColor: "#8F92A1",
-              bodyColor: "#171717",
-              bodyFont: {
-                family: "Plus Jakarta Sans",
-                size: "16",
-                weight: "bold",
-              },
-            },
-            legend: {
-              display: false,
-            },
-          },
-          responsive: true,
-          maintainAspectRatio: false,
-          title: {
-            display: false,
-          },
-          scales: {
-            y: {
-              grid: {
-                display: false,
-                drawTicks: false,
-                drawBorder: false,
-              },
-              ticks: {
-                padding: 35,
-                max: 1200,
-                min: 500,
-              },
-            },
-            x: {
-              grid: {
-                drawBorder: false,
-                color: "rgba(143, 146, 161, .1)",
-                zeroLineColor: "rgba(143, 146, 161, .1)",
-              },
-              ticks: {
-                padding: 20,
-              },
-            },
-          },
-        },
+    if (data.success) {
+      updateStatsCards(data.totals);
+      updateCharts(data.chartData);
+      updateTables(data.topSellingProducts, data.topSellingCategories, data.topSellingBrands, data.recentOrders);
+      updateHistory();
+    } else {
+      console.error('Fetch failed:', data.message);
+      showError(data.message || 'Failed to fetch dashboard data');
+    }
+  } catch (error) {
+    console.error('Error in refetchAndUpdateDashboard:', error);
+    showError('Error loading dashboard data: ' + error.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+function updateStatsCards(totals) {
+  if (!totals || typeof totals !== 'object') {
+    console.error('Invalid totals:', totals);
+    return;
+  }
+
+  const setText = (selector, value) => {
+    const el = document.querySelector(selector);
+    if (el) el.textContent = value;
+  };
+
+  setText('[data-value="totalOrders"]', totals.totalOrders || 0);
+  setText('[data-value="totalIncome"]', `₹${totals.totalIncome || 0}`);
+  setText('[data-value="totalPending"]', `₹${totals.totalPendingAmt || 0}`);
+  setText('[data-value="totalUsers"]', totals.totalUsers || 0);
+  setText('.col-lg-7 .card-style .title .left h3', `₹${totals.totalOrderAmount || 0}`);
+}
+
+function updateCharts(chartData) {
+  const ctx1 = document.getElementById("Chart1").getContext("2d");
+  const chart1 = Chart.getChart("Chart1");
+  chart1.data.labels = chartData.salesTrend.labels;
+  chart1.data.datasets[0].data = chartData.salesTrend.data;
+  chart1.update();
+
+  const ctx3 = document.getElementById("Chart3").getContext("2d");
+  const chart3 = Chart.getChart("Chart3");
+  chart3.data.labels = chartData.paymentMethods.labels;
+  chart3.data.datasets[0].data = chartData.paymentMethods.data;
+  chart3.update();
+}
+
+function updateTables(products, categories, brands, orders) {
+  // Top Selling Products
+  const productsTableBody = document.querySelector('.col-lg-7 .card-style .top-selling-table tbody');
+  if (productsTableBody) {
+    productsTableBody.innerHTML = '';
+    if (products && products.length > 0) {
+      products.forEach(prod => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <div class="check-input-primary">
+              <input class="form-check-input" type="checkbox" id="checkbox-${prod._id}" />
+            </div>
+          </td>
+          <td>
+            <div class="product">
+              <div class="image">
+                <img src="${prod.variant.images[0]}" alt="" />
+              </div>
+              <p class="text-sm">${prod.name}</p>
+            </div>
+          </td>
+          <td><p class="text-sm">${prod.category.name}</p></td>
+          <td><p class="text-sm">${prod.itemSold}</p></td>
+          <td>
+            <p class="text-sm">${prod.stock}</p>
+            <p class="${prod.stock === 0 ? 'bg-danger' : prod.stock < 5 ? 'bg-warning' : 'bg-success'} text-center rounded text-white">
+              ${prod.stock === 0 ? 'out stock' : prod.stock < 5 ? 'low stock' : 'in stock'}
+            </p>
+          </td>
+          <td>
+            <p class="text-sm">₹${prod.variant.salePrice}</p>
+            <p class="text-xs bg-danger text-white text-center rounded"><del>₹${prod.variant.price}</del></p>
+          </td>
+        `;
+        productsTableBody.appendChild(row);
       });
-      // =========== chart one end
+    } else {
+      productsTableBody.innerHTML = '<tr><td colspan="6"><p>no products</p></td></tr>';
+    }
+  } else {
+    console.warn('Products table body not found');
+  }
 
-    
-      // =========== chart three start
-      const ctx3 = document.getElementById("Chart3").getContext("2d");
-      const chart3 = new Chart(ctx3, {
-  type: "pie",
-  data: {
-    labels: chartData?.paymentMethods.labels,
-    datasets: [
-      {
+  // Top Selling Categories
+  const categoriesTableBody = document.querySelector('.col-lg-5 .card-style:nth-of-type(1) .top-selling-table tbody');
+  if (categoriesTableBody) {
+    categoriesTableBody.innerHTML = '';
+    if (categories && categories.length > 0) {
+      categories.forEach(cat => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <div class="check-input-primary">
+              <input class="form-check-input" type="checkbox" id="checkbox-${cat._id}" />
+            </div>
+          </td>
+          <td>
+            <div class="product">
+              <p class="text-sm">${cat.category.name}</p>
+            </div>
+          </td>
+          <td>
+            <p class="text-sm">${cat.sold}</p>
+            <p class="${cat.sold === 0 ? 'bg-danger' : cat.sold < 10 ? 'bg-warning' : 'bg-success'} text-center rounded text-white">
+              ${cat.sold === 0 ? 'No Sales' : cat.sold < 10 ? 'Low Sales' : 'Top Seller'}
+            </p>
+          </td>
+        `;
+        categoriesTableBody.appendChild(row);
+      });
+    } else {
+      categoriesTableBody.innerHTML = '<tr><td colspan="3"><p>no categories</p></td></tr>';
+    }
+  } else {
+    console.warn('Categories table body not found');
+  }
+
+  // Top Selling Brands
+  const brandsTableBody = document.querySelector('.col-lg-5 .card-style:nth-of-type(2) .top-selling-table tbody');
+  if (brandsTableBody) {
+    brandsTableBody.innerHTML = '';
+    if (brands && brands.length > 0) {
+      brands.forEach(brand => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <div class="check-input-primary">
+              <input class="form-check-input" type="checkbox" id="checkbox-${brand._id}" />
+            </div>
+          </td>
+          <td>
+            <div class="product">
+              <p class="text-sm">${brand.brand.name}</p>
+            </div>
+          </td>
+          <td>
+            <p class="text-sm">${brand.sold}</p>
+            <p class="${brand.sold === 0 ? 'bg-danger' : brand.sold < 10 ? 'bg-warning' : 'bg-success'} text-center rounded text-white">
+              ${brand.sold === 0 ? 'No Sales' : brand.sold < 10 ? 'Low Sales' : 'Top Seller'}
+            </p>
+          </td>
+        `;
+        brandsTableBody.appendChild(row);
+      });
+    } else {
+      brandsTableBody.innerHTML = '<tr><td colspan="3"><p>no brands</p></td></tr>';
+    }
+  } else {
+    console.warn('Brands table body not found');
+  }
+
+  // Recent Orders
+  const ordersTableBody = document.querySelector('.col-lg-7 .card-style .top-selling-table:last-child tbody');
+  if (ordersTableBody) {
+    ordersTableBody.innerHTML = '';
+    if (orders && orders.length > 0) {
+      orders.forEach(ord => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <div class="product">
+              <p class="text-sm">${ord.orderNumber}</p>
+            </div>
+          </td>
+          <td><p class="text-sm">₹${ord.totalAmount}</p></td>
+          <td>
+            <span class="px-2 py-1 rounded font-bold text-white text-xs ${ord.orderStatus.includes('pending') ? 'bg-warning' : ord.orderStatus.includes('cancelled') ? 'bg-danger' : 'bg-secondary'}">
+              ${ord.orderStatus}
+            </span>
+          </td>
+        `;
+        ordersTableBody.appendChild(row);
+      });
+    } else {
+      ordersTableBody.innerHTML = '<tr><td colspan="3"><p>no orders</p></td></tr>';
+    }
+  } else {
+    console.warn('Orders table body not found');
+  }
+}
+
+function updateHistory() {
+  // const url = buildUrl();
+  // if (window.location.href !== url) {
+  //   window.history.pushState({ ...STATE }, '', url);
+  // }
+}
+
+function applyFilters() {
+  const dateRange = document.getElementById('date-range-filter').value;
+  const status = document.getElementById('status-filter').value;
+  const paymentMethod = document.getElementById('payment-filter').value;
+
+  let params = {
+    dateRange,
+    status,
+    paymentMethod,
+  };
+
+  if (dateRange === 'custom') {
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+
+    if (!startDate || !endDate) {
+      showError('Please select both start and end dates for custom range');
+      return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      showError('Start date cannot be after end date');
+      return;
+    }
+
+    if (new Date(endDate) > new Date()) {
+      showError('End date cannot be in future');
+      return;
+    }
+
+    params.startDate = startDate;
+    params.endDate = endDate;
+  }
+
+  STATE.dateRange = params.dateRange;
+  STATE.status = params.status;
+  STATE.paymentMethod = params.paymentMethod;
+  STATE.startDate = params.startDate || '';
+  STATE.endDate = params.endDate || '';
+
+  // Update all select elements to reflect current filters
+  document.querySelectorAll('select.light-bg').forEach(select => {
+    select.value = STATE.dateRange;
+  });
+  document.getElementById('status-filter').value = STATE.status;
+  document.getElementById('payment-filter').value = STATE.paymentMethod;
+  document.getElementById('start-date').value = STATE.startDate;
+  document.getElementById('end-date').value = STATE.endDate;
+
+  refetchAndUpdateDashboard();
+}
+
+function resetFilters() {
+  STATE.dateRange = 'month';
+  STATE.status = 'all';
+  STATE.paymentMethod = 'all';
+  STATE.startDate = '';
+  STATE.endDate = '';
+
+  document.getElementById('date-range-filter').value = 'month';
+  document.getElementById('status-filter').value = 'all';
+  document.getElementById('payment-filter').value = 'all';
+  document.getElementById('start-date').value = '';
+  document.getElementById('end-date').value = '';
+  document.getElementById('custom-date-section').classList.remove('show');
+
+  document.querySelectorAll('select.light-bg').forEach(select => {
+    select.value = 'month';
+  });
+
+  refetchAndUpdateDashboard();
+}
+
+async function exportReport(format) {
+  const btn = document.getElementById('export-btn');
+  btn.classList.add('loading');
+
+  try {
+    const url = buildExportUrl({ format });
+    const response = await fetch(url);
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sales-report-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      showSuccess(`Report exported successfully as ${format.toUpperCase()}`);
+    } else {
+      throw new Error('Export failed');
+    }
+  } catch (error) {
+    showError('Failed to export report. Please try again.');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('date-range-filter').addEventListener('change', function(e) {
+    const customSection = document.getElementById('custom-date-section');
+    if (e.target.value === 'custom') {
+      customSection.classList.add('show');
+    } else {
+      customSection.classList.remove('show');
+    }
+  });
+
+  if (STATE.dateRange === 'custom') {
+    document.getElementById('custom-date-section').classList.add('show');
+  }
+
+  document.getElementById('apply-filters').addEventListener('click', applyFilters);
+  document.getElementById('reset-filters').addEventListener('click', resetFilters);
+  document.getElementById('apply-custom-date').addEventListener('click', applyFilters);
+
+  ['status-filter', 'payment-filter'].forEach(id => {
+    document.getElementById(id).addEventListener('change', applyFilters);
+  });
+
+  document.getElementById('date-range-filter').addEventListener('change', function(e) {
+    if (e.target.value !== 'custom') {
+      applyFilters();
+    }
+  });
+
+  document.querySelectorAll('select.light-bg').forEach(select => {
+    select.addEventListener('change', function() {
+      STATE.dateRange = this.value;
+      document.querySelectorAll('select.light-bg').forEach(s => s.value = this.value);
+      if (this.value !== 'custom') {
+        applyFilters();
+      }
+    });
+  });
+});
+
+// Chart Initialization (unchanged)
+document.addEventListener('DOMContentLoaded', () => {
+  const chartData = <%- JSON.stringify(chartData) %>;
+
+  const ctx1 = document.getElementById("Chart1").getContext("2d");
+  const chart1 = new Chart(ctx1, {
+    type: "line",
+    data: {
+      labels: chartData?.salesTrend.labels,
+      datasets: [{
+        label: "",
+        backgroundColor: "transparent",
+        borderColor: "#365CF5",
+        data: chartData?.salesTrend.data,
+        pointBackgroundColor: "transparent",
+        pointHoverBackgroundColor: "#365CF5",
+        pointBorderColor: "transparent",
+        pointHoverBorderColor: "#fff",
+        pointHoverBorderWidth: 5,
+        borderWidth: 5,
+        pointRadius: 8,
+        pointHoverRadius: 8,
+        cubicInterpolationMode: "monotone",
+      }],
+    },
+    options: {
+      plugins: {
+        tooltip: {
+          callbacks: {
+            labelColor: function(context) {
+              return {
+                backgroundColor: "#ffffff",
+                color: "#171717"
+              };
+            },
+          },
+          intersect: false,
+          backgroundColor: "#f9f9f9",
+          title: {
+            fontFamily: "Plus Jakarta Sans",
+            color: "#8F92A1",
+            fontSize: 12,
+          },
+          body: {
+            fontFamily: "Plus Jakarta Sans",
+            color: "#171717",
+            fontStyle: "bold",
+            fontSize: 16,
+          },
+          multiKeyBackground: "transparent",
+          displayColors: false,
+          padding: { x: 30, y: 10 },
+          bodyAlign: "center",
+          titleAlign: "center",
+          titleColor: "#8F92A1",
+          bodyColor: "#171717",
+          bodyFont: {
+            family: "Plus Jakarta Sans",
+            size: "16",
+            weight: "bold",
+          },
+        },
+        legend: { display: false },
+      },
+      responsive: true,
+      maintainAspectRatio: false,
+      title: { display: false },
+      scales: {
+        y: {
+          grid: { display: false, drawTicks: false, drawBorder: false },
+          ticks: { padding: 35, max: 1200, min: 500 },
+        },
+        x: {
+          grid: { drawBorder: false, color: "rgba(143, 146, 161, .1)", zeroLineColor: "rgba(143, 146, 161, .1)" },
+          ticks: { padding: 20 },
+        },
+      },
+    },
+  });
+
+  const ctx3 = document.getElementById("Chart3").getContext("2d");
+  const chart3 = new Chart(ctx3, {
+    type: "pie",
+    data: {
+      labels: chartData?.paymentMethods.labels,
+      datasets: [{
         label: "Dataset 1",
-        backgroundColor: [
-          "#365CF5",
-          "#9b51e0",
-          "#f2994a",
-          "#2ecc71",
-          "#e74c3c",
-          "#34495e"
-        ],
+        backgroundColor: ["#365CF5", "#9b51e0", "#f2994a", "#2ecc71", "#e74c3c", "#34495e"],
         borderColor: "transparent",
         borderWidth: 2,
         data: chartData?.paymentMethods.data
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      tooltip: {
-        backgroundColor: "#F3F6F8",
-        titleColor: "#8F92A1",
-        titleFontSize: 12,
-        bodyColor: "#171717",
-        bodyFont: {
-          weight: "bold",
-          size: 16
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        tooltip: {
+          backgroundColor: "#F3F6F8",
+          titleColor: "#8F92A1",
+          titleFontSize: 12,
+          bodyColor: "#171717",
+          bodyFont: { weight: "bold", size: 16 },
+          multiKeyBackground: "transparent",
+          displayColors: false,
+          padding: { x: 30, y: 10 },
+          bodyAlign: "center",
+          titleAlign: "center",
+          enabled: true
         },
-        multiKeyBackground: "transparent",
-        displayColors: false,
-        padding: {
-          x: 30,
-          y: 10
-        },
-        bodyAlign: "center",
-        titleAlign: "center",
-        enabled: true
-      },
-      legend: {
-        display: true,
-        position: "right",
-        labels: {
-          color: "#171717",
-          padding: 20,
-          font: {
-            size: 14,
-            family: "Plus Jakarta Sans"
+        legend: {
+          display: true,
+          position: "right",
+          labels: {
+            color: "#171717",
+            padding: 20,
+            font: { size: 14, family: "Plus Jakarta Sans" }
           }
         }
       }
     }
-  }
+  });
 });
-      // =========== chart three end
-
-      // ================== chart four start
-      const ctx4 = document.getElementById("Chart4").getContext("2d");
-      const chart4 = new Chart(ctx4, {
-        type: "bar",
-        data: {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-          datasets: [
-            {
-              label: "",
-              backgroundColor: "#365CF5",
-              borderColor: "transparent",
-              borderRadius: 20,
-              borderWidth: 5,
-              barThickness: 20,
-              maxBarThickness: 20,
-              data: [600, 700, 1000, 700, 650, 800],
-            },
-            {
-              label: "",
-              backgroundColor: "#d50100",
-              borderColor: "transparent",
-              borderRadius: 20,
-              borderWidth: 5,
-              barThickness: 20,
-              maxBarThickness: 20,
-              data: [690, 740, 720, 1120, 876, 900],
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            tooltip: {
-              backgroundColor: "#F3F6F8",
-              titleColor: "#8F92A1",
-              titleFontSize: 12,
-              bodyColor: "#171717",
-              bodyFont: {
-                weight: "bold",
-                size: 16,
-              },
-              multiKeyBackground: "transparent",
-              displayColors: false,
-              padding: {
-                x: 30,
-                y: 10,
-              },
-              bodyAlign: "center",
-              titleAlign: "center",
-              enabled: true,
-            },
-            legend: {
-              display: false,
-            },
-          },
-          layout: {
-            padding: {
-              top: 0,
-            },
-          },
-          responsive: true,
-          // maintainAspectRatio: false,
-          title: {
-            display: false,
-          },
-          scales: {
-            y: {
-              grid: {
-                display: false,
-                drawTicks: false,
-                drawBorder: false,
-              },
-              ticks: {
-                padding: 35,
-                max: 1200,
-                min: 0,
-              },
-            },
-            x: {
-              grid: {
-                display: false,
-                drawBorder: false,
-                color: "rgba(143, 146, 161, .1)",
-                zeroLineColor: "rgba(143, 146, 161, .1)",
-              },
-              ticks: {
-                padding: 20,
-              },
-            },
-          },
-        },
-      });
-
-});
-
 
 
 

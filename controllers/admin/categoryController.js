@@ -39,6 +39,46 @@ const listCategories = async (req, res) => {
   }
 };
 
+
+const getlistCategories = async (req, res) => {
+  try {
+    const {
+      data,
+      total,
+      currentPage,
+      totalPages,
+      limit,
+      filters,
+      sortField,
+      sortOrder
+    } = await getAllCategories(req.query);
+
+    res.status(200).json({
+      success: true,
+      categories: data,
+      totalCategories: total,
+      totalPages,
+      currentPage,
+      limit,
+      search: filters.search,
+      status: filters.status,
+      showFeatured: filters.isFeatured,
+      parentFilter: filters.parentFilter,
+      sortField,
+      sortOrder,
+      showInactive: filters.showInactive
+    });
+
+  } catch (error) {
+    console.log('Error listing categories:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
 const ApilistCategories = async (req, res) => {
   try {
     const {
@@ -128,7 +168,7 @@ const toggleCategoryStatus = async (req, res) => {
   const { id } = req.params;
   const { active } = req.body;
 
-  // console.log(active);
+  console.log(active);
   
 
   try {
@@ -163,4 +203,5 @@ module.exports = {
   updateCategoryById,
   getCategoryById,
   toggleCategoryStatus,
+  getlistCategories
 };

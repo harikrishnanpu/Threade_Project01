@@ -36,6 +36,7 @@ const checkIsAdminAuthenticated = async (req,res,next) => {
 
     res.locals.admin = admin;
     req.admin = admin;
+    
     return next();
   } catch (err) {
     return res.redirect('/admin/login');

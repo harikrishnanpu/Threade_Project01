@@ -154,7 +154,7 @@ const renderOrderPyamentSuccessPage = async (req,res) => {
 
     res.render('user/order-payment-success',{ order })
   }catch(err){
-    res.status(500).json({message: err.message})
+    next(err)
   }
 }
 

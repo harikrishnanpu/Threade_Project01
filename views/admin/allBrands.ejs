@@ -1173,7 +1173,6 @@
 <script>
   const BASE_URL = window.location.origin;
   
-  // Global STATE
   const STATE = {
     page: parseInt('<%= currentPage %>') || 1,
     status: '<%= status %>' || 'all',
@@ -1246,8 +1245,8 @@
   }
 
   function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
+    refetchAndUpdateBrands()
+    // showLoading();
   }
 
   function goToPage(page) {
@@ -1596,7 +1595,7 @@
           showSuccess(isEdit ? 'Brand updated successfully' : 'Brand created successfully');
           closeBrandModal();
           setTimeout(() => {
-            window.location.reload();
+          refetchAndUpdateBrands()
           }, 1000);
         } else {
           if (result.errors) {
@@ -1740,7 +1739,7 @@
       const data = await response.json();
       
       if (data.success) {
-        window.location.reload();
+      refetchAndUpdateBrands()
       } else {
         showError(data.message || 'Failed to update brand');
       }
@@ -1752,31 +1751,52 @@
     }
   }
 
-  async function performToggleStatus(brandId, active) {
-    if (STATE.isLoading) return;
-    showLoading();
-    
-    try {
-      const response = await fetch(`${BASE_URL}/admin/brands/toggle-status/${brandId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        window.location.reload();
-      } else {
-        showError(data.message || 'Failed to update brand');
-      }
-    } catch (error) {
-      showError('An error occurred while updating the brand');
-      console.error('Error:', error);
-    } finally {
-      hideLoading();
-    }
+// Replace the existing toggleStatus and performToggleStatus functions
+
+function toggleStatus(brandId, brandName, activate) {
+  // Convert activate string to boolean
+  const isActive = activate === 'true';
+  const action = isActive ? 'activate' : 'deactivate';
+  showConfirmModal(
+    `${action.charAt(0).toUpperCase() + action.slice(1)} Brand`,
+    `Are you sure you want to ${action} "${brandName}"?`,
+    action.charAt(0).toUpperCase() + action.slice(1),
+    () => performToggleStatus(brandId, isActive)
+  );
+}
+
+async function performToggleStatus(brandId, active) {
+  if (STATE.isLoading) {
+    console.warn('Toggle status skipped: Loading in progress');
+    return;
   }
+  
+  showLoading();
+  
+  try {
+    console.debug('Toggling status for brand:', { brandId, active });
+    const response = await fetch(`${BASE_URL}/admin/brands/toggle-status/${brandId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active })
+    });
+    
+    const data = await response.json();
+    console.debug('Toggle status response:', data);
+    
+    if (data.success) {
+      showSuccess(`Brand ${active ? 'activated' : 'deactivated'} successfully`);
+      refetchAndUpdateBrands();
+    } else {
+      showError(data.message || 'Failed to update brand status');
+    }
+  } catch (error) {
+    console.error('Error toggling brand status:', error);
+    showError('An error occurred while updating the brand status');
+  } finally {
+    hideLoading();
+  }
+}
 
 
   function showConfirmModal(title, message, confirmText, confirmCallback) {
@@ -1788,7 +1808,7 @@
     document.body.style.overflow = 'hidden';
   }
 
-  function closeConfirmModal() {
+  async function closeConfirmModal() {
     document.getElementById('confirm-modal-overlay').classList.remove('active');
     document.body.style.overflow = '';
     STATE.pendingAction = null;
@@ -1810,4 +1830,201 @@
   window.addEventListener('load', function() {
     hideLoading();
   });
+
+
+   async function refetchAndUpdateBrands() {
+    // if (STATE.isLoading) return;
+    showLoading();
+    
+    try {
+      const params = new URLSearchParams();
+      params.set('page', STATE.page);
+      
+      if (STATE.status !== 'all') params.set('status', STATE.status);
+      if (STATE.listedFilter !== 'all') params.set('listedFilter', STATE.listedFilter);
+      if (STATE.categoryFilter !== 'all') params.set('categoryFilter', STATE.categoryFilter);
+      
+      params.set('sortField', STATE.sortField);
+      params.set('sortOrder', STATE.sortOrder);
+      
+      if (STATE.search) params.set('search', STATE.search);
+      if (STATE.showInactive) params.set('showInactive', STATE.showInactive);
+      
+      const response = await fetch(`${BASE_URL}/admin/brands/api/filtered/all?${params.toString()}`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+
+      console.log(data);
+      
+      
+      if (data.success) {
+        updateTable(data.brands, data.totalBrands, data.totalPages);
+        updatePagination(data.currentPage, data.totalPages);
+        updateStats(data.brands.length, data.totalBrands);
+        updateSortIndicators();
+      } else {
+        showError(data.message || 'Failed to fetch brands');
+      }
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+      showError('Error loading brands');
+    } finally {
+      hideLoading();
+    }
+  }
+
+
+
+  function updateTable(brands, totalBrands, totalPages) {
+  const tableBody = document.querySelector('#brands-table tbody');
+  const noDataRow = document.querySelector('.no-data-row');
+  tableBody.innerHTML = '';
+
+  if (brands && brands.length > 0) {
+    brands.forEach(brand => {
+      const row = document.createElement('tr');
+      row.className = `brand-row ${brand.isListed ? '' : 'unlisted'}`;
+      row.dataset.brandId = brand._id;
+
+      row.innerHTML = `
+        <td class="brand-name">
+          <div class="brand-info">
+            <span class="name ${brand.isListed ? 'listed-brand' : ''}">
+              ${brand.name || 'N/A'}
+              ${brand.isListed ? '<i class="lni lni-checkmark-circle listed-icon" title="Listed"></i>' : ''}
+            </span>
+          </div>
+        </td>
+        <td class="brand-image">
+          ${brand.image 
+            ? `<img src="${brand.image}" alt="${brand.name || 'Brand'}" class="brand-img" style="max-width: 50px; max-height: 50px; object-fit: contain;">`
+            : '<span class="text-muted">No image</span>'
+          }
+        </td>
+        <td class="brand-description">
+          ${brand.description 
+            ? `${brand.description.substring(0, 100)}${brand.description.length > 100 ? '...' : ''}`
+            : '<span class="text-muted">No description</span>'
+          }
+        </td>
+        <td class="brand-category">
+          ${brand.category && brand.category.name 
+            ? `<span class="category-name">${brand.category.name}</span>`
+            : '<span class="text-muted">No category</span>'
+          }
+        </td>
+        <td class="brand-status">
+          <div class="status-badges">
+            <span class="status-badge ${brand.isActive ? 'active' : 'blocked'}">
+              ${brand.isActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+        </td>
+        <td class="brand-created">
+          <span class="date-text">
+            ${brand.createdAt ? new Date(brand.createdAt).toLocaleDateString() : 'N/A'}
+          </span>
+        </td>
+        <td class="brand-actions">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary edit-btn" 
+                    onclick="openBrandModal('edit', '${brand._id}')"
+                    title="Edit Brand">
+              <i class="lni lni-pencil"></i>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button class="btn btn-sm ${brand.isActive ? 'btn-outline-danger' : 'btn-outline-success'} toggle-status-btn" 
+                    onclick="toggleStatus('${brand._id}', '${brand.name || 'Brand'}', '${!brand.isActive}')"
+                    title="${brand.isActive ? 'Deactivate' : 'Activate'} Brand">
+              <i class="lni lni-${brand.isActive ? 'lock' : 'unlock'}"></i>
+              <span class="btn-text">${brand.isActive ? 'Deactivate' : 'Activate'}</span>
+            </button>
+          </div>
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+    });
+
+    if (noDataRow) {
+      noDataRow.style.display = 'none';
+    }
+  } else {
+    tableBody.innerHTML = `
+      <tr class="no-data-row">
+        <td colspan="7" class="no-data-cell">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="lni lni-layers"></i>
+            </div>
+            <p>No brands found</p>
+            ${STATE.search || STATE.status !== 'all' || STATE.listedFilter !== 'all' || STATE.categoryFilter !== 'all' || STATE.showInactive
+              ? '<button class="btn btn-link" onclick="resetFilters()">Clear filters</button>'
+              : '<button class="btn btn-primary" onclick="openBrandModal(\'create\')"><i class="lni lni-plus"></i> Create First Brand</button>'
+            }
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function updatePagination(currentPage, totalPages) {
+  STATE.page = currentPage;
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const pageInput = document.getElementById('page-number');
+  const pageTotal = document.querySelector('.page-total');
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInput.value = currentPage;
+  pageInput.max = totalPages;
+  pageTotal.textContent = `of ${totalPages}`;
+
+  prevBtn.setAttribute('onclick', `goToPage(${currentPage - 1})`);
+  nextBtn.setAttribute('onclick', `goToPage(${currentPage + 1})`);
+}
+
+function updateStats(resultCount, totalBrands) {
+  const resultCountEl = document.getElementById('result-count');
+  const totalCountEl = document.getElementById('total-count');
+
+  resultCountEl.textContent = resultCount;
+  totalCountEl.textContent = totalBrands;
+}
+
+function updateSortIndicators() {
+  const headers = document.querySelectorAll('.sortable-header');
+  headers.forEach(header => {
+    const content = header.querySelector('.header-content');
+    const field = header.getAttribute('onclick').match(/'([^']+)'/)[1];
+    const indicator = content.querySelector('.sort-indicator');
+
+    if (field === STATE.sortField) {
+      if (!indicator) {
+        const span = document.createElement('span');
+        span.className = 'sort-indicator';
+        span.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+        content.appendChild(span);
+      } else {
+        indicator.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+      }
+    } else if (indicator) {
+      indicator.remove();
+    }
+  });
+
+  const sortOrderBtn = document.getElementById('sort-order');
+  sortOrderBtn.querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+}
+
+function updateHistory() {
+  const url = buildUrl();
+  if (window.location.href !== url) {
+    window.history.pushState({}, '', url);
+  }
+}
 </script>

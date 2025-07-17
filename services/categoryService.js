@@ -228,7 +228,8 @@ const toggleCategoryStatusById = async (catId, isActive) => {
       throw new Error("category not found");
     }
     
-    isActive = isActive == "true" ? false : true;
+      isActive = (isActive === true || isActive === 'true') ? false : true;
+
 
 
     if(isActive){

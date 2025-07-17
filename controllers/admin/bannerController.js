@@ -41,6 +41,35 @@ const listBanners = async (req, res) => {
 };
 
 
+const getBannersList = async (req, res) => {
+  try {
+
+    const result = await getAllBanners(req.query);
+
+    res.status(200).json({
+      success: true,
+      banners: result.data,
+      totalBanners: result.total,
+      totalPages: result.totalPages,
+      currentPage: result.currentPage,
+      limit: result.limit,
+      search: result.filters.search,
+      status: result.filters.status,
+      pageFilter: result.filters.pageFilter,
+      uniquePages: result.uniquePages,
+      sortField: result.sortField,
+      sortOrder: result.sortOrder,
+      messages: []
+    });
+
+  } catch (error) {
+    res.status(500).json({message: error.message, success: false});
+  }
+
+
+};
+
+
 
 const apiBannerList = async (req, res) => {
   try {
@@ -232,5 +261,6 @@ module.exports = {
   updateBannerById,
   deleteBannerById,
   toggleBannerStatusById,
-  uploadBannerImage
+  uploadBannerImage,
+  getBannersList
 };

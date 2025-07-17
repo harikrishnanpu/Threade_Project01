@@ -7,6 +7,7 @@
     </div>
 
     <div class="page-card">
+
         <div class="page-header">
             <div class="header-content">
                 <h1 class="page-title">Banner Management</h1>
@@ -14,7 +15,6 @@
             <button class="btn btn-primary" onclick="openAddModal()">
                 <span>Add New Banner</span>
             </button>
-
         </div>
 
 
@@ -186,13 +186,13 @@
 
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M12 2C9.10051 2 6.75 4.3505 6.75 7.25V9.125H5.5C4.25736 9.125 3.25 10.1324 3.25 11.375V17.2495C3.25 19.8729 5.37665 21.9995 8 21.9995H16C18.6234 21.9995 20.75 19.8729 20.75 17.2495V11.375C20.75 10.1324 19.7426 9.125 18.5 9.125H17.25V7.25C17.25 4.35051 14.8995 2 12 2ZM12 3.5C14.0711 3.5 15.75 5.17893 15.75 7.25V9.125H8.25V7.25C8.25 5.17893 9.92893 3.5 12 3.5ZM12 14.5C12.8284 14.5 13.5 15.1716 13.5 16V17.5C13.5 18.3284 12.8284 19 12 19C11.1716 19 10.5 18.3284 10.5 17.5V16C10.5 15.1716 11.1716 14.5 12 14.5Z" fill="#323544"/>
-</svg>
+</svg> Deactivate
 
                                                 <% }else {%>
 
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M6.75 7.25C6.75 4.35051 9.10051 2 12 2C13.9882 2 15.7172 3.10553 16.6076 4.73184C16.8066 5.09516 16.6733 5.55095 16.31 5.74987C15.9466 5.9488 15.4909 5.81553 15.2919 5.45221C14.6541 4.28724 13.4184 3.5 12 3.5C9.92893 3.5 8.25 5.17893 8.25 7.25V9.125H18.5C19.7426 9.125 20.75 10.1324 20.75 11.375V17.2495C20.75 19.8729 18.6234 21.9995 16 21.9995H8C5.37665 21.9995 3.25 19.8729 3.25 17.2495V11.375C3.25 10.1324 4.25736 9.125 5.5 9.125H6.75V7.25ZM12 14.5C11.1716 14.5 10.5 15.1716 10.5 16V17.5C10.5 18.3284 11.1716 19 12 19C12.8284 19 13.5 18.3284 13.5 17.5V16C13.5 15.1716 12.8284 14.5 12 14.5Z" fill="#323544"/>
-</svg>
+</svg> Activate
 
 
 
@@ -1406,7 +1406,7 @@
         if (STATE.filters.page > 1) queryParams.set('page', STATE.filters.page);
         if (STATE.filters.limit !== 10) queryParams.set('limit', STATE.filters.limit);
         
-        window.location.href = `${BASE_URL}/admin/banners?${queryParams.toString()}`;
+        refetchAndUpdateBanners()
     }
 
     function resetFilters() {
@@ -1699,9 +1699,7 @@
             if (result.success) {
                 showSuccess(STATE.isEditMode ? 'Banner updated successfully' : 'Banner created successfully');
                 
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+   refetchAndUpdateBanners()
             } else {
                 if (result.errors) {
                     Object.keys(result.errors).forEach(field => {
@@ -1729,16 +1727,16 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ active: active == 'true'  })
+                    body: JSON.stringify({ active: ( active == 'true' || active == true) ? true : false  })
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    showSuccess(`Banner "${name}" ${active == 'true' ? 'deactivated' : 'activated'} successfully`);
+                    showSuccess(`Banner "${name}" ${( active == 'true' || active == true ) ? 'deactivated' : 'activated'} successfully`);
                     
                     setTimeout(() => {
-                        window.location.reload();
+                     refetchAndUpdateBanners()
                     }, 1000);
                 } else {
                     showError(result.message || 'Failed to update banner status');
@@ -1893,4 +1891,263 @@
     window.addEventListener('load', function() {
         hideLoading();
     });
+
+
+    function updateCharCount(input, maxLength) {
+  const count = input.value.length;
+  const countElement = input.parentElement.querySelector('.char-count');
+  if (countElement) {
+    countElement.textContent = `(${count}/${maxLength})`;
+    if (count > maxLength) {
+      countElement.style.color = 'var(--danger)';
+    } else {
+      countElement.style.color = 'var(--gray-500)';
+    }
+  }
+}
+
+// Dynamic Update Functions
+async function refetchAndUpdateBanners() {
+  if (STATE.isLoading) {
+    console.warn('Fetch skipped: Loading in progress');
+    return;
+  }
+  showLoading();
+
+  try {
+    const params = new URLSearchParams();
+    if (STATE.filters.search) params.set('search', STATE.filters.search);
+    if (STATE.filters.status !== 'all') params.set('status', STATE.filters.status);
+    if (STATE.filters.pageFilter !== 'all') params.set('pageFilter', STATE.filters.pageFilter);
+    params.set('sortField', STATE.filters.sortField);
+    params.set('sortOrder', STATE.filters.sortOrder);
+    params.set('page', STATE.filters.page);
+    params.set('limit', STATE.filters.limit);
+
+    console.debug('Fetching banners with params:', params.toString());
+    const response = await fetch(`${BASE_URL}/admin/banners/api/filtered/all?${params.toString()}`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.debug('Fetch response:', data);
+
+    if (data.success) {
+      if (!data.banners || !Array.isArray(data.banners)) {
+        throw new Error('Invalid banners data: Expected an array');
+      }
+      updateTable(data.banners, data.totalBanners, data.totalPages);
+      updateCardView(data.banners);
+      updatePagination(data.currentPage, data.totalPages, data.totalBanners);
+      updateSortIndicators();
+      updatePageFilter(data.uniquePages);
+      updateHistory();
+    } else {
+      console.error('Fetch failed:', data.message);
+      showError(data.message || 'Failed to fetch banners');
+    }
+  } catch (error) {
+    console.error('Error in refetchAndUpdateBanners:', error);
+    showError('Error loading banners: ' + error.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+function updateTable(banners, totalBanners, totalPages) {
+  const tableBody = document.querySelector('.data-table tbody');
+  tableBody.innerHTML = '';
+
+  if (banners && banners.length > 0) {
+    banners.forEach(banner => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="image-cell">
+          <div class="banner-image-preview">
+            <img src="${banner.image}" alt="${banner.name}">
+          </div>
+        </td>
+        <td>
+          <div class="banner-name">${banner.name}</div>
+          ${banner.description ? `
+            <div class="banner-description">${banner.description.length > 50 ? banner.description.substring(0, 50) + '...' : banner.description}</div>
+          ` : ''}
+        </td>
+        <td>${banner.page}</td>
+        <td>
+          <span class="status-badge ${banner.isActive ? 'active' : 'blocked'}">
+            ${banner.isActive ? 'Active' : 'Inactive'}
+          </span>
+        </td>
+        <td>${new Date(banner.createdAt).toLocaleDateString()}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn btn-icon" onclick="openEditModal('${banner._id}')" title="Edit">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.803 6.09787L5.83373 14.0672C5.57259 14.3283 5.37974 14.6497 5.27221 15.003L4.05204 19.0121C3.9714 19.2771 4.04336 19.565 4.23922 19.7608C4.43508 19.9567 4.72294 20.0287 4.98792 19.948L8.99703 18.7279C9.35035 18.6203 9.67176 18.4275 9.93291 18.1663L17.9022 10.1971L13.803 6.09787Z" fill="#343C54"/>
+                <path d="M18.9628 9.13643L20.22 7.87928C21.0986 7.0006 21.0986 5.57598 20.22 4.6973L19.3028 3.7801C18.4241 2.90142 16.9995 2.90142 16.1208 3.7801L14.8637 5.03721L18.9628 9.13643Z" fill="#343C54"/>
+              </svg>
+            </button>
+            <button class="btn btn-icon" onclick="toggleStatus('${banner._id}', '${banner.name}', '${banner.isActive}')" title="${banner.isActive ? 'Deactivate' : 'Activate'}">
+              ${banner.isActive ? `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C9.10051 2 6.75 4.3505 6.75 7.25V9.125H5.5C4.25736 9.125 3.25 10.1324 3.25 11.375V17.2495C3.25 19.8729 5.37665 21.9995 8 21.9995H16C18.6234 21.9995 20.75 19.8729 20.75 17.2495V11.375C20.75 10.1324 19.7426 9.125 18.5 9.125H17.25V7.25C17.25 4.35051 14.8995 2 12 2ZM12 3.5C14.0711 3.5 15.75 5.17893 15.75 7.25V9.125H8.25V7.25C8.25 5.17893 9.92893 3.5 12 3.5ZM12 14.5C12.8284 14.5 13.5 15.1716 13.5 16V17.5C13.5 18.3284 12.8284 19 12 19C11.1716 19 10.5 18.3284 10.5 17.5V16C10.5 15.1716 11.1716 14.5 12 14.5Z" fill="#323544"/>
+                </svg> Deactivate
+              ` : `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6.75 7.25C6.75 4.35051 9.10051 2 12 2C13.9882 2 15.7172 3.10553 16.6076 4.73184C16.8066 5.09516 16.6733 5.55095 16.31 5.74987C15.9466 5.9488 15.4909 5.81553 15.2919 5.45221C14.6541 4.28724 13.4184 3.5 12 3.5C9.92893 3.5 8.25 5.17893 8.25 7.25V9.125H18.5C19.7426 9.125 20.75 10.1324 20.75 11.375V17.2495C20.75 19.8729 18.6234 21.9995 16 21.9995H8C5.37665 21.9995 3.25 19.8729 3.25 17.2495V11.375C3.25 10.1324 4.25736 9.125 5.5 9.125H6.75V7.25ZM12 14.5C11.1716 14.5 10.5 15.1716 10.5 16V17.5C10.5 18.3284 11.1716 19 12 19C12.8284 19 13.5 18.3284 13.5 17.5V16C13.5 15.1716 12.8284 14.5 12 14.5Z" fill="#323544"/>
+                </svg> Activate
+              `}
+            </button>
+          </div>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+  } else {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-table">
+          <div class="empty-state">
+            <p>No banners found</p>
+            <button class="btn btn-primary" onclick="openAddModal()">Add Banner</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function updateCardView(banners) {
+  const cardView = document.querySelector('.card-view');
+  cardView.innerHTML = '';
+
+  if (banners && banners.length > 0) {
+    banners.forEach(banner => {
+      const card = document.createElement('div');
+      card.className = 'data-card';
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="banner-image-preview">
+            <img src="${banner.image}" alt="${banner.name}">
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="banner-name">${banner.name}</h3>
+          ${banner.description ? `
+            <p class="banner-description">${banner.description.length > 50 ? banner.description.substring(0, 50) + '...' : banner.description}</p>
+          ` : ''}
+          <div class="card-details">
+            <div class="detail-item">
+              <span class="detail-label">Page:</span>
+              <span class="detail-value">${banner.page}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Status:</span>
+              <span class="status-badge ${banner.isActive ? 'active' : 'blocked'}">
+                ${banner.isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Created:</span>
+              <span class="detail-value">${new Date(banner.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="action-buttons">
+            <button class="btn btn-sm" onclick="openEditModal('${banner._id}')">Edit</button>
+            <button class="btn btn-sm ${banner.isActive ? 'btn-warning' : 'btn-success'}" 
+                    onclick="toggleStatus('${banner._id}', '${banner.name}', '${!banner.isActive}')">
+              ${banner.isActive ? 'Deactivate' : 'Activate'}
+            </button>
+          </div>
+        </div>
+      `;
+      cardView.appendChild(card);
+    });
+  } else {
+    cardView.innerHTML = `
+      <div class="empty-state">
+        <p>No banners found</p>
+        <button class="btn btn-primary" onclick="openAddModal()">Add Banner</button>
+      </div>
+    `;
+  }
+}
+
+function updatePagination(currentPage, totalPages, totalBanners) {
+  STATE.filters.page = currentPage;
+  const paginationContainer = document.querySelector('.pagination-container');
+  if (!paginationContainer) return;
+
+  paginationContainer.innerHTML = '';
+
+  if (totalPages > 0) {
+    paginationContainer.innerHTML = `
+      <div class="pagination-info">
+        Showing ${Math.min(currentPage * STATE.filters.limit, totalBanners)} of ${totalBanners} banners
+      </div>
+      <div class="pagination-controls">
+        <button class="btn btn-icon" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+          <i class="lni lni-arrow-left-circle"></i>
+        </button>
+        <div class="page-input-container">
+          <input type="number" id="page-input" class="page-input" value="${currentPage}" min="1" max="${totalPages}">
+          <span>of ${totalPages}</span>
+        </div>
+        <button class="btn btn-icon" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+          <i class="lni lni-arrow-right-circle"></i>
+        </button>
+      </div>
+    `;
+
+    document.getElementById('page-input').addEventListener('change', function() {
+      const page = parseInt(this.value);
+      if (page >= 1 && page <= totalPages) {
+        goToPage(page);
+      } else {
+        this.value = currentPage;
+      }
+    });
+  }
+}
+
+function updateSortIndicators() {
+  const sortOrderBtn = document.getElementById('sort-order');
+  sortOrderBtn.textContent = STATE.filters.sortOrder === 'asc' ? '↑' : '↓';
+  document.getElementById('sort-field').value = STATE.filters.sortField;
+}
+
+function updatePageFilter(uniquePages) {
+  const pageFilter = document.getElementById('page-filter');
+  if (!pageFilter) return;
+
+  pageFilter.innerHTML = `
+    <option value="all" ${STATE.filters.pageFilter === 'all' ? 'selected' : ''}>All Pages</option>
+    ${uniquePages && uniquePages.length > 0 ? uniquePages.map(page => `
+      <option value="${page}" ${STATE.filters.pageFilter === page ? 'selected' : ''}>${page}</option>
+    `).join('') : ''}
+  `;
+}
+
+function updateHistory() {
+  const queryParams = new URLSearchParams();
+  if (STATE.filters.search) queryParams.set('search', STATE.filters.search);
+  if (STATE.filters.status !== 'all') queryParams.set('status', STATE.filters.status);
+  if (STATE.filters.pageFilter !== 'all') queryParams.set('pageFilter', STATE.filters.pageFilter);
+  if (STATE.filters.sortField) queryParams.set('sortField', STATE.filters.sortField);
+  if (STATE.filters.sortOrder) queryParams.set('sortOrder', STATE.filters.sortOrder);
+  if (STATE.filters.page > 1) queryParams.set('page', STATE.filters.page);
+  if (STATE.filters.limit !== 10) queryParams.set('limit', STATE.filters.limit);
+
+  const url = `${BASE_URL}/admin/banners?${queryParams.toString()}`;
+  if (window.location.href !== url) {
+    window.history.pushState({ ...STATE.filters }, '', url);
+  }
+}
 </script>

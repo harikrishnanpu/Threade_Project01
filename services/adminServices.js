@@ -303,8 +303,6 @@ const getDashboardData = async (query) => {
       filters.paymentMethod = paymentMethod;
     }
 
-// console.log(filters); 
-
 
 
     const orders = await Orders.find(filters).populate('user', 'name email').lean();
@@ -312,10 +310,12 @@ const getDashboardData = async (query) => {
     
 
     const totalOrders = orders.length;
+    console.log(totalOrders);
+    
     const totalIncome = orders.filter(ord => ord.paymentStatus === 'paid').reduce((total, ord) => total + ord.totalAmount, 0);
-    const totalOrderAmount = orders.reduce((total, ord) => total + ord.totalAmount  ,0);
+    const totalOrderAmount = orders.reduce((total, ord) => total + ord.totalAmount , 0);
     const totalPendingAmt = totalOrderAmount - totalIncome;
-    const totalDiscount = orders.reduce((total,ord) => total + ord.coupon?.discountAmount , 0 );
+    const totalDiscount = orders.reduce((total,ord) => total + ord.coupon?.discountAmount , 0);
     const totalUsers = users.length;
 
 
@@ -394,7 +394,7 @@ const productMap = new Map(products.map(p => [ p._id.toString(), p ]));
 
 const topSellingProducts = orderedProducts.map((p) => {
   const prod = productMap.get(p._id.productId.toString())
-  return{
+  return {
     productId: prod._id,
     name: prod.name,
     itemSold: p.itemsSold,
