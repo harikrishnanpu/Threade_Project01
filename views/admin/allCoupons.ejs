@@ -191,10 +191,10 @@
               </thead>
               <tbody>
                 <% coupons.forEach((coupon) => { 
-                  const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+                  const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date() ;
                   const isMaxedOut = coupon.usedCount >= coupon.maxUsage;
                 %>
-                <tr class="coupon-row <%= (!coupon.isActive || isExpired) && 'inactive-coupon' %>" data-coupon-id="<%= coupon._id %>">
+                <tr class="coupon-row <%= (coupon.isActive || isExpired) && 'inactive-coupon' %>" data-coupon-id="<%= coupon._id %>">
                   <td class="coupon-code">
                     <div class="code-info">
                       <span class="code-text"><%= coupon.code %></span>
@@ -659,7 +659,7 @@
 
 .inactive-coupon {
   opacity: 0.6;
-  background-color: #f8f9fa;
+  background-color: #f8f9fa9a;
 }
 
 .input-group {
@@ -924,8 +924,8 @@
   }
 
   function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
+    // showLoading();
+    refetchAndUpdateCoupons()
   }
 
   function goToPage(page) {
@@ -1169,13 +1169,13 @@
     fetch(`${BASE_URL}/admin/coupons/toggle-status/${couponId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isActive: isActive === 'false' })
+      body: JSON.stringify({ isActive: ( isActive === 'false' ? true : false || !isActive ) })
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
         showSuccess(data.message || 'Coupon status updated successfully');
-        setTimeout(() => window.location.reload(), 1000);
+         refetchAndUpdateCoupons()
       } else {
         hideLoading();
         showError(data.message || 'Failed to update coupon status');
@@ -1199,7 +1199,7 @@
     .then(data => {
       if (data.success) {
         showSuccess(data.message || 'Coupon deleted successfully');
-        setTimeout(() => window.location.reload(), 1000);
+        refetchAndUpdateCoupons()
       } else {
         hideLoading();
         showError(data.message || 'Failed to delete coupon');
@@ -1280,7 +1280,7 @@
           showModalSuccess(isEdit ? 'Coupon updated successfully' : 'Coupon created successfully');
           setTimeout(() => {
             closeCouponModal();
-            window.location.reload();
+             refetchAndUpdateCoupons()
           }, 1500);
         } else {
           if (result.errors) {
@@ -1371,11 +1371,237 @@
 
   window.addEventListener('popstate', function() {
     if (!STATE.isLoading) {
-      window.location.reload();
+   refetchAndUpdateCoupons()
     }
   });
 
   window.addEventListener('load', function() {
     hideLoading();
   });
+
+
+
+function buildUrl(overrides = {}) {
+  const params = {
+    page: overrides.page || STATE.page,
+    status: overrides.status || STATE.status,
+    userTypeFilter: overrides.userTypeFilter || STATE.userTypeFilter,
+    sortField: overrides.sortField || STATE.sortField,
+    sortOrder: overrides.sortOrder || STATE.sortOrder,
+    search: overrides.search !== undefined ? overrides.search : STATE.search,
+    showExpired: overrides.showExpired !== undefined ? overrides.showExpired : STATE.showExpired
+  };
+
+  Object.keys(params).forEach(key => {
+    if (params[key] === '' || params[key] === null || params[key] === undefined || 
+        (key === 'showExpired' && !params[key])) {
+      delete params[key];
+    }
+  });
+
+  const url = new URL(window.location.pathname, window.location.origin);
+  Object.keys(params).forEach(key => url.searchParams.set(key, params[key]));
+
+  return url.toString();
+}
+
+function updateHistory() {
+  const url = buildUrl();
+  // if (window.location.href !== url) {
+  //   window.history.pushState({ page: STATE.page, status: STATE.status, userTypeFilter: STATE.userTypeFilter, sortField: STATE.sortField, sortOrder: STATE.sortOrder, search: STATE.search, showExpired: STATE.showExpired }, '', url);
+  // }
+}
+
+async function refetchAndUpdateCoupons() {
+  showLoading();
+
+  try {
+    const params = new URLSearchParams();
+    params.set('page', STATE.page);
+    if (STATE.status !== 'all') params.set('status', STATE.status);
+    if (STATE.userTypeFilter !== 'all') params.set('userTypeFilter', STATE.userTypeFilter);
+    params.set('sortField', STATE.sortField);
+    params.set('sortOrder', STATE.sortOrder);
+    if (STATE.search) params.set('search', STATE.search);
+    if (STATE.showExpired) params.set('showExpired', STATE.showExpired);
+
+    console.debug('Fetching coupons with params:', params.toString());
+    const response = await fetch(`${BASE_URL}/admin/coupons/api/filtered/all?${params.toString()}`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.debug('Fetch response:', data);
+
+    if (data.success) {
+      if (!data.coupons || !Array.isArray(data.coupons)) {
+        throw new Error('Invalid coupons data: Expected an array');
+      }
+      updateTable(data.coupons, data.totalCoupons, data.totalPages);
+      updatePagination(data.currentPage, data.totalPages);
+      updateStats(data.coupons.length, data.totalCoupons);
+      updateSortIndicators();
+      updateHistory();
+    } else {
+      console.error('Fetch failed:', data.message);
+      showError(data.message || 'Failed to fetch coupons');
+    }
+  } catch (error) {
+    console.error('Error in refetchAndUpdateCoupons:', error);
+    showError('Error loading coupons: ' + error.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+function updateTable(coupons, totalCoupons, totalPages) {
+  const tableBody = document.querySelector('#coupons-table tbody');
+  tableBody.innerHTML = '';
+
+  if (coupons && coupons.length > 0) {
+    coupons.forEach(coupon => {
+      const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+      const isMaxedOut = coupon.usedCount >= coupon.maxUsage;
+      const row = document.createElement('tr');
+      row.className = `coupon-row ${coupon.isActive && !isExpired && !isMaxedOut ? '' : 'inactive-coupon'}`;
+      row.dataset.couponId = coupon._id;
+
+      row.innerHTML = `
+        <td class="coupon-code">
+          <div class="code-info">
+            <span class="code-text">${coupon.code || 'N/A'}</span>
+          </div>
+        </td>
+        <td class="coupon-discount">
+          <span class="discount-value">${coupon.discount}% OFF (max: ${coupon.maxDiscount})</span>
+                      ${isMaxedOut ? '<span class="usage-badge maxed-out">MAXED OUT</span>' : ''}
+        </td>
+        <td class="user-type">
+          <span class="user-type-badge ${coupon.onlyFor}">
+            ${coupon.onlyFor === 'all' ? 'All Users' : 
+              coupon.onlyFor === 'newUsers' ? 'New Users' : 'VIP Users'}
+          </span>
+        </td>
+        <td class="min-order">
+          ${coupon.minOrderAmount > 0 
+            ? `₹${coupon.minOrderAmount.toFixed(2)}` 
+            : '<span class="text-muted">No minimum</span>'}
+        </td>
+        <td class="usage-stats">
+          <div class="usage-info">
+            <span class="usage-count">${coupon.usedCount} / ${coupon.maxUsage}</span>
+            <div class="usage-bar">
+              <div class="usage-progress" style="width: ${(coupon.usedCount / coupon.maxUsage) * 100}%"></div>
+            </div>
+          </div>
+        </td>
+        <td class="expiry-date">
+          ${coupon.expiresAt 
+            ? `<span class="date-text ${isExpired ? 'expired' : ''}">${new Date(coupon.expiresAt).toLocaleDateString()}</span>
+               ${isExpired ? '<span class="expired-badge">EXPIRED</span>' : ''}`
+            : '<span class="no-expiry">No expiry</span>'}
+        </td>
+        <td class="coupon-status">
+          <div class="status-badges">
+            <span class="status-badge ${coupon.isActive && !isExpired && !isMaxedOut ? 'active' : 'inactive'}">
+              ${coupon.isActive && !isExpired && !isMaxedOut ? 'Active' : 
+                isExpired ? 'Expired' : 
+                isMaxedOut ? 'Maxed Out' : 'Inactive'}
+            </span>
+          </div>
+        </td>
+        <td class="coupon-actions">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary edit-btn" 
+                    onclick="openCouponModal('edit', '${coupon._id}')"
+                    title="Edit Coupon">
+              <i class="lni lni-pencil"></i>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button class="btn btn-sm ${coupon.isActive ? 'btn-outline-danger' : 'btn-outline-success'} toggle-status-btn" 
+                    onclick="toggleStatus('${coupon._id}', '${coupon.code || 'Coupon'}', '${!coupon.isActive}')"
+                    title="${coupon.isActive ? 'Deactivate' : 'Activate'} Coupon"
+                    ${isExpired ? 'disabled' : ''}>
+              <i class="lni lni-${coupon.isActive ? 'lock' : 'unlock'}"></i>
+              <span class="btn-text">${coupon.isActive ? 'Deactivate' : 'Activate'}</span>
+            </button>
+          </div>
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+    });
+  } else {
+    tableBody.innerHTML = `
+      <tr class="no-data-row">
+        <td colspan="8" class="no-data-cell">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="lni lni-ticket"></i>
+            </div>
+            <p>No coupons found</p>
+            ${STATE.search || STATE.status !== 'all' || STATE.userTypeFilter !== 'all' || STATE.showExpired
+              ? '<button class="btn btn-link" onclick="resetFilters()">Clear filters</button>'
+              : '<button class="btn btn-primary" onclick="openCouponModal(\'create\')"><i class="lni lni-plus"></i> Create First Coupon</button>'
+            }
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function updatePagination(currentPage, totalPages) {
+  STATE.page = currentPage;
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const pageInput = document.getElementById('page-number');
+  const pageTotal = document.querySelector('.page-total');
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInput.value = currentPage;
+  pageInput.max = totalPages;
+  pageTotal.textContent = `of ${totalPages}`;
+
+  prevBtn.setAttribute('onclick', `goToPage(${currentPage - 1})`);
+  nextBtn.setAttribute('onclick', `goToPage(${currentPage + 1})`);
+}
+
+function updateStats(resultCount, totalCoupons) {
+  const resultCountEl = document.getElementById('result-count');
+  const totalCountEl = document.getElementById('total-count');
+
+  resultCountEl.textContent = resultCount;
+  totalCountEl.textContent = totalCoupons;
+}
+
+function updateSortIndicators() {
+  const headers = document.querySelectorAll('.sortable-header');
+  headers.forEach(header => {
+    const content = header.querySelector('.header-content');
+    const field = header.getAttribute('onclick').match(/'([^']+)'/)[1];
+    const indicator = content.querySelector('.sort-indicator');
+
+    if (field === STATE.sortField) {
+      if (!indicator) {
+        const span = document.createElement('span');
+        span.className = 'sort-indicator';
+        span.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+        content.appendChild(span);
+      } else {
+        indicator.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+      }
+    } else if (indicator) {
+      indicator.remove();
+    }
+  });
+
+  const sortOrderBtn = document.getElementById('sort-order');
+  sortOrderBtn.querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+}
 </script>

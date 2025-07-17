@@ -3,6 +3,7 @@ const moment = require('moment');
 const Orders = require('../../models/orderModel');
 const orderService = require('../../services/userOrderServices');
 const paymentService = require('../../services/userPaymentServices');
+const coupounModel = require('../../models/coupounModel');
 
 const placeOrder = async (req, res) => {
   try {
@@ -154,7 +155,7 @@ const renderOrderPyamentSuccessPage = async (req,res) => {
 
     res.render('user/order-payment-success',{ order })
   }catch(err){
-    res.status(500).json({message: err.message})
+    next(err)
   }
 }
 
@@ -314,6 +315,36 @@ const getOrderPdf = async (req,res) => {
 
 
 
+const getOrderDeatilsPageContent = async (req, res) => {
+  try {
+
+    const userId = req.user._id;
+    const orderId = req.params.id;
+
+    const order = await orderService.getUserOrderById(userId, orderId);
+    const coupon = await coupounModel.findOne({ code: order?.coupon?.code });
+
+    
+    if (!order) {
+      throw new Error('order not found');
+    }
+
+    // console.log(coupon);
+    
+
+
+    res.status(200).json({ order, coupon: coupon ? coupon : null , success: true});
+
+  } catch (err) {
+
+    // console.log(err);
+    res.status(500).json({message: err.message, success: false})
+
+  }
+};
+
+
+
 
 module.exports = { placeOrder ,   renderOrderSuccessPage, cancelFullOrder, cancelSingleItem,
   returnFullOrder,
@@ -322,5 +353,6 @@ module.exports = { placeOrder ,   renderOrderSuccessPage, cancelFullOrder, cance
   renderOrderPyamentSuccessPage,
   retryOrderPayment,
   verifyRazorpayPayment,
-  getOrderPdf
+  getOrderPdf,
+  getOrderDeatilsPageContent
 };

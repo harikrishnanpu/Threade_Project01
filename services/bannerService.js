@@ -115,6 +115,9 @@ const toggleBannerStatus = async (id, isActive) => {
     if (!banner) {
       throw new Error('Banner not found');
     }
+
+    console.log(isActive);
+    
     
     banner.isActive = isActive ? false : true;
     return await banner.save();

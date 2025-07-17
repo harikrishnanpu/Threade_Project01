@@ -54,6 +54,52 @@ const renderShopPage = async (req, res) => {
 }
 
 
+const getShopPageContents = async (req, res) => {
+  try {
+    
+    const { filters, sortOptions, pageNum, limitNum, queryOptions } = await getUserProductFiltersAndSort(req.query);
+    const allVariants  = await productService.getAllVariants(queryOptions.mainCat);
+    const result = await productService.getProducts(filters, sortOptions, pageNum, limitNum);
+    const allMainCatsbySub    = await productService.getAllCategoriesBySubCategories(8);
+    const userProductSuggestions = await productService.productSuggestions(5);
+    const userWishlist   = await Wishlist.findOne({ user: req.user?._id }).lean();
+    const wishlistItemIds  = userWishlist?.items.map(i => i.product.toString()) || []
+    const dealsOfTheDayProducts = await productService.getDealOfTheDayProducts();
+
+    const [mainCategories, subCategories, brands, tags] = await Promise.all([
+      Category.find({ parentCategory: null, isActive: true }).sort({ name: 1 }).lean(),
+      Category.find({ parentCategory: queryOptions.mainCat, isActive: true }).sort({ name: 1 }).lean(),
+      Brand.find({ category: queryOptions.mainCat, isActive: true }).sort({ name: 1 }).lean(),
+      productService.getAllTags()
+    ])
+
+
+    res.status(200).json({
+      success: true,
+      queryOptions,
+      ...queryOptions,
+      products: result.products,
+      totalProducts: result.totalProducts,
+      totalPages: result.totalPages,
+      currentPage: pageNum,
+      limit: limitNum,
+      mainCategories,
+      subCategories,
+      brands,
+      tags,
+      variantSizes: allVariants?.[0]?.allSizes ? allVariants[0].allSizes.map(s => s.size) : [],
+      variantColors: allVariants[0]?.allColors ? allVariants[0].allColors.map(c => c.color) : [],
+      allMainCatsbySub,
+      userProductSuggestions,
+      wishlistItemIds,
+      dealsOfTheDayProducts
+    })
+  } catch (e) {
+    res.status(500).render({ message: 'Failed to load shop page', success: false })
+  }
+}
+
+
 
 const renderProductById = async (req,res) => {
   const {id} = req.params;
@@ -377,5 +423,6 @@ module.exports = {
   renderShopPage,
   renderProductById,
   addReview,
-  deleteReview
+  deleteReview,
+  getShopPageContents
 };

@@ -6,6 +6,8 @@ adminOrderRouter.get('/', orderController.getAllOrders);
 adminOrderRouter.get('/:orderId', orderController.renderOrderDetail);
 adminOrderRouter.get('/:orderId/invoice', orderController.renderInvoice);
 
+
+adminOrderRouter.get('/api/filtered/all', orderController.getAllOrdersFilteredList);
 adminOrderRouter.get('/api/order/:orderId', orderController.getOneOrder);
 
 adminOrderRouter.post('/update-status', orderController.updateOrderStatus);

@@ -25,6 +25,8 @@ const upload = multer({ storage });
 
 
 offerRouter.get('/', offerController.getOffersPage);
+
+offerRouter.get('/api/filtered/all', offerController.getOffersListFiltered);
 offerRouter.get('/api/offer/:id', offerController.getOffer);
 
 offerRouter.get('/api/products', offerController.getProducts);

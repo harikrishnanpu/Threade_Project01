@@ -50,10 +50,75 @@ const listProducts = async (req, res) => {
       messages: []
     });
   } catch (error) {
-    console.error('Error listing products:', error);
-    res.redirect('/admin/dashboard');
+    next(error)
   }
 };
+
+
+
+const getProductsFilteredList = async (req, res) => {
+  try {
+    const [categoriesResult, brandsResult] = await Promise.all([
+      getAllCategories({ status: 'active', limit: 1000 }),
+      getAllBrands({ status: 'active', limit: 1000 })
+    ]);
+
+    const result = await getAllProducts(req.query);
+    if (!result) throw new Error('Failed to fetch products');
+
+    const {
+      data,
+      total,
+      currentPage,
+      totalPages,
+      limit,
+      filters,
+      sortField,
+      sortOrder
+    } = result;
+
+    const sortOrderForFrontend = sortOrder === -1 ? 'desc' : 'asc';
+
+    res.status(200).json({
+      success: true,
+      products: data || [],
+      totalProducts: total || 0,
+      totalPages: totalPages || 0,
+      currentPage: currentPage || 1,
+      limit: limit || 10,
+      search: filters?.search || '',
+      status: filters?.status || 'all',
+      categoryFilter: filters?.categoryFilter || 'all',
+      brandFilter: filters?.brandFilter || 'all',
+      categories: categoriesResult.data || [],
+      brands: brandsResult.data || [],
+      sortField: sortField || 'createdAt',
+      sortOrder: sortOrderForFrontend,
+      message: null // Optional message for success
+    });
+  } catch (error) {
+    console.error('Error in getProductsFilteredList:', error);
+
+    res.status(500).json({
+      success: false,
+      products: [],
+      totalProducts: 0,
+      totalPages: 0,
+      currentPage: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      search: req.query.search || '',
+      status: req.query.status || 'all',
+      categoryFilter: req.query.categoryFilter || 'all',
+      brandFilter: req.query.brandFilter || 'all',
+      categories: [],
+      brands: [],
+      sortField: req.query.sortField || 'createdAt',
+      sortOrder: 'desc',
+      message: error.message || 'Failed to load products. Please try again.'
+    });
+  }
+};
+
 
 const showCreateProductPage = async (req, res) => {
   try {
@@ -264,5 +329,6 @@ module.exports = {
   toggleProductFeatured,
   uploadProductImage,
   showCreateProductPage,
-  showEditProductPage
+  showEditProductPage,
+  getProductsFilteredList
 };

@@ -32,6 +32,37 @@ const getOffersPage = async (req, res) => {
 };
 
 
+const getOffersListFiltered = async (req, res) => {
+  try {
+    const defaults = {
+      page: 1,
+      limit: 10,
+      status: 'all',
+      applicableFilter: 'all',
+      sortField: 'createdAt',
+      sortOrder: 'desc',
+      search: '',
+      showExpired: false,
+    };
+
+    const query = {...defaults,
+      ...req.query,
+    };
+
+    query.page = parseInt(query.page) || 1;
+    query.limit = parseInt(query.limit) || 10;
+    query.showExpired = query.showExpired == 'true' || query.showExpired == true;
+
+    const data = await offerService.listOffers(query);
+
+    res.status(200).json({ ...query, ...data , success: true});
+    
+  } catch (err) {
+    res.status(500).json({ message: err.message,  success: false });
+  }
+};
+
+
 const getProducts = async (req, res) => {
   try {
     const data = await offerService.searchProducts(req.query);
@@ -126,5 +157,6 @@ module.exports = {
   updateOffer,
   toggleOfferStatus,
   getProducts,
-  getCategories
+  getCategories,
+  getOffersListFiltered
 };

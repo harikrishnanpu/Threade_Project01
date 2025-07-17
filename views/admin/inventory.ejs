@@ -14,7 +14,7 @@
           <h6 class="page-title">Inventory Management</h6>
           <div class="header-stats">
             <span class="stat-item">
-              Showing: <span id="result-count"><%= inventory.length %></span> / <span id="total-count"><%= totalItems %></span>
+              Showing: <span id="result-count">0</span> / <span id="total-count">0</span>
             </span>
           </div>
         </div>
@@ -24,36 +24,27 @@
         
         <div class="table-controls">
           <div class="controls-row">
-
             <div class="filters-section">
               <div class="filter-group">
                 <label class="filter-label">Stock Status:</label>
                 <select class="filter form-select" id="status-filter">
-                  <option value="all" <%= status==='all' ? 'selected' : '' %>>All Items</option>
-                  <option value="in_stock" <%= status==='in_stock' ? 'selected' : '' %>>In Stock</option>
-                  <option value="low_stock" <%= status==='low_stock' ? 'selected' : '' %>>Low Stock</option>
-                  <option value="out_of_stock" <%= status==='out_of_stock' ? 'selected' : '' %>>Out of Stock</option>
+                  <option value="all" selected>All Items</option>
+                  <option value="in_stock">In Stock</option>
+                  <option value="low_stock">Low Stock</option>
+                  <option value="out_of_stock">Out of Stock</option>
                 </select>
               </div>
 
               <div class="filter-group">
                 <label class="filter-label">Category:</label>
                 <select class="filter form-select" id="category-filter">
-                  <option value="all" <%= categoryFilter==='all' ? 'selected' : '' %>>All Categories</option>
-                  <% categories.forEach(category => { %>
-                    <option value="<%= category %>" <%= categoryFilter===category ? 'selected' : '' %>><%= category %></option>
-                  <% }) %>
+                  <option value="all" selected>All Categories</option>
+                  <!-- Categories will be populated dynamically -->
                 </select>
               </div>
+
             </div>
             
-            <div class="toggle-group">
-              <label class="toggle-switch">
-                <input type="checkbox" id="show-low-stock" <%= showLowStock == 'true' ? 'checked' : '' %>>
-                <span class="toggle-slider"></span>
-                <span class="toggle-label"> Show Low Stock Only </span>
-              </label>
-            </div>
 
             <div class="search-section">
               <form class="search-form" id="search-form">
@@ -63,7 +54,7 @@
                          name="search"
                          class="form-control search-input"
                          placeholder="Search products, size, color..."
-                         value="<%= search || '' %>">
+                         value="">
                   <button type="submit" class="btn btn-primary search-btn">
                     <i class="lni lni-search"></i>
                   </button>
@@ -75,24 +66,23 @@
               <div class="sort-group">
                 <label class="sort-label">Sort by:</label>
                 <select class="sort-field form-select" id="sort-field">
-                  <option value="name" <%= sortField==='name' ? 'selected' : '' %>>Product Name</option>
-                  <option value="size" <%= sortField==='size' ? 'selected' : '' %>>Size</option>
-                  <option value="color" <%= sortField==='color' ? 'selected' : '' %>>Color</option>
-                  <option value="currentStock" <%= sortField==='currentStock' ? 'selected' : '' %>>Current Stock</option>
-                  <option value="price" <%= sortField==='price' ? 'selected' : '' %>>Price</option>
-                  <option value="lastUpdated" <%= sortField==='lastUpdated' ? 'selected' : '' %>>Last Updated</option>
-                  <option value="category" <%= sortField==='category' ? 'selected' : '' %>>Category</option>
+                  <option value="name" selected>Product Name</option>
+                  <option value="size">Size</option>
+                  <option value="color">Color</option>
+                  <option value="currentStock">Current Stock</option>
+                  <option value="price">Price</option>
+                  <option value="lastUpdated">Last Updated</option>
+                  <option value="category">Category</option>
                 </select>
                 
                 <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
-                  <span class="sort-icon"><%= sortOrder==='asc' ? '↑' : '↓' %></span>
+                  <span class="sort-icon">↑</span>
                 </button>
               </div>
             </div>
 
-            <!-- Actions -->
             <div class="actions-section">
-              <button class="btn btn-secondary reset-btn" id="reset-filters" type="button">
+              <button onclick="resetFilters()" class="btn btn-secondary reset-btn" id="reset-filters" type="button">
                 <i class="lni lni-reload"></i>
                 <span class="btn-text">Reset</span>
               </button>
@@ -110,30 +100,18 @@
           </div>
           
           <div class="pagination-controls">
-            <button class="btn btn-outline-primary nav-btn" 
-                    id="prev-btn"
-                    <%= currentPage<=1 ? 'disabled' : '' %>
-                    onclick="goToPage(<%= currentPage-1 %>)">
+            <button class="btn btn-outline-primary nav-btn" id="prev-btn" disabled onclick="goToPage(STATE.page - 1)">
               <i class="lni lni-chevron-left"></i>
               <span class="btn-text">Prev</span>
             </button>
             
             <div class="page-info">
               <span class="page-label">Page</span>
-              <input type="number" 
-                     min="1" 
-                     max="<%= totalPages %>"
-                     id="page-number"
-                     class="page-input" 
-                     value="<%= currentPage %>"
-                     onchange="goToPage(this.value)" />
-              <span class="page-total">of <%= totalPages %></span>
+              <input type="number" min="1" max="1" id="page-number" class="page-input" value="1" onchange="goToPage(this.value)" />
+              <span class="page-total">of 1</span>
             </div>
             
-            <button class="btn btn-outline-primary nav-btn" 
-                    id="next-btn"
-                    <%= currentPage>=totalPages ? 'disabled' : '' %>
-                    onclick="goToPage(<%= currentPage+1 %>)">
+            <button class="btn btn-outline-primary nav-btn" id="next-btn" disabled onclick="goToPage(STATE.page + 1)">
               <span class="btn-text">Next</span>
               <i class="lni lni-chevron-right"></i>
             </button>
@@ -168,56 +146,14 @@
                 </tr>
               </thead>
               <tbody id="registry-tbody">
-                <% if (stockHistory && stockHistory.length > 0) { %>
-                  <% stockHistory.forEach(entry => { %>
-                    <tr>
-                      <td class="registry-date">
-                        <%= new Date(entry.createdAt).toLocaleDateString() %><br>
-                        <small><%= new Date(entry.createdAt).toLocaleTimeString() %></small>
-                      </td>
-                      <td class="product-name"><%= entry.productName %></td>
-                      <td class="variant-info">
-                        <% if (entry.size || entry.color) { %>
-                          <div class="variant-details">
-                            <% if (entry.size) { %>
-                              <span class="variant-badge size-badge"><%= entry.size %></span>
-                            <% } %>
-                            <% if (entry.color) { %>
-                              <span class="variant-badge color-badge"><%= entry.color %></span>
-                            <% } %>
-                          </div>
-                        <% } else { %>
-                          <span class="text-muted">-</span>
-                        <% } %>
-                      </td>
-                      <td class="action-type">
-                        <span class="action-badge <%= entry.action %>">
-                          <% if (entry.action === 'stock_in') { %>
-                            <i class="lni lni-arrow-up"></i> Stock In
-                          <% } else { %>
-                            <i class="lni lni-arrow-down"></i> Stock Out
-                          <% } %>
-                        </span>
-                      </td>
-                      <td class="quantity-change <%= entry.action == 'stock_in' ? 'positive' : 'negative' %>">
-                        <%= entry.action == 'stock_in' ? '+' : '-' %><%= entry.quantity %>
-                      </td>
-                      <td class="previous-stock"><%= entry.previousStock %></td>
-                      <td class="new-stock"><%= entry.newStock %></td>
-                      <td class="update-reason"><%= entry.reason %></td>
-                      <td class="updated-by"><%= entry.updatedBy %></td>
-                    </tr>
-                  <% }) %>
-                <% } else { %>
-                  <tr>
-                    <td colspan="9" class="no-data-cell">
-                      <div class="no-data-content">
-                        <i class="lni lni-list"></i>
-                        <p>No stock movements recorded yet</p>
-                      </div>
-                    </td>
-                  </tr>
-                <% } %>
+                <tr>
+                  <td colspan="9" class="no-data-cell">
+                    <div class="no-data-content">
+                      <i class="lni lni-list"></i>
+                      <p>No stock movements recorded yet</p>
+                    </div>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -227,17 +163,12 @@
         <div class="table-wrapper">
           <div class="table-container">
             <table class="table" id="inventory-table">
-              <% if (inventory && inventory.length > 0) { %>
               <thead>
                 <tr>
                   <th class="sortable-header" onclick="setSortField('name')">
                     <div class="header-content">
                       <span>Product Name</span>
-                      <% if (sortField === 'name') { %>
-                        <span class="sort-indicator">
-                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
-                        </span>
-                      <% } %>
+                      <span class="sort-indicator"></span>
                     </div>
                   </th>
                   <th>Variant</th>
@@ -245,21 +176,13 @@
                   <th class="sortable-header" onclick="setSortField('currentStock')">
                     <div class="header-content">
                       <span>Current Stock</span>
-                      <% if (sortField === 'currentStock') { %>
-                        <span class="sort-indicator">
-                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
-                        </span>
-                      <% } %>
+                      <span class="sort-indicator"></span>
                     </div>
                   </th>
                   <th class="sortable-header" onclick="setSortField('price')">
                     <div class="header-content">
                       <span>Price</span>
-                      <% if (sortField === 'price') { %>
-                        <span class="sort-indicator">
-                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
-                        </span>
-                      <% } %>
+                      <span class="sort-indicator"></span>
                     </div>
                   </th>
                   <th>Sale Price</th>
@@ -267,99 +190,12 @@
                   <th class="sortable-header" onclick="setSortField('lastUpdated')">
                     <div class="header-content">
                       <span>Last Updated</span>
-                      <% if (sortField === 'lastUpdated') { %>
-                        <span class="sort-indicator">
-                          <%= sortOrder === 'asc' ? '↑' : '↓' %>
-                        </span>
-                      <% } %>
+                      <span class="sort-indicator"></span>
                     </div>
                   </th>
                   <th class="actions-header">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                <% inventory.forEach((item) => { 
-                  const isOutOfStock = item.currentStock === 0;
-                  const isLowStock = item.currentStock > 0 && item.currentStock <= 5;
-                  const stockStatus = isOutOfStock ? 'out_of_stock' : isLowStock ? 'low_stock' : 'in_stock';
-                %>
-                <tr class="inventory-row <%= stockStatus %>" data-product-id="<%= item.productId %>" data-variant-id="<%= item.variantId %>">
-                  <td class="product-name">
-                    <div class="product-info">
-                      <span class="product-title"><%= item.name %></span>
-                      <% if (isLowStock || isOutOfStock) { %>
-                        <span class="stock-warning">
-                          <i class="lni lni-warning"></i>
-                        </span>
-                      <% } %>
-                    </div>
-                  </td>
-                  <td class="variant-info">
-                    <div class="variant-details">
-                      <% if (item.size) { %>
-                        <span class="variant-badge size-badge"><%= item.size %></span>
-                      <% } %>
-                      <% if (item.color) { %>
-                        <span class="variant-badge color-badge"><%= item.color %></span>
-                      <% } %>
-                      <% if (!item.size && !item.color) { %>
-                        <span class="text-muted">Standard</span>
-                      <% } %>
-                    </div>
-                  </td>
-                  <td class="product-category">
-                    <span class="category-badge"><%= item.category %></span>
-                  </td>
-                  <td class="current-stock">
-                    <div class="stock-info">
-                      <span class="stock-number <%= stockStatus %>"><%= item.currentStock %></span>
-                      <% if (item.currentStock > 0) { %>
-                        <div class="stock-bar">
-                          <div class="stock-progress" style="width: '<%= Math.min((item.currentStock / 50) * 100, 100) %>%'"></div>
-                        </div>
-                      <% } %>
-                    </div>
-                  </td>
-                  <td class="product-price">
-                    <span class="price-value">₹<%= item.price.toFixed(2) %></span>
-                  </td>
-                  <td class="sale-price">
-                    <% if (item.salePrice && item.salePrice < item.price) { %>
-                      <span class="sale-price-value">₹<%= item.salePrice.toFixed(2) %></span>
-                    <% } else { %>
-                      <span class="text-muted">-</span>
-                    <% } %>
-                  </td>
-                  <td class="stock-status">
-                    <div class="status-badges">
-                      <span class="status-badge <%= stockStatus %>">
-                        <% if (stockStatus === 'in_stock') { %>
-                          <i class="lni lni-checkmark"></i> In Stock
-                        <% } else if (stockStatus === 'low_stock') { %>
-                          <i class="lni lni-warning"></i> Low Stock
-                        <% } else { %>
-                          <i class="lni lni-close"></i> Out of Stock
-                        <% } %>
-                      </span>
-                    </div>
-                  </td>
-                  <td class="last-updated">
-                    <span class="update-date"><%= new Date(item.lastUpdated).toLocaleDateString() %></span>
-                  </td>
-                  <td class="inventory-actions">
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-outline-primary stock-btn" 
-                              onclick="openStockModal('<%= item.productId %>', '<%= item.variantId %>', '<%= item.name %>', '<%= item.size %>', '<%= item.color %>', '<%= item.currentStock %>')"
-                              title="Update Stock">
-                        <i class="lni lni-package"></i>
-                        <span class="btn-text">Update Stock</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <% }) %>
-              </tbody>
-              <% } else { %>
               <tbody>
                 <tr class="no-data-row">
                   <td colspan="9" class="no-data-cell">
@@ -368,14 +204,11 @@
                         <i class="lni lni-package"></i>
                       </div>
                       <p>No inventory items found</p>
-                      <% if (search || status !== 'all' || categoryFilter !== 'all') { %>
-                        <button class="btn btn-link" onclick="resetFilters()">Clear filters</button>
-                      <% } %>
+                      <button class="btn btn-link" onclick="resetFilters()">Clear filters</button>
                     </div>
                   </td>
                 </tr>
               </tbody>
-              <% } %>
             </table>
           </div>
         </div>
@@ -908,12 +741,14 @@
   visibility: hidden;
   transition: all 0.3s ease;
   transform: translateY(-10px);
+  display: none;
 }
 
 .error-msg.show, .success-msg.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  display: block;
 }
 
 .error-msg {
@@ -1033,420 +868,785 @@
 </style>
 
 <script>
-  const BASE_URL = window.location.origin;
-  
-  const STATE = {
-    page: parseInt('<%= currentPage %>') || 1,
-    status: '<%= status %>' || 'all',
-    categoryFilter: '<%= categoryFilter %>' || 'all',
-    sortField: '<%= sortField %>' || 'name',
-    sortOrder: '<%= sortOrder %>' || 'asc',
-    search: '<%= search %>' || '',
-    showLowStock: '<%= showLowStock %>' == 'true',
-    isLoading: false,
-    currentStockItem: null,
-    showRegistry: false
+ const BASE_URL = window.location.origin;
+
+const STATE = {
+  page: parseInt(new URLSearchParams(window.location.search).get('page')) || 1,
+  status: new URLSearchParams(window.location.search).get('status') || 'all',
+  categoryFilter: new URLSearchParams(window.location.search).get('categoryFilter') || 'all',
+  sortField: new URLSearchParams(window.location.search).get('sortField') || 'name',
+  sortOrder: new URLSearchParams(window.location.search).get('sortOrder') || 'asc',
+  search: new URLSearchParams(window.location.search).get('search') || '',
+  showLowStock: new URLSearchParams(window.location.search).get('showLowStock') === 'true',
+  isLoading: false,
+  currentStockItem: null,
+  showRegistry: false
+};
+
+// Utility functions
+function showLoading() {
+  if (!STATE.isLoading) {
+    STATE.isLoading = true;
+    const overlay = document.getElementById('loading-overlay');
+    overlay.style.display = 'flex';
+    setTimeout(() => {
+      overlay.classList.add('active');
+    }, 10);
+  }
+}
+
+function hideLoading() {
+  if (STATE.isLoading) {
+    const overlay = document.getElementById('loading-overlay');
+    overlay.classList.remove('active');
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      STATE.isLoading = false;
+    }, 300); // Match CSS transition duration (0.3s)
+  }
+}
+
+function showError(message) {
+  const errorMsg = document.getElementById('error-msg');
+  errorMsg.textContent = message;
+  errorMsg.classList.add('show');
+  setTimeout(() => {
+    errorMsg.classList.remove('show');
+  }, 5000);
+}
+
+function showSuccess(message) {
+  const successMsg = document.getElementById('success-msg');
+  successMsg.textContent = message;
+  successMsg.classList.add('show');
+  setTimeout(() => {
+    successMsg.classList.remove('show');
+  }, 5000);
+}
+
+function showModalError(message, modalType = 'stock') {
+  const modalMessages = document.getElementById(`${modalType}-modal-messages`);
+  modalMessages.innerHTML = `<div class="error-msg show">${message}</div>`;
+  setTimeout(() => {
+    modalMessages.innerHTML = '';
+  }, 5000);
+}
+
+function showModalSuccess(message, modalType = 'stock') {
+  const modalMessages = document.getElementById(`${modalType}-modal-messages`);
+  modalMessages.innerHTML = `<div class="success-msg show">${message}</div>`;
+  setTimeout(() => {
+    modalMessages.innerHTML = '';
+  }, 3000);
+}
+
+// Fetch inventory data
+async function fetchInventoryData(params = {}) {
+  try {
+    showLoading();
+    const url = buildUrl({
+      ...STATE,
+      ...params,
+      page: params.page || STATE.page
+    });
+
+    const response = await fetch(`${BASE_URL}/admin/inventory/api/list${url.search}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    showError('Failed to fetch inventory data. Please try again.');
+    console.error('Fetch error:', error);
+    return null;
+  } finally {
+    hideLoading();
+  }
+}
+
+// Update header stats
+function updateHeaderStats(data) {
+  if (!data) return;
+  document.getElementById('result-count').textContent = data.resultCount || 0;
+  document.getElementById('total-count').textContent = data.totalItems || 0;
+}
+
+// Update category filter
+function updateCategoryFilter(data) {
+  if (!data?.categories) return;
+  const categoryFilter = document.getElementById('category-filter');
+  categoryFilter.innerHTML = `<option value="all" ${STATE.categoryFilter === 'all' ? 'selected' : ''}>All Categories</option>`;
+  data.categories.forEach(category => {
+    categoryFilter.innerHTML += `<option value="${category._id}" ${STATE.categoryFilter == category._id ? 'selected' : ''}>${category.name}</option>`;
+  });
+}
+
+// Update inventory table
+function updateInventoryTable(data) {
+  const tbody = document.getElementById('inventory-table').querySelector('tbody');
+  if (!data?.inventory || data.inventory.length === 0) {
+    tbody.innerHTML = `
+      <tr class="no-data-row">
+        <td colspan="9" class="no-data-cell">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="lni lni-package"></i>
+            </div>
+            <p>No inventory items found</p>
+            ${STATE.search || STATE.status !== 'all' || STATE.categoryFilter !== 'all' || STATE.showLowStock ? 
+              '<button class="btn btn-link" onclick="resetFilters()">Clear filters</button>' : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = data.inventory.map(item => {
+    const isOutOfStock = item.currentStock === 0;
+    const isLowStock = item.currentStock > 0 && item.currentStock <= 5;
+    const stockStatus = isOutOfStock ? 'out_of_stock' : isLowStock ? 'low_stock' : 'in_stock';
+    return `
+      <tr class="inventory-row ${stockStatus}" data-product-id="${item.productId}" data-variant-id="${item.variantId}">
+        <td class="product-name">
+          <div class="product-info">
+            <span class="product-title">${item.name}</span>
+            ${isLowStock || isOutOfStock ? '<span class="stock-warning"><i class="lni lni-warning"></i></span>' : ''}
+          </div>
+        </td>
+        <td class="variant-info">
+          <div class="variant-details">
+            ${item.size ? `<span class="variant-badge size-badge">${item.size}</span>` : ''}
+            ${item.color ? `<span class="variant-badge color-badge">${item.color}</span>` : ''}
+            ${!item.size && !item.color ? '<span class="text-muted">Standard</span>' : ''}
+          </div>
+        </td>
+        <td class="product-category">
+          <span class="category-badge">${item.category}</span>
+        </td>
+        <td class="current-stock">
+          <div class="stock-info">
+            <span class="stock-number ${stockStatus}">${item.currentStock}</span>
+            ${item.currentStock > 0 ? `
+              <div class="stock-bar">
+                <div class="stock-progress" style="width: ${Math.min((item.currentStock / 50) * 100, 100)}%"></div>
+              </div>
+            ` : ''}
+          </div>
+        </td>
+        <td class="product-price">
+          <span class="price-value">₹${item.price.toFixed(2)}</span>
+        </td>
+        <td class="sale-price">
+          ${item.salePrice && item.salePrice < item.price ? 
+            `<span class="sale-price-value">₹${item.salePrice.toFixed(2)}</span>` : 
+            '<span class="text-muted">-</span>'}
+        </td>
+        <td class="stock-status">
+          <div class="status-badges">
+            <span class="status-badge ${stockStatus}">
+              ${stockStatus === 'in_stock' ? '<i class="lni lni-checkmark"></i> In Stock' :
+                stockStatus === 'low_stock' ? '<i class="lni lni-warning"></i> Low Stock' :
+                '<i class="lni lni-close"></i> Out of Stock'}
+            </span>
+          </div>
+        </td>
+        <td class="last-updated">
+          <span class="update-date">${new Date(item.lastUpdated).toLocaleDateString()}</span>
+        </td>
+        <td class="inventory-actions">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary stock-btn" 
+                    onclick="openStockModal('${item.productId}', '${item.variantId}', '${item.name}', '${item.size || ''}', '${item.color || ''}', ${item.currentStock})"
+                    title="Update Stock">
+              <i class="lni lni-package"></i>
+              <span class="btn-text">Update Stock</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Update stock registry table
+function updateStockRegistry(data) {
+  const tbody = document.getElementById('registry-tbody');
+  if (!data?.stockHistory || data.stockHistory.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="no-data-cell">
+          <div class="no-data-content">
+            <i class="lni lni-list"></i>
+            <p>No stock movements recorded yet</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = data.stockHistory.map(entry => `
+    <tr>
+      <td class="registry-date">
+        ${new Date(entry.createdAt).toLocaleDateString()}<br>
+        <small>${new Date(entry.createdAt).toLocaleTimeString()}</small>
+      </td>
+      <td class="product-name">${entry.productName}</td>
+      <td class="variant-info">
+        ${entry.size || entry.color ? `
+          <div class="variant-details">
+            ${entry.size ? `<span class="variant-badge size-badge">${entry.size}</span>` : ''}
+            ${entry.color ? `<span class="variant-badge color-badge">${entry.color}</span>` : ''}
+          </div>
+        ` : '<span class="text-muted">-</span>'}
+      </td>
+      <td class="action-type">
+        <span class="action-badge ${entry.action}">
+          ${entry.action === 'stock_in' ? '<i class="lni lni-arrow-up"></i> Stock In' : 
+            '<i class="lni lni-arrow-down"></i> Stock Out'}
+        </span>
+      </td>
+      <td class="quantity-change ${entry.action === 'stock_in' ? 'positive' : 'negative'}">
+        ${entry.action === 'stock_in' ? '+' : '-'}${entry.quantity}
+      </td>
+      <td class="previous-stock">${entry.previousStock}</td>
+      <td class="new-stock">${entry.newStock}</td>
+      <td class="update-reason">${entry.reason}</td>
+      <td class="updated-by">${entry.updatedBy}</td>
+    </tr>
+  `).join('');
+}
+
+// Update pagination
+function updatePagination(data) {
+  if (!data) return;
+
+  const currentPage = data.currentPage || 1;
+  const totalPages = data.totalPages || 1;
+
+  document.getElementById('prev-btn').disabled = currentPage <= 1;
+  document.getElementById('next-btn').disabled = currentPage >= totalPages;
+  document.getElementById('page-number').value = currentPage;
+  document.getElementById('page-number').max = totalPages;
+  document.querySelector('.page-total').textContent = `of ${totalPages}`;
+}
+
+// Update sort indicators
+function updateSortIndicators() {
+  document.querySelectorAll('.sortable-header .sort-indicator').forEach(indicator => {
+    indicator.textContent = '';
+  });
+  const activeHeader = document.querySelector(`.sortable-header[onclick="setSortField('${STATE.sortField}')"] .sort-indicator`);
+  if (activeHeader) {
+    activeHeader.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+  }
+  document.getElementById('sort-order').querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+}
+
+// Build URL
+function buildUrl(overrides = {}) {
+  const params = {
+    page: overrides.page || STATE.page,
+    status: overrides.status || STATE.status,
+    categoryFilter: overrides.categoryFilter || STATE.categoryFilter,
+    sortField: overrides.sortField || STATE.sortField,
+    sortOrder: overrides.sortOrder || STATE.sortOrder,
+    search: overrides.search !== undefined ? overrides.search : STATE.search,
+    showLowStock: overrides.showLowStock !== undefined ? overrides.showLowStock : STATE.showLowStock
   };
 
-  function showLoading() {
-    STATE.isLoading = true;
-    document.getElementById('loading-overlay').classList.add('active');
+  Object.keys(params).forEach(key => {
+    if (params[key] === '' || params[key] === null || params[key] === undefined || 
+        (key === 'showLowStock' && !params[key]) ||
+        (key === 'status' && params[key] === 'all') ||
+        (key === 'categoryFilter' && params[key] === 'all')) {
+      delete params[key];
+    }
+  });
+
+  const url = new URL('/admin/inventory', window.location.origin);
+  Object.keys(params).forEach(key => {
+    url.searchParams.set(key, params[key]);
+  });
+
+  return url;
+}
+
+// Go to page
+async function goToPage(page) {
+  const pageNum = parseInt(page);
+  const maxPages = parseInt(document.getElementById('page-number').max) || 1;
+  if (pageNum < 1 || pageNum > maxPages) return;
+
+  STATE.page = pageNum;
+  const data = await fetchInventoryData({ page: pageNum });
+  if (data) {
+    updateHeaderStats(data);
+    updateCategoryFilter(data);
+    updateInventoryTable(data);
+    updateStockRegistry(data);
+    updatePagination(data);
+    updateSortIndicators();
+    // window.history.pushState({}, '', buildUrl({ page: pageNum }));
+  }
+}
+
+// Set sort field
+async function setSortField(field) {
+  const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+  STATE.sortField = field;
+  STATE.sortOrder = newOrder;
+  STATE.page = 1;
+
+  const data = await fetchInventoryData({ sortField: field, sortOrder: newOrder, page: 1 });
+  if (data) {
+    updateHeaderStats(data);
+    updateCategoryFilter(data);
+    updateInventoryTable(data);
+    updateStockRegistry(data);
+    updatePagination(data);
+    updateSortIndicators();
+    // window.history.pushState({}, '', buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
+  }
+}
+
+// Reset filters
+async function resetFilters() {
+  const params = {
+    page: 1,
+    status: 'all',
+    categoryFilter: 'all',
+    sortField: 'name',
+    sortOrder: 'asc',
+    search: '',
+    showLowStock: false
+  };
+
+  Object.assign(STATE, params);
+
+  document.getElementById('status-filter').value = 'all';
+  document.getElementById('category-filter').value = 'all';
+  document.getElementById('sort-field').value = 'name';
+  document.getElementById('sort-order').querySelector('.sort-icon').textContent = '↑';
+  document.getElementById('search-input').value = '';
+
+  const data = await fetchInventoryData(params);
+  if (data) {
+    updateHeaderStats(data);
+    updateCategoryFilter(data);
+    updateInventoryTable(data);
+    updateStockRegistry(data);
+    updatePagination(data);
+    updateSortIndicators();
+    // window.history.pushState({}, '', buildUrl(params));
+  }
+}
+
+// Toggle stock registry
+function toggleStockRegistry() {
+  const registry = document.getElementById('stock-registry');
+  const toggleBtn = document.getElementById('registry-toggle');
+  
+  if (registry.style.display === 'none') {
+    registry.style.display = 'block';
+    toggleBtn.innerHTML = '<i class="lni lni-list"></i><span class="btn-text">Hide Registry</span>';
+    STATE.showRegistry = true;
+  } else {
+    registry.style.display = 'none';
+    toggleBtn.innerHTML = '<i class="lni lni-list"></i><span class="btn-text">Stock Registry</span>';
+    STATE.showRegistry = false;
+  }
+}
+
+// Open stock modal
+function openStockModal(productId, variantId, productName, size, color, currentStock) {
+  const modal = document.getElementById('stock-modal-overlay');
+  const form = document.getElementById('stock-form');
+
+  STATE.currentStockItem = {
+    productId,
+    variantId,
+    name: productName,
+    size,
+    color,
+    currentStock: parseInt(currentStock)
+  };
+
+  form.reset();
+  clearFormErrors();
+  document.getElementById('stock-modal-messages').innerHTML = '';
+
+  document.getElementById('stock-modal-title').textContent = `Update Stock`;
+  document.getElementById('product-name-value').textContent = productName;
+
+  const variantDisplay = document.getElementById('variant-display');
+  const variantValue = document.getElementById('variant-value');
+  if (size || color) {
+    let variantText = [];
+    if (size) variantText.push(`Size: ${size}`);
+    if (color) variantText.push(`Color: ${color}`);
+    variantValue.textContent = variantText.join(', ');
+    variantDisplay.style.display = 'flex';
+  } else {
+    variantValue.textContent = 'Standard';
+    variantDisplay.style.display = 'flex';
   }
 
-  function hideLoading() {
-    STATE.isLoading = false;
-    document.getElementById('loading-overlay').classList.remove('active');
-  }
+  document.getElementById('current-stock-value').textContent = currentStock;
+  document.getElementById('stock-product-id').value = productId;
+  document.getElementById('stock-variant-id').value = variantId;
+  document.getElementById('stock-preview').style.display = 'none';
 
-  function showError(message) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = message;
-    errorMsg.classList.add('show');
-    setTimeout(() => {
-      errorMsg.classList.remove('show');
-    }, 5000);
-  }
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
 
-  function showSuccess(message) {
-    const successMsg = document.getElementById('success-msg');
-    successMsg.textContent = message;
-    successMsg.classList.add('show');
-    setTimeout(() => {
-      successMsg.classList.remove('show');
-    }, 5000);
-  }
+  setTimeout(() => {
+    document.getElementById('stock-quantity').focus();
+  }, 300);
+}
 
-  function showModalError(message, modalType = 'stock') {
-    const modalMessages = document.getElementById(`${modalType}-modal-messages`);
-    modalMessages.innerHTML = `<div class="error-msg show">${message}</div>`;
-    setTimeout(() => {
-      modalMessages.innerHTML = '';
-    }, 5000);
-  }
+// Close stock modal
+function closeStockModal() {
+  const modal = document.getElementById('stock-modal-overlay');
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+  STATE.currentStockItem = null;
+  clearFormErrors();
+  document.getElementById('stock-modal-messages').innerHTML = '';
+}
 
-  function showModalSuccess(message, modalType = 'stock') {
-    const modalMessages = document.getElementById(`${modalType}-modal-messages`);
-    modalMessages.innerHTML = `<div class="success-msg show">${message}</div>`;
-    setTimeout(() => {
-      modalMessages.innerHTML = '';
-    }, 3000);
-  }
+// Update stock preview
+function updateStockPreview() {
+  const quantity = parseInt(document.getElementById('stock-quantity').value) || 0;
+  const action = document.getElementById('stock-action').value;
+  const preview = document.getElementById('stock-preview');
+  const previewValue = document.getElementById('preview-stock');
 
-  function buildUrl(overrides = {}) {
-    const params = {
-      page: overrides.page || STATE.page,
-      status: overrides.status || STATE.status,
-      categoryFilter: overrides.categoryFilter || STATE.categoryFilter,
-      sortField: overrides.sortField || STATE.sortField,
-      sortOrder: overrides.sortOrder || STATE.sortOrder,
-      search: overrides.search !== undefined ? overrides.search : STATE.search,
-      showLowStock: overrides.showLowStock !== undefined ? overrides.showLowStock : STATE.showLowStock
-    };
-
-    Object.keys(params).forEach(key => {
-      if (params[key] === '' || params[key] === null || params[key] === undefined || 
-          (key === 'showLowStock' && !params[key])) {
-        delete params[key];
-      }
-    });
-
-    const url = new URL(window.location.pathname, window.location.origin);
-    Object.keys(params).forEach(key => {
-      url.searchParams.set(key, params[key]);
-    });
-
-    return url.toString();
-  }
-
-  function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
-  }
-
-  function goToPage(page) {
-    const pageNum = parseInt(page);
-    const maxPages = parseInt('<%= totalPages %>');
-    if (pageNum < 1 || pageNum > maxPages) return;
+  if (quantity > 0 && STATE.currentStockItem) {
+    const newStock = action === 'stock_in' 
+      ? STATE.currentStockItem.currentStock + quantity
+      : Math.max(0, STATE.currentStockItem.currentStock - quantity);
     
-    STATE.page = pageNum;
-    navigateToUrl(buildUrl({ page: pageNum }));
+    previewValue.textContent = newStock;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
   }
+}
 
-  function setSortField(field) {
-    const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
-    STATE.sortField = field;
+// Show form loading
+function showFormLoading(show, modalType = 'stock') {
+  const spinner = document.getElementById(`${modalType}-spinner`);
+  const submitBtn = document.getElementById(`${modalType}-submit-btn`);
+  
+  if (show) {
+    spinner.style.display = 'inline-block';
+    submitBtn.disabled = true;
+  } else {
+    spinner.style.display = 'none';
+    submitBtn.disabled = false;
+  }
+}
+
+// Clear form errors
+function clearFormErrors() {
+  const errors = document.querySelectorAll('.form-error');
+  errors.forEach(error => {
+    error.classList.remove('show');
+    error.textContent = '';
+  });
+  
+  const inputs = document.querySelectorAll('.form-control');
+  inputs.forEach(input => {
+    input.classList.remove('error');
+  });
+}
+
+// Show form error
+function showFormError(fieldName, message) {
+  const field = document.querySelector(`[name="${fieldName}"]`);
+  const error = document.getElementById(`${fieldName}-error`);
+  
+  if (field) field.classList.add('error');
+  if (error) {
+    error.textContent = message;
+    error.classList.add('show');
+  }
+}
+
+// Validate stock form
+function validateStockForm() {
+  clearFormErrors();
+  let isValid = true;
+  
+  const quantity = document.getElementById('stock-quantity').value;
+  const reason = document.getElementById('stock-reason').value.trim();
+  const action = document.getElementById('stock-action').value;
+  
+  if (!quantity || quantity < 1) {
+    showFormError('quantity', 'Quantity must be at least 1');
+    isValid = false;
+  }
+  
+  if (!reason) {
+    showFormError('reason', 'Reason is required');
+    isValid = false;
+  }
+  
+  if (action === 'stock_out' && STATE.currentStockItem) {
+    const newStock = STATE.currentStockItem.currentStock - parseInt(quantity);
+    if (newStock < 0) {
+      showFormError('quantity', 'Cannot remove more stock than available');
+      isValid = false;
+    }
+  }
+  
+  return isValid;
+}
+
+// Initialize page
+async function initializePage() {
+  showLoading();
+  const data = await fetchInventoryData();
+  if (data) {
+    updateHeaderStats(data);
+    updateCategoryFilter(data);
+    updateInventoryTable(data);
+    updateStockRegistry(data);
+    updatePagination(data);
+    updateSortIndicators();
+
+    // Sync filter inputs with state
+    document.getElementById('status-filter').value = STATE.status;
+    document.getElementById('category-filter').value = STATE.categoryFilter;
+    document.getElementById('sort-field').value = STATE.sortField;
+    document.getElementById('sort-order').querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+    document.getElementById('search-input').value = STATE.search;
+  }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  initializePage();
+
+  document.getElementById('stock-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!validateStockForm()) {
+      return;
+    }
+    
+    showFormLoading(true, 'stock');
+    
+    try {
+      const formData = new FormData(this);
+      const data = {
+        productId: formData.get('productId'),
+        variantId: formData.get('variantId'),
+        action: formData.get('action'),
+        quantity: parseInt(formData.get('quantity')),
+        reason: formData.get('reason').trim()
+      };
+      
+      const response = await fetch(`${BASE_URL}/admin/inventory/update-stock`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        showModalSuccess('Stock updated successfully', 'stock');
+        const data = await fetchInventoryData();
+        if (data) {
+          updateHeaderStats(data);
+          updateCategoryFilter(data);
+          updateInventoryTable(data);
+          updateStockRegistry(data);
+          updatePagination(data);
+          updateSortIndicators();
+        }
+        setTimeout(() => {
+          closeStockModal();
+        }, 1500);
+      } else {
+        if (result.errors) {
+          Object.keys(result.errors).forEach(field => {
+            showFormError(field, result.errors[field]);
+          });
+        } else {
+          showModalError(result.message || 'Failed to update stock', 'stock');
+        }
+      }
+    } catch (error) {
+      showModalError('An error occurred while updating stock', 'stock');
+      console.error('Error:', error);
+    } finally {
+      showFormLoading(false, 'stock');
+    }
+  });
+
+  // Filter event listeners
+  document.getElementById('status-filter').addEventListener('change', async function(e) {
+    STATE.status = e.target.value;
+    STATE.page = 1;
+    const data = await fetchInventoryData({ status: e.target.value, page: 1 });
+    if (data) {
+      updateHeaderStats(data);
+      updateCategoryFilter(data);
+      updateInventoryTable(data);
+      updateStockRegistry(data);
+      updatePagination(data);
+      updateSortIndicators();
+      // window.history.pushState({}, '', buildUrl({ status: e.target.value, page: 1 }));
+    }
+  });
+
+  document.getElementById('category-filter').addEventListener('change', async function(e) {
+    STATE.categoryFilter = e.target.value;
+    STATE.page = 1;
+    const data = await fetchInventoryData({ categoryFilter: e.target.value, page: 1 });
+    if (data) {
+      updateHeaderStats(data);
+      updateCategoryFilter(data);
+      updateInventoryTable(data);
+      updateStockRegistry(data);
+      updatePagination(data);
+      updateSortIndicators();
+      // window.history.pushState({}, '', buildUrl({ categoryFilter: e.target.value, page: 1 }));
+    }
+  });
+
+  // document.getElementById('show-low-stock').addEventListener('change', async function(e) {
+  //   STATE.showLowStock = e.target.checked;
+  //   STATE.page = 1;
+  //   const data = await fetchInventoryData({ showLowStock: e.target.checked, page: 1 });
+  //   if (data) {
+  //     updateHeaderStats(data);
+  //     updateCategoryFilter(data);
+  //     updateInventoryTable(data);
+  //     updateStockRegistry(data);
+  //     updatePagination(data);
+  //     updateSortIndicators();
+  //     // window.history.pushState({}, '', buildUrl({ showLowStock: e.target.checked, page: 1 }));
+  //   }
+  // });
+
+  document.getElementById('sort-field').addEventListener('change', async function(e) {
+    STATE.sortField = e.target.value;
+    STATE.page = 1;
+    const data = await fetchInventoryData({ sortField: e.target.value, page: 1 });
+    if (data) {
+      updateHeaderStats(data);
+      updateCategoryFilter(data);
+      updateInventoryTable(data);
+      updateStockRegistry(data);
+      updatePagination(data);
+      updateSortIndicators();
+      // window.history.pushState({}, '', buildUrl({ sortField: e.target.value, page: 1 }));
+    }
+  });
+
+  document.getElementById('sort-order').addEventListener('click', async function() {
+    const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
     STATE.sortOrder = newOrder;
     STATE.page = 1;
-    navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
-  }
+    const data = await fetchInventoryData({ sortOrder: newOrder, page: 1 });
+    if (data) {
+      updateHeaderStats(data);
+      updateCategoryFilter(data);
+      updateInventoryTable(data);
+      updateStockRegistry(data);
+      updatePagination(data);
+      updateSortIndicators();
+      // window.history.pushState({}, '', buildUrl({ sortOrder: newOrder, page: 1 }));
+    }
+  });
 
-  function resetFilters() {
+  document.getElementById('search-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const searchValue = document.getElementById('search-input').value.trim();
+    STATE.search = searchValue;
     STATE.page = 1;
-    STATE.status = 'all';
-    STATE.categoryFilter = 'all';
-    STATE.sortField = 'name';
-    STATE.sortOrder = 'asc';
-    STATE.search = '';
-    STATE.showLowStock = false;
-    
-    navigateToUrl(buildUrl({
-      page: 1,
-      status: 'all',
-      categoryFilter: 'all',
-      sortField: 'name',
-      sortOrder: 'asc',
-      search: '',
-      showLowStock: false
-    }));
-  }
-
-  function toggleStockRegistry() {
-    const registry = document.getElementById('stock-registry');
-    const toggleBtn = document.getElementById('registry-toggle');
-    
-    if (registry.style.display === 'none') {
-      registry.style.display = 'block';
-      toggleBtn.innerHTML = '<i class="lni lni-list"></i><span class="btn-text">Hide Registry</span>';
-      STATE.showRegistry = true;
-    } else {
-      registry.style.display = 'none';
-      toggleBtn.innerHTML = '<i class="lni lni-list"></i><span class="btn-text">Stock Registry</span>';
-      STATE.showRegistry = false;
+    const data = await fetchInventoryData({ search: searchValue, page: 1 });
+    if (data) {
+      updateHeaderStats(data);
+      updateCategoryFilter(data);
+      updateInventoryTable(data);
+      updateStockRegistry(data);
+      updatePagination(data);
+      updateSortIndicators();
+      // window.history.pushState({}, '', buildUrl({ search: searchValue, page: 1 }));
     }
-  }
+  });
 
-  function openStockModal(productId, variantId, productName, size, color, currentStock) {
-    const modal = document.getElementById('stock-modal-overlay');
-    const form = document.getElementById('stock-form');
+  document.getElementById('reset-filters').addEventListener('click', resetFilters);
 
+  // Stock quantity input listener
+  document.getElementById('stock-quantity').addEventListener('input', updateStockPreview);
+  document.getElementById('stock-action').addEventListener('change', updateStockPreview);
 
-    console.log(productId, variantId, productName, size, color, currentStock);
-    
-    // alert(currentStock)
-    
-    STATE.currentStockItem = {
-      productId: productId,
-      variantId: variantId,
-      name: productName,
-      size: size,
-      color: color,
-      currentStock: currentStock
-    };
-    
-    form.reset();
-    clearFormErrors();
-    document.getElementById('stock-modal-messages').innerHTML = '';
-    
-
-    document.getElementById('stock-modal-title').textContent = `Update Stock`;
-    document.getElementById('product-name-value').textContent = productName;
-    
-    const variantDisplay = document.getElementById('variant-display');
-    const variantValue = document.getElementById('variant-value');
-    if (size || color) {
-      let variantText = [];
-      if (size) variantText.push(`Size: ${size}`);
-      if (color) variantText.push(`Color: ${color}`);
-      variantValue.textContent = variantText.join(', ');
-      variantDisplay.style.display = 'flex';
-    } else {
-      variantValue.textContent = 'Standard';
-      variantDisplay.style.display = 'flex';
-    }
-    
-    document.getElementById('current-stock-value').textContent = currentStock;
-    document.getElementById('stock-product-id').value = productId;
-    document.getElementById('stock-variant-id').value = variantId;
-    document.getElementById('stock-preview').style.display = 'none';
-    
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    setTimeout(() => {
-      document.getElementById('stock-quantity').focus();
-    }, 300);
-  }
-
-  function closeStockModal() {
-    const modal = document.getElementById('stock-modal-overlay');
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-    STATE.currentStockItem = null;
-    clearFormErrors();
-    document.getElementById('stock-modal-messages').innerHTML = '';
-  }
-
-  function updateStockPreview() {
-    const quantity = parseInt(document.getElementById('stock-quantity').value) || 0;
-    const action = document.getElementById('stock-action').value;
-    const preview = document.getElementById('stock-preview');
-    const previewValue = document.getElementById('preview-stock');
-    
-    if (quantity > 0 && STATE.currentStockItem) {
-      const newStock = action === 'stock_in' 
-        ? STATE.currentStockItem.currentStock + quantity
-        : Math.max(0, STATE.currentStockItem.currentStock - quantity);
-      
-      previewValue.textContent = newStock;
-      preview.style.display = 'block';
-    } else {
-      preview.style.display = 'none';
-    }
-  }
-
-  function showFormLoading(show, modalType = 'stock') {
-    const spinner = document.getElementById(`${modalType}-spinner`);
-    const submitBtn = document.getElementById(`${modalType}-submit-btn`);
-    
-    if (show) {
-      spinner.style.display = 'inline-block';
-      submitBtn.disabled = true;
-    } else {
-      spinner.style.display = 'none';
-      submitBtn.disabled = false;
-    }
-  }
-
-  function clearFormErrors() {
-    const errors = document.querySelectorAll('.form-error');
-    errors.forEach(error => {
-      error.classList.remove('show');
-      error.textContent = '';
-    });
-    
-    const inputs = document.querySelectorAll('.form-control');
-    inputs.forEach(input => {
-      input.classList.remove('error');
-    });
-  }
-
-  function showFormError(fieldName, message) {
-    const field = document.querySelector(`[name="${fieldName}"]`);
-    const error = document.getElementById(`${fieldName}-error`);
-    
-    if (field) field.classList.add('error');
-    if (error) {
-      error.textContent = message;
-      error.classList.add('show');
-    }
-  }
-
-  function validateStockForm() {
-    clearFormErrors();
-    let isValid = true;
-    
-    const quantity = document.getElementById('stock-quantity').value;
-    const reason = document.getElementById('stock-reason').value.trim();
-    const action = document.getElementById('stock-action').value;
-    
-    if (!quantity || quantity < 1) {
-      showFormError('quantity', 'Quantity must be at least 1');
-      isValid = false;
-    }
-    
-    if (!reason) {
-      showFormError('reason', 'Reason is required');
-      isValid = false;
-    }
-    
-    if (action === 'stock_out' && STATE.currentStockItem) {
-      const newStock = STATE.currentStockItem.currentStock - parseInt(quantity);
-      if (newStock < 0) {
-        showFormError('quantity', 'Cannot remove more stock than available');
-        isValid = false;
-      }
-    }
-    
-    return isValid;
-  }
-
-  // Event listeners
-  document.addEventListener('DOMContentLoaded', function() {
-    
-    document.getElementById('stock-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      if (!validateStockForm()) {
-        return;
-      }
-      
-      showFormLoading(true, 'stock');
-      
-      try {
-        const formData = new FormData(this);
-        const data = {
-          productId: formData.get('productId'),
-          variantId: formData.get('variantId'),
-          action: formData.get('action'),
-          quantity: parseInt(formData.get('quantity')),
-          reason: formData.get('reason').trim()
-        };
-        
-        const response = await fetch(`${BASE_URL}/admin/inventory/update-stock`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          showModalSuccess('Stock updated successfully', 'stock');
-          setTimeout(() => {
-            closeStockModal();
-            window.location.reload();
-          }, 1500);
-        } else {
-          if (result.errors) {
-            Object.keys(result.errors).forEach(field => {
-              showFormError(field, result.errors[field]);
-            });
-          } else {
-            showModalError(result.message || 'Failed to update stock', 'stock');
-          }
-        }
-      } catch (error) {
-        showModalError('An error occurred while updating stock', 'stock');
-        console.error('Error:', error);
-      } finally {
-        showFormLoading(false, 'stock');
-      }
-    });
-
-    // Filter event listeners
-    document.getElementById('status-filter').addEventListener('change', function(e) {
-      STATE.status = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('category-filter').addEventListener('change', function(e) {
-      STATE.categoryFilter = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ categoryFilter: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('show-low-stock').addEventListener('change', function(e) {
-      STATE.showLowStock = e.target.checked;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ showLowStock: e.target.checked, page: 1 }));
-    });
-
-    document.getElementById('sort-field').addEventListener('change', function(e) {
-      STATE.sortField = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('sort-order').addEventListener('click', function() {
-      const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
-      STATE.sortOrder = newOrder;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
-    });
-
-    document.getElementById('search-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const searchValue = document.getElementById('search-input').value.trim();
-      STATE.search = searchValue;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
-    });
-
-    document.getElementById('reset-filters').addEventListener('click', resetFilters);
-
-    // Stock quantity input listener
-    document.getElementById('stock-quantity').addEventListener('input', updateStockPreview);
-    document.getElementById('stock-action').addEventListener('change', updateStockPreview);
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        if (document.getElementById('stock-modal-overlay').classList.contains('active')) {
-          closeStockModal();
-        }
-      }
-    });
-
-    // Modal click outside to close
-    document.getElementById('stock-modal-overlay').addEventListener('click', function(e) {
-      if (e.target === this) {
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (document.getElementById('stock-modal-overlay').classList.contains('active')) {
         closeStockModal();
       }
-    });
+    }
+  });
+
+  // Modal click outside to close
+  document.getElementById('stock-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeStockModal();
+    }
   });
 
   // Handle browser back/forward buttons
-  window.addEventListener('popstate', function() {
+  window.addEventListener('popstate', async function() {
     if (!STATE.isLoading) {
-      window.location.reload();
+      const urlParams = new URLSearchParams(window.location.search);
+      const params = {
+        page: parseInt(urlParams.get('page')) || 1,
+        status: urlParams.get('status') || 'all',
+        categoryFilter: urlParams.get('categoryFilter') || 'all',
+        sortField: urlParams.get('sortField') || 'name',
+        sortOrder: urlParams.get('sortOrder') || 'asc',
+        search: urlParams.get('search') || '',
+        showLowStock: urlParams.get('showLowStock') === 'true'
+      };
+
+      Object.assign(STATE, params);
+
+      document.getElementById('status-filter').value = params.status;
+      document.getElementById('category-filter').value = params.categoryFilter;
+      document.getElementById('sort-field').value = params.sortField;
+      document.getElementById('sort-order').querySelector('.sort-icon').textContent = params.sortOrder === 'asc' ? '↑' : '↓';
+      document.getElementById('search-input').value = params.search;
+
+      const data = await fetchInventoryData(params);
+      if (data) {
+        updateHeaderStats(data);
+        updateCategoryFilter(data);
+        updateInventoryTable(data);
+        updateStockRegistry(data);
+        updatePagination(data);
+        updateSortIndicators();
+      }
     }
   });
-
-  // Hide loading on page load
-  window.addEventListener('load', function() {
-    hideLoading();
-  });
+});
 </script>

@@ -6,7 +6,8 @@ const {
   createNewCategory, 
   updateCategoryById,
   getCategoryById,
-  toggleCategoryStatus
+  toggleCategoryStatus,
+  getlistCategories
 } = require('../../controllers/admin/categoryController');
 const { handleValidationErrors } = require('../../validators/validator');
 const { validateListCategoryQuery } = require('../../validators/QueryValidator');
@@ -15,6 +16,8 @@ const { validateCategoryBody } = require('../../validators/bodyValidator');
 
 
 categoryRouter.get('/all', validateListCategoryQuery, handleValidationErrors, listCategories);
+
+categoryRouter.get('/api/filtered/all', getlistCategories);
 categoryRouter.get('/api/all',validateListCategoryQuery,handleValidationErrors, ApilistCategories);
 categoryRouter.get('/api/category/:id', validateCategoryIdParam,handleValidationErrors, getCategoryById);
 

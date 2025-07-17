@@ -154,7 +154,7 @@
                   <th class="actions-header">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="table-body">
                 <% users.forEach((user, index) => { %>
                 <tr class="user-row <%= user.isListed ? '' : 'unlisted-user' %>" data-user-id="<%= user._id || index %>">
                   <td class="user-name">
@@ -262,8 +262,8 @@
   }
 
   function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
+    // showLoading();
+    fetchUsers()
   }
 
   function hideLoading() {
@@ -296,7 +296,7 @@
       }
     });
 
-    const url = new URL(window.location.pathname, window.location.origin);
+  const url = new URL('/admin/api/users/all', BASE_URL);
     Object.keys(params).forEach(key => {
       url.searchParams.set(key, params[key]);
     });
@@ -304,40 +304,48 @@
     return url.toString();
   }
 
-  function goToPage(page) {
-    const pageNum = parseInt(page);
-    const maxPages = parseInt('<%= totalPages %>');
-    if (pageNum < 1 || pageNum > maxPages) return;
-    
-    STATE.page = pageNum;
-    navigateToUrl(buildUrl({ page: pageNum }));
-  }
+function goToPage(page) {
+  const pageNum = parseInt(page);
+  const maxPages = parseInt(document.getElementById('total-pages').textContent) || 1;
+  if (pageNum < 1 || pageNum > maxPages) return;
 
-  function setSortField(field) {
-    const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
-    STATE.sortField = field;
-    STATE.sortOrder = newOrder;
-    STATE.page = 1;
-    navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
-  }
+  STATE.page = pageNum;
+  fetchUsers({ page: pageNum });
+}
 
-  function resetFilters() {
-    STATE.page = 1;
-    STATE.status = 'all';
-    STATE.sortField = 'name';
-    STATE.sortOrder = 'asc';
-    STATE.search = '';
-    STATE.showUnlisted = false;
-    
-    navigateToUrl(buildUrl({
-      page: 1,
-      status: 'all',
-      sortField: 'name',
-      sortOrder: 'asc',
-      search: '',
-      showUnlisted: false
-    }));
-  }
+function setSortField(field) {
+  const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+  STATE.sortField = field;
+  STATE.sortOrder = newOrder;
+  STATE.page = 1;
+
+  fetchUsers({ sortField: field, sortOrder: newOrder, page: 1 });
+}
+
+function resetFilters() {
+  STATE.page = 1;
+  STATE.status = 'all';
+  STATE.sortField = 'name';
+  STATE.sortOrder = 'asc';
+  STATE.search = '';
+  STATE.showUnlisted = false;
+
+  // update filter controls
+  document.getElementById('user-filter').value = 'all';
+  document.getElementById('show-unlisted').checked = false;
+  document.getElementById('search-input').value = '';
+  document.getElementById('sort-field').value = 'name';
+  document.getElementById('sort-order').innerHTML = `<span class="sort-icon">↑</span>`;
+
+  fetchUsers({
+    page: 1,
+    status: 'all',
+    sortField: 'name',
+    sortOrder: 'asc',
+    search: '',
+    showUnlisted: false
+  });
+}
 
   document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('user-filter').addEventListener('change', function(e) {
@@ -423,7 +431,7 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        window.location.reload();
+          fetchUsers()
       } else {
         hideLoading();
         showError(data.message || 'Failed to delete user');
@@ -439,6 +447,8 @@
   function performToggleStatus(userId, block) {
     if (STATE.isLoading) return;
     showLoading();
+
+    block = (block == true || block == 'true') ? true : false
     
     fetch(`${BASE_URL}/admin/users/toggle-status/${userId}`, {
       method: 'PATCH',
@@ -450,7 +460,7 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        window.location.reload();
+          fetchUsers()
       } else {
         hideLoading();
         showError(data.message || 'Failed to update user status');
@@ -504,4 +514,143 @@
       closeModal();
     }
   });
+
+
+   async function fetchUsers(overrides = {}) {
+    showLoading();
+    try {
+      const url = buildUrl(overrides);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      if (data.success) {
+        const uniqueUsers = Array.from(new Map(data.users.map(user => [user._id, user])).values());
+        updateUI({ ...data, users: uniqueUsers });
+      } else {
+        showError(data.message || 'Failed to load users');
+      }
+    } catch (error) {
+      showError('An error occurred while loading users');
+      console.error('Error:', error);
+    } finally {
+      hideLoading();
+    }
+  }
+
+  function updateUI(data) {
+    STATE.page = data.currentPage || 1;
+
+//     [
+//   'page-number',
+//   'total-pages',
+//   'result-count',
+//   'total-count',
+//   'prev-btn',
+//   'next-btn',
+//   'table-body',
+//   'error-msg',
+//   'modal-overlay'
+// ].forEach(id => console.log(id, document.getElementById(id)));
+
+    // Update pagination
+    document.getElementById('page-number').value = data.currentPage;
+    // document.getElementById('total-pages').textContent = data.totalPages;
+    document.getElementById('result-count').textContent = data.users?.length || 0;
+    document.getElementById('total-count').textContent = data.totalUsers || 0;
+    document.getElementById('prev-btn').disabled = data.currentPage <= 1;
+    document.getElementById('next-btn').disabled = data.currentPage >= data.totalPages;
+
+    // Update sort indicator
+// --- safe sort-indicator update ---
+document.querySelectorAll('.sortable-header').forEach(th => {
+  const key = th.dataset.sortKey;
+  // clear old indicator
+  th.querySelectorAll('.sort-indicator').forEach(s => s.remove());
+
+  // add new one only if this column is active
+  if (key === STATE.sortField) {
+    const span = document.createElement('span');
+    span.className = 'sort-indicator';
+    span.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+    th.querySelector('.header-content').appendChild(span);
+  }
+});
+
+    // Update table
+    const tableBody = document.getElementById('table-body');
+    tableBody.innerHTML = ''; // Clear existing content
+    if (!data.users || data.users.length === 0) {
+      tableBody.innerHTML = `
+        <tr class="no-data-row">
+          <td colspan="6" class="no-data-cell">
+            <div class="no-data-content">
+              <div class="no-data-icon">
+                <i class="lni lni-users"></i>
+              </div>
+              <p>No users found</p>
+              ${STATE.search || STATE.status !== 'all' || STATE.showUnlisted ? 
+                '<button class="btn btn-link" onclick="resetFilters()">Clear filters</button>' : ''}
+            </div>
+          </td>
+        </tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = data.users.map((user, index) => `
+      <tr class="user-row ${user.isListed ? '' : 'unlisted-user'}" data-user-id="${user._id || index}">
+        <td class="user-name">
+          <div class="user-info">
+            <span class="name">${user.name}</span>
+          </div>
+        </td>
+        <td class="user-email">
+          <a href="mailto:${user.email}" class="email-link">${user.email}</a>
+        </td>
+        <td class="user-phone">
+          <span class="phone-text">${user.phone || 'N/A'}</span>
+        </td>
+        <td class="user-status">
+          <span class="status-badge ${user.isBlocked ? 'blocked' : 'active'}">
+            ${user.isBlocked ? 'Blocked' : 'Active'}
+          </span>
+        </td>
+        <td class="user-joined">
+          <span class="date-text">
+            ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+          </span>
+        </td>
+        <td class="user-actions">
+          <div class="action-buttons">
+            <button        onclick="editUser('${ user._id || user.id || index }')"
+ class="btn btn-sm btn-outline-primary edit-btn" 
+                    data-user-id="${user._id || user.id || index}"
+                    title="Edit User">
+              <i class="lni lni-pencil"></i>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button    onclick="toggleUserStatus('${user._id}', '${user.isBlocked ? 'false' : 'true' }')" class="btn btn-sm btn-outline-warning toggle-btn" 
+                    data-user-id="${user._id}"
+                    data-block="${user.isBlocked ? 'false' : 'true'}"
+                    title="${user.isBlocked ? 'Unblock' : 'Block'} User">
+              <i class="lni lni-${user.isBlocked ? 'unlock' : 'lock'}"></i>
+              <span class="btn-text">${user.isBlocked ? 'Unblock' : 'Block'}</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // function setSortField(field) {
+  //   const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+  //   STATE.sortField = field;
+  //   STATE.sortOrder = newOrder;
+  //   STATE.page = 1;
+  //   document.getElementById('sort-order').innerHTML = `<span class="sort-icon">${newOrder === 'asc' ? '↑' : '↓'}</span>`;
+  //   fetchUsers({ sortField: field, sortOrder: newOrder, page: 1 });
+  // }
+
+  
 </script>

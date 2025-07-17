@@ -28,6 +28,8 @@ orderRouter.post('/:orderId/cancel-item',  orderController.cancelSingleItem);
 orderRouter.post('/:orderId/return', orderController.returnFullOrder);
 orderRouter.post('/:orderId/return-item', orderController.returnSingleItem);
 
-orderRouter.get('/:orderId/pdf', orderController.getOrderPdf)
+orderRouter.get('/:orderId/pdf', orderController.getOrderPdf);
+
+orderRouter.get('/api/:id', orderController.getOrderDeatilsPageContent);
 
 module.exports = orderRouter;

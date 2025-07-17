@@ -36,6 +36,40 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+
+const getAllOrdersFilteredList = async (req, res) => {
+  try {
+    const { orders, totalOrders, totalRevenue, totalPages, currentPage, filters } =
+    
+    
+    await orderService.fetchAllOrders(req);
+
+    res.status(200).json({
+      orders,
+      totalOrders,
+      totalRevenue,
+      totalPages,
+      currentPage,
+      ...filters,
+      success: true
+    });
+
+
+  } catch (err) {
+
+    res.status(500).json({
+      orders: [],
+      totalOrders: 0,
+      totalRevenue: 0,
+      totalPages: 1,
+      currentPage: 1,
+      error: err.message,
+      success: false
+    });
+
+  }
+};
+
 const getOneOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -266,5 +300,6 @@ module.exports = {
   bulkUpdateOrders,
   returnRequestAction,
   renderInvoice,
-  getOrderPdf
+  getOrderPdf,
+  getAllOrdersFilteredList
 };

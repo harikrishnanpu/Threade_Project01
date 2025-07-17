@@ -26,8 +26,46 @@ async function renderAllBrands(req, res, next) {
       ...filters
     });
   } catch (error) {
-    console.error('Error rendering brands page:', error);
-    res.status(500).json({message: error.message})
+
+    console.log('Error rendering brands page:', error);
+    res.status(500).json({message: error.message});
+    
+  }
+}
+
+
+
+async function getFilteredBrands(req, res, next) {
+  try {
+
+
+    const { query, sort, limit, skip, currentPage, finalSortField, finalSortOrder, ...filters } = getAllBrandListQuery(req.query);
+
+    const [brands, totalBrands, categories] = await Promise.all([
+      brandService.getBrands(query, sort, skip, limit),
+      brandService.countBrands(query),
+      Category.find({ isActive: true }).select('name').sort({ name: 1 }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(totalBrands / limit));
+    const safePage = Math.min(currentPage, totalPages);
+
+    res.status(200).json({
+      success: true,
+      brands,
+      totalBrands,
+      categories,
+      currentPage: safePage,
+      totalPages,
+      ...filters
+    });
+
+
+  } catch (error) {
+
+    console.log('Error rendering brands page:', error);
+    res.status(500).json({message: error.message , success: false});
+
   }
 }
 
@@ -157,14 +195,14 @@ async function toggleBrandStatus(req, res, next) {
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: 'Brand ID is required'
+        message: 'brand is required'
       });
     }
     
     if (typeof active !== 'boolean') {
       return res.status(400).json({
         success: false,
-        message: 'Active status must be a boolean'
+        message: 'status must be a boolean'
       });
     }
 
@@ -297,5 +335,6 @@ module.exports = {
   updateBrand,
   toggleBrandStatus,
   toggleBrandListed,
-  uploadImage
+  uploadImage,
+  getFilteredBrands
 };
