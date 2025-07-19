@@ -57,7 +57,7 @@ const getUserHomePage = async (req, res) => {
   getAllProductsByCategory(10),
   getAllNewArrivals(10),
   getAllCategoriesBySubCategories(10),
-  productSuggestions(req.user._id,10),
+  productSuggestions(req.user._id,5),
   getDealOfTheDayProducts(),
 ]);
 
@@ -69,7 +69,7 @@ const wishlistItemIds = userWishlist?.items.map(i => i.product.toString()) || []
 
 // console.log(allMainCatsbySub);
 
-// console.log(userProductSuggestions);
+console.log(userProductSuggestions);
 
 
     
@@ -87,6 +87,7 @@ const wishlistItemIds = userWishlist?.items.map(i => i.product.toString()) || []
       dealsOfTheDayProducts,
       wishlistItemIds,
         });
+
   } catch (err) {
     res.status(500).json({ message: err.message});
   }

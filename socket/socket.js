@@ -10,8 +10,8 @@ module.exports = io => {
 
     socket.on('user_online', async ({ userId, name }) => {
       activeUsers.set(userId, socket.id);
-
-      const room = await Room.findOneAndUpdate(
+      
+const room = await Room.findOneAndUpdate(
         { userId },
         { userId },                          
         { new: true, upsert: true }

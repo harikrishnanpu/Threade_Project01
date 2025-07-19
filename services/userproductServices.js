@@ -532,7 +532,7 @@ const productSuggestions = async (userId='684d0b00b80e185db0828a81' , limit = 5)
     let orderIds = [];
 
 if (userId) {
-  const userOrders = await Order.find({ user: new mongoose.Types.ObjectId(userId) }).select('_id').lean();
+  const userOrders = await Order.find({ user: new mongoose.Types.ObjectId(userId) }).lean();
   orderIds = userOrders.map(order => order._id);
   // console.log(orderIds);
 }
@@ -560,8 +560,8 @@ if (!Array.isArray(orderIds)) {
       if (orderedProductIds.length > 0) {
 
         const OrderProducts = await Product.aggregate([
-             { $match: { isActive: true , isCategoryActive: true, isBrandActive: true } },
-            {$lookup: {
+    { $match: { isActive: true , isCategoryActive: true, isBrandActive: true } },
+    {$lookup: {
         from: 'categories',
         localField: 'category',
         foreignField: '_id',
@@ -572,27 +572,42 @@ if (!Array.isArray(orderIds)) {
         localField: 'brand',
         foreignField: '_id',
         as: 'brand'
-      }
-      },{$unwind: '$brand' },
-      {$match: { 'category.isActive' : true , 'brand.isActive' : true }},
+      } },{$unwind: '$brand' },
+      { $match: { 'category.isActive' : true , 'brand.isActive' : true } },
+            { $sort: { createdAt: -1 } },
+      { $limit: limit }
         ])
 
-        const categories = OrderProducts.map(p => p.category?._id.toString());
-        const brands = OrderProducts.map(p => p.brand?._id.toString());
-
-             const suggestions = await Product.find({
-          isActive: true,
-          isCategoryActive: true, isBrandActive: true,
-          _id: { $nin: orderedProductIds },
-          $or: [
-            { category: { $in: categories } },
-            { brand: { $in: brands } }
-          ]
-        }).limit(limit).lean();
 
     
 
-        result = suggestions;
+        result = OrderProducts;
+      }else{
+
+     const OrderProducts = await Product.aggregate([
+    { $match: { isActive: true , isCategoryActive: true, isBrandActive: true } },
+    {$lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category'
+      } },{ $unwind: '$category' },
+      {$lookup: {
+        from: 'brands',
+        localField: 'brand',
+        foreignField: '_id',
+        as: 'brand'
+      } },{$unwind: '$brand' },
+      { $match: { 'category.isActive' : true , 'brand.isActive' : true } },
+      { $sort: { createdAt: -1 } },
+      { $limit: limit }
+        ])
+
+
+    
+
+        result = OrderProducts;
+
       }
 
 

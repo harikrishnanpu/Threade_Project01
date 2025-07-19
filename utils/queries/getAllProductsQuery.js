@@ -72,7 +72,7 @@ const getUserProductFiltersAndSort = async query => {
   const {
     search = '', mainCat, subCat, brand, priceRange, size, color, tag,
     rating, isNew, isSale, isFeatured, inStock,
-    sortBy = 'newest', page = '1', limit = '9'
+    sortBy = 'newest', page = '1', limit = 6
   } = query
 
   let mainCatfromUser = mainCat
@@ -99,7 +99,7 @@ const getUserProductFiltersAndSort = async query => {
    filters.category = { $in: [...subCatIds.map(s => new mongoose.Types.ObjectId(s._id)), catId._id] };
   }
 
-  if (brand) filters.brand = brand
+  if (brand) filters.brand = new mongoose.Types.ObjectId(brand)
   if (size) filters['variants.size'] = size
   if (color) filters['variants.color'] = { $in: [color] }
   if (tag) filters.tags = { $in: [tag] }

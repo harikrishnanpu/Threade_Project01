@@ -852,9 +852,10 @@ document.getElementById("confirmYes").addEventListener("click", async () => {
     });
     const out = await res.json();
     if (!res.ok) throw new Error(out.message);
-    location.reload();
+await refreshAddresses();
+bindAddressActionEvents();
   } catch (err) {
-    showMsg("#pageNote", err.message || "Failed to delete address");
+    showGlobalToast(err.message || "Failed to delete address",'error');
   } finally {
     addressIdToDelete = null;
     document.getElementById("confirmModal").classList.remove("show");
@@ -911,7 +912,7 @@ document.getElementById("confirmNo").addEventListener("click", () => {
 
           const fd = new FormData(e.target);
 
-          console.log(fd.get("addressType"),);
+          // console.log(fd.get("addressType"),);
           
 
           const payload = {
@@ -931,7 +932,9 @@ document.getElementById("confirmNo").addEventListener("click", () => {
           }
 
           const isEdit = fd.get("_method") === "PUT";
+
           const id = fd.get("addressId");
+
           const url = isEdit
             ? `${BASE}/user/profile/address/${id}/edit`
             : `${BASE}/user/profile/address/add`;
@@ -943,13 +946,17 @@ document.getElementById("confirmNo").addEventListener("click", () => {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
             });
+
             const out = await r.json();
+
             if (!r.ok) throw new Error(out.message);
-            showMsg("#pageNote", out.message || "Saved", "success");
+            
+            showGlobalToast(out.message || "Saved", "success");
             closeModal();
-            setTimeout(() => location.reload(), 700);
+         await refreshAddresses();
+bindAddressActionEvents();
           } catch (err) {
-            showMsg("#modalMsg", err.message);
+            showGlobalToast(err.message,'error');
           } finally {
             clearLoading(btn);
           }
@@ -963,6 +970,80 @@ document.getElementById("confirmNo").addEventListener("click", () => {
         .addEventListener("click", (e) => {
           if (e.target.id === "modal") closeModal();
         });
+
+
+        async function refreshAddresses() {
+  try {
+    // Fetch latest addresses from the backend
+    const res = await fetch('/user/profile/address/api/filtered/all');
+    const {addresses , success} = await res.json();
+    if (!Array.isArray(addresses) && !success) throw new Error('Failed to fetch addresses');
+
+    const html = addresses.length
+      ? addresses.map((a) => `
+        <div class="addr-card">
+          ${a.isDefault ? `<span class="badge-default">default</span>` : ''}
+          <h4 style="font-size: 1.05rem; margin-bottom: 0.15rem">
+            ${a.fullName}
+          </h4>
+          <p style="margin: 0.3rem 0">${a.street}</p>
+          <p style="margin: 0.3rem 0">
+            ${a.city}, ${a.state} – ${a.pincode}
+          </p>
+          <p style="margin: 0.4rem 0">
+            <i class="fas fa-phone"></i> ${a.phone}
+          </p>
+          ${a.type ? `
+            <div class="addr-type">
+              <i class="fas fa-${a.type === 'home' ? 'home' : 'briefcase'}"></i> ${a.type}
+            </div>` : ''}
+          <div class="addr-actions">
+            <a href="#" class="text-info editBtn"
+               data-json='${JSON.stringify(a)}'>
+              <i class="fas fa-edit"></i>Edit
+            </a>
+            <a href="#" class="text-danger deleteBtn"
+               data-id="${a._id}">
+              <i class="fas fa-trash"></i>Delete
+            </a>
+          </div>
+        </div>
+      `).join('') : `
+        <div class="note error" style="text-align: center">
+          No addresses yet – click “Add address”.
+        </div>`;
+
+    document.querySelector('.addr-grid').innerHTML = html;
+
+  } catch (err) {
+    document.querySelector('.addr-grid').innerHTML =
+      `<div class="note error" style="text-align: center">
+        ${err.message || "Failed to load addresses"}
+      </div>`;
+  }
+}
+
+
+function bindAddressActionEvents() {
+
+  document.querySelectorAll(".editBtn").forEach((b) => {
+    b.onclick = e => {
+      e.preventDefault();
+      fillForm(JSON.parse(b.dataset.json));
+      openModal();
+    };
+  });
+
+  document.querySelectorAll(".deleteBtn").forEach((btn) => {
+    btn.onclick = e => {
+      e.preventDefault();
+      addressIdToDelete = btn.dataset.id;
+      document.getElementById("confirmModal").classList.add("show");
+    };
+  });
+}
+
+
     </script>
   </body>
 </html>
