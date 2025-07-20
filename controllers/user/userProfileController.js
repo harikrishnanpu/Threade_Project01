@@ -365,8 +365,8 @@ const phoneRE  = /^[6-9]\d{9}$/;
 const dobRE    = /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
   
 
-if (!name.trim() || !email.trim() || !phone.trim()) {
-  return res.status(400).json({ message: 'name, email, phone are required' });
+if (!name.trim() || !email.trim()) {
+  return res.status(400).json({ message: 'name, email are required' });
 }
 
   try {
@@ -379,7 +379,7 @@ if (!emailRE.test(email.trim())) {
   return res.status(400).json({ message: 'invalid email address.' });
 }
 
-if (!phoneRE.test(phone.trim())) {
+if (phone && !phoneRE.test(phone.trim())) {
   return res.status(400).json({ message: 'phone must be a 10-digit' });
 }
 
@@ -457,7 +457,7 @@ if (existingUser) {
   } catch (err) {
     // console.log(err);
     
-    return res.status(500).json({ message: err.message});
+    return res.status(500).json({success: true, message: err.message});
   }
 
 };

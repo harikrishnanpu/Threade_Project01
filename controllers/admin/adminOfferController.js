@@ -11,7 +11,7 @@ const getOffersPage = async (req, res) => {
       sortField: 'createdAt',
       sortOrder: 'desc',
       search: '',
-      showExpired: false,
+      showExpired: true,
     };
 
     const query = {...defaults,
@@ -23,6 +23,9 @@ const getOffersPage = async (req, res) => {
     query.showExpired = query.showExpired == 'true' || query.showExpired == true;
 
     const data = await offerService.listOffers(query);
+
+
+    
 
     res.render('admin/allOffers', { ...query, ...data });
     
@@ -42,12 +45,14 @@ const getOffersListFiltered = async (req, res) => {
       sortField: 'createdAt',
       sortOrder: 'desc',
       search: '',
-      showExpired: false,
+      showExpired: true,
     };
 
     const query = {...defaults,
       ...req.query,
     };
+
+    
 
     query.page = parseInt(query.page) || 1;
     query.limit = parseInt(query.limit) || 10;
@@ -119,6 +124,8 @@ const updateOffer = async (req, res) => {
     const body = req.body;
 
     // console.log(req.file);
+
+    
     
 
     if (req.file) body.image = req.file.path;
@@ -128,6 +135,8 @@ const updateOffer = async (req, res) => {
     res.status(200).json({ success: true });
 
   } catch (err) {
+    console.log(err);
+    
     res.status(400).json({ success: false, message: err.message });
   }
 

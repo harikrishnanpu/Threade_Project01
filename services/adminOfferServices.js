@@ -15,6 +15,11 @@ const updateAllProductSalePrices = async () => {
 
     for (const product of products) {
 
+
+  if (!product.category || !product.category.isActive) {
+    continue; 
+  }
+
       const productCategoryId = product.category._id.toString();
       const parentCategoryId = product.category.parentCategory?.toString();
       const productId = product._id.toString();
@@ -89,7 +94,7 @@ const updateAllProductSalePrices = async () => {
     // console.log(err.message);
     
 
-    // console.log(err);
+    console.log(err);
 
     throw new Error(err.message);
   }
@@ -103,7 +108,7 @@ const createOffer = async (data) => {
 
  const { title, description, discount, maxDiscountAmount, applicableOn, startDate, endDate, isActive, products, categories   } = data;
 
-    if(!title || !discount || !applicableOn){
+    if(!title.trim() || !discount || !applicableOn.trim()){
       throw new Error('all fields are required')
     }
 
@@ -122,7 +127,7 @@ const createOffer = async (data) => {
         endDate,
         products,
         categories,        
-        isActive: isActive == "on" ? true : false
+        isActive: (isActive == "on" || isActive == true) ? true : false
 
        });
 
@@ -142,7 +147,7 @@ const updateOffer = async (id, data) => {
 
     const { title, description, discount, maxDiscountAmount, applicableOn, startDate, endDate, isActive, products, categories   } = data;
 
-    if(!title || !discount || !applicableOn){
+    if(!title.trim() || !discount || !applicableOn){
       throw new Error('all fields are required')
     }
 
@@ -162,7 +167,7 @@ const updateOffer = async (id, data) => {
         endDate,
         products,
         categories,        
-        isActive: isActive == "on" ? true : false
+        isActive: (isActive == "on" || isActive == true) ? true : false
 
        }, { new: true });
 
@@ -171,6 +176,8 @@ const updateOffer = async (id, data) => {
 
     return offer;
   } catch (err) {
+    console.log(err);
+    
     throw new Error(err.message);
   }
 };
@@ -265,7 +272,7 @@ const listOffers = async (query) => {
       sortField = 'createdAt',
       sortOrder = 'desc',
       search = '',
-      showExpired = false,
+      showExpired = true,
     } = query;
 
     page = parseInt(page);

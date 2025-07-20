@@ -389,7 +389,7 @@ nav.profile-nav ul {
       >
         <i class="fas fa-bars"></i>
       </button>
-      <span>My address book</span>
+      <span>My Orders</span>
       <span></span>
     </header>
 
@@ -610,14 +610,7 @@ nav.profile-nav ul {
                   </div>
                 </div>
               </div>
-              <div class="order-status status-<%= order.orderStatus %>">
-                <i class="fas fa-<%= 
-                  order.orderStatus === 'pending' ? 'clock' :
-                  order.orderStatus === 'confirmed' ? 'check' :
-                  order.orderStatus === 'shipped' ? 'truck' :
-                  order.orderStatus === 'delivered' ? 'check-circle' :
-                  order.orderStatus === 'cancelled' ? 'times' : 'undo'
-                %>"></i>
+              <div class="order-status font-bold status-<%= order.orderStatus %>">
                 <%= order.orderStatus %>
               </div>
             </div>
@@ -687,90 +680,63 @@ nav.profile-nav ul {
     </div>
 
     <!-- pagination -->
-    <% if (totalPages > 1) { %>
-      <div class="pagination-container">
-        <div class="pagination-info">
-          <div>
-            Page <%= currentPage %> of <%= totalPages %> 
-            (<%= totalOrders %> total orders)
-          </div>
-        </div>
+<% if (totalPages > 1) { %>
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Page <%= currentPage %> of <%= totalPages %> (<%= totalOrders %> total orders)
+    </div>
+    <div class="pagination">
+      <% if (currentPage > 1) { %>
+        <a href="<%= buildUrl({page: 1}) %>" class="page-btn">
+          <i class="fas fa-angle-double-left"></i> First
+        </a>
+        <a href="<%= buildUrl({page: currentPage - 1}) %>" class="page-btn">
+          <i class="fas fa-chevron-left"></i> Previous
+        </a>
+      <% } else { %>
+        <span class="page-btn disabled"><i class="fas fa-chevron-left"></i> Previous</span>
+      <% } %>
+      
+      <% 
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage   = Math.min(totalPages, currentPage + 2);
 
-        <div class="pagination">
-          <!-- First page -->
-          <% if (currentPage > 1) { %>
-            <a href="<%= buildUrl({page: 1}) %>" class="page-btn">
-              <i class="fas fa-angle-double-left"></i> First
-            </a>
-          <% } %>
+        // keep 5 numbers visible
+        if (endPage - startPage < 4) {
+          if (startPage === 1) endPage = Math.min(totalPages, startPage + 4);
+          else if (endPage === totalPages) startPage = Math.max(1, endPage - 4);
+        }
+      %>
+      <% if (startPage > 1) { %>
+        <a href="<%= buildUrl({page: 1}) %>" class="page-btn">1</a>
+        <% if (startPage > 2) { %>
+          <span class="page-dots">...</span>
+        <% } %>
+      <% } %>
 
-          <!-- Previous page -->
-          <% if (currentPage > 1) { %>
-            <a href="<%= buildUrl({page: currentPage - 1}) %>" class="page-btn">
-              <i class="fas fa-chevron-left"></i> Previous
-            </a>
-          <% } else { %>
-            <span class="page-btn disabled">
-              <i class="fas fa-chevron-left"></i> Previous
-            </span>
-          <% } %>
+      <% for(let i = startPage; i <= endPage; i++) { %>
+        <a href="<%= buildUrl({page: i}) %>" class="page-btn <%= i === currentPage ? 'active' : '' %>">
+          <%= i %>
+        </a>
+      <% } %>
 
-          <!-- Page numbers -->
-          <% 
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, currentPage + 2);
-            
-            // Adjust range to always show 5 pages when possible
-            if (endPage - startPage < 4) {
-              if (startPage === 1) {
-                endPage = Math.min(totalPages, startPage + 4);
-              } else if (endPage === totalPages) {
-                startPage = Math.max(1, endPage - 4);
-              }
-            }
-          %>
+      <% if (endPage < totalPages) { %>
+        <% if (endPage < totalPages - 1) { %>
+          <span class="page-dots">...</span>
+        <% } %>
+        <a href="<%= buildUrl({page: totalPages}) %>" class="page-btn"><%= totalPages %></a>
+      <% } %>
 
-          <% if (startPage > 1) { %>
-            <a href="<%= buildUrl({page: 1}) %>" class="page-btn">1</a>
-            <% if (startPage > 2) { %>
-              <span class="page-dots">...</span>
-            <% } %>
-          <% } %>
+      <% if (currentPage < totalPages) { %>
+        <a href="<%= buildUrl({page: currentPage + 1}) %>" class="page-btn">Next <i class="fas fa-chevron-right"></i></a>
+        <a href="<%= buildUrl({page: totalPages}) %>" class="page-btn">Last <i class="fas fa-angle-double-right"></i></a>
+      <% } else { %>
+        <span class="page-btn disabled">Next <i class="fas fa-chevron-right"></i></span>
+      <% } %>
+    </div>
+  </div>
+<% } %>
 
-          <% for (let i = startPage; i <= endPage; i++) { %>
-            <a href="<%= buildUrl({page: i}) %>" 
-               class="page-btn <%= i === currentPage ? 'active' : '' %>">
-              <%= i %>
-            </a>
-          <% } %>
-
-          <% if (endPage < totalPages) { %>
-            <% if (endPage < totalPages - 1) { %>
-              <span class="page-dots">...</span>
-            <% } %>
-            <a href="<%= buildUrl({page: totalPages}) %>" class="page-btn"><%= totalPages %></a>
-          <% } %>
-
-          <!-- Next page -->
-          <% if (currentPage < totalPages) { %>
-            <a href="<%= buildUrl({page: currentPage + 1}) %>" class="page-btn">
-              Next <i class="fas fa-chevron-right"></i>
-            </a>
-          <% } else { %>
-            <span class="page-btn disabled">
-              Next <i class="fas fa-chevron-right"></i>
-            </span>
-          <% } %>
-
-          <!-- Last page -->
-          <% if (currentPage < totalPages) { %>
-            <a href="<%= buildUrl({page: totalPages}) %>" class="page-btn">
-              Last <i class="fas fa-angle-double-right"></i>
-            </a>
-          <% } %>
-        </div>
-      </div>
-    <% } %>
   </main>
 </div>
 
@@ -828,8 +794,6 @@ async function fetchAndRenderOrders(custom = {}) {
   }
 }
 
-// ------- Render helpers -------
-// Use your existing EJS snippets, but in JS (use template literals)
 function renderOrders(orders) {
   if (!orders || !orders.length) return `
     <div class="empty-state"><i class="fas fa-box-open"></i>
@@ -859,13 +823,7 @@ function renderOrders(orders) {
           </div>
         </div>
         <div class="order-status status-${order.orderStatus}">
-          <i class="fas fa-${
-            order.orderStatus === 'pending' ? 'clock' :
-            order.orderStatus === 'confirmed' ? 'check' :
-            order.orderStatus === 'shipped' ? 'truck' :
-            order.orderStatus === 'delivered' ? 'check-circle' :
-            order.orderStatus === 'cancelled' ? 'times' : 'undo'
-          }"></i>
+
           ${order.orderStatus}
         </div>
       </div>
@@ -901,7 +859,6 @@ function renderOrders(orders) {
   `).join('');
 }
 
-// Update these for your needs (use your EJS HTML blocks as guides):
 
 function renderResultsInfo(data) {
   return `
@@ -978,7 +935,6 @@ function renderStats(data) {
   `;
 }
 
-// --- Bind controls to use fetch instead of reload ---
 
 document.getElementById('status-filter').onchange = function() {
   fetchAndRenderOrders({status: this.value, page: 1});
@@ -1005,7 +961,11 @@ document.querySelector('.reset-btn').onclick = function() {
   fetchAndRenderOrders({status:'',dateRange:'',paymentMethod:'',sortBy:'createdAt_desc',search:'',page:1});
 };
 
-// --- On first load, use SSR content, but after, AJAX updates take over ---
+      function toggleMenu() {
+        document.getElementById("side").classList.toggle("open");
+        document.querySelector(".profile-overlay").classList.toggle("show");
+      }
+
 
 </script>
 
