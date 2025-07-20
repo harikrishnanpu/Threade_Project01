@@ -139,6 +139,56 @@ const renderOrdersPage = async (req, res) => {
   }
 };
 
+
+const getOrderPageContent = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const {
+      status = '',
+      dateRange = '',
+      paymentMethod = '',
+      sortBy = 'createdAt_desc',
+      search = '',
+      page = 1
+    } = req.query;
+
+    const limit = 2;
+    const filters = { status, dateRange, paymentMethod, search, sortBy };
+    const currentPage = parseInt(page) || 1;
+
+    const {
+      orders,
+      totalOrders,
+      pendingOrders,
+      deliveredOrders
+    } = await getUserOrders(userId, filters, currentPage, limit);
+
+    const totalPages = Math.ceil(totalOrders / limit);
+    const startIndex = (currentPage - 1) * limit + 1;
+    const endIndex = Math.min(currentPage * limit, totalOrders);
+
+    res.status(200).json({
+      success: true,
+      orders,
+      totalOrders,
+      pendingOrders,
+      deliveredOrders,
+      currentPage,
+      totalPages,
+      startIndex,
+      endIndex,
+      filters,
+      cancelledOrders: []
+    });
+
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({ message: err.message, success: false });
+  }
+};
+
 const renderOrderDetailsPage = async (req, res) => {
   try {
 
@@ -199,6 +249,43 @@ const renderWalletPage = async (req, res) => {
   } catch (err) {
     console.log("KJRNFBHJBFJBJBCVJHBFJHHBV",err);
     res.status(500).json({message: err.message})
+  }
+};
+
+
+const getWalletPageContent = async (req, res) => {
+  try {
+    const limit = 5; 
+
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+
+    let wallet = await Wallet.findOne({ user: req.user._id }).lean();
+
+    if (!wallet) {
+      wallet = await Wallet.create({ user: req.user._id });
+    }
+
+    const totalTxns   = wallet.transactions.length;
+
+    const totalPages  = Math.max(Math.ceil(totalTxns / limit), 1);
+
+    const startIndex  = (page - 1) * limit;
+    const endIndex    = startIndex + limit;
+
+    wallet.transactions = wallet.transactions.slice().reverse().slice(startIndex, endIndex);
+    
+
+    res.status(200).json({
+      success: true,
+      wallet,                
+      pageNo: page,
+      totalPagesBck: totalPages,
+    });
+
+  } catch (err) {
+    console.log("KJRNFBHJBFJBJBCVJHBFJHHBV",err);
+
+    res.status(500).json({message: err.message, success: false})
   }
 };
 
@@ -492,8 +579,22 @@ const renderAddressBookPage = async (req, res) => {
     const addresses = (await userProfileService.getUserAddressById(userId)) || []
     res.render("user/address-book", { addresses })
   } catch (err) {
-    console.error("Address book page error:", err)
-    res.status(500).render("error", { message: "Unable to load address book" })
+
+    res.status(500).render("error", { message: err.message })
+  }
+}
+
+
+const getAdddressPageContent = async (req, res) => {
+  const userId = req.user._id
+  try {
+
+    const addresses = (await userProfileService.getUserAddressById(userId)) || []
+    res.status(200).json({ success: true, addresses })
+
+  } catch (err) {
+
+    res.status(500).json({ success: false, message: err.messge })
   }
 }
 
@@ -519,7 +620,7 @@ const addAddress = async (req, res) => {
   }
 }
 
-const editAddress = async (req, res) => {
+const  editAddress = async (req, res) => {
 
   const userId = req.user._id
   const addressId = req.params.id
@@ -576,5 +677,8 @@ module.exports = {
   renderOrdersPage,
   renderOrderDetailsPage,
   addMoneyToWallet,
-  verifyWalletPayment
+  verifyWalletPayment,
+  getAdddressPageContent,
+  getOrderPageContent,
+  getWalletPageContent
 }

@@ -37,7 +37,7 @@ const AddressSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 12,
+      maxlength: 6,
     },
     country: {
       type: String,

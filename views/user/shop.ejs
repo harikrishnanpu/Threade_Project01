@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shop</title>
+  <!-- Fonts and Styles (Unchanged) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/shop/css/bootstrap.min.css" type="text/css">
   <link rel="stylesheet" href="/shop/css/font-awesome.min.css" type="text/css">
   <link rel="stylesheet" href="/shop/css/elegant-icons.css" type="text/css">
@@ -17,68 +18,82 @@
   <link rel="stylesheet" href="/shop/css/slicknav.min.css" type="text/css">
   <link rel="stylesheet" href="/shop/css/style.css" type="text/css">
   <style>
-    a:hover {
-      text-decoration: none;
-      color: inherit;
+    a:hover {text-decoration: none; color: inherit;}
+    @media (min-width: 700px){.product-grid{grid-template-columns:repeat(3,1fr);}}
+    .shop__sidebar ul li a{color: #000; font-size:.9rem; border: 1px solid #eee; padding-inline:5px; padding-block:5px; margin-block: 4px; margin-inline:8px;}
+    a.active{color:#fff!important;font-size:.9rem;background-color:#000;font-weight:800;}
+    .shop__sidebar__price a.active {background: #000; color: #fff !important; font-weight: 800;}
+    body.loading { pointer-events: none;}
+    @media (max-width: 991.98px){
+      .shop__sidebar{position:fixed;top:0;left:0;height:100vh;width:280px;background:#fff;z-index:1050;overflow-y:auto;padding:1.25rem 1rem;transform:translateX(-100%);transition:transform .3s;}
+      .shop__sidebar.open{transform:translateX(0);}
+      .sidebar-close{border:none;background:transparent;font-size:1.75rem;line-height:1;margin-bottom:.75rem;}
+      .sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1049;display:none;}
+      .sidebar-backdrop.show{display:block;}
     }
-    @media (min-width: 700px) {
-      .product-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
+
+    /* Netflix-like Category Hero Banner */
+    
+    /* Loading Overlay - softer! */
+    #loading-overlay {
+      position: fixed; left: 0; top: 0; width: 100vw; height: 100dvh;
+      background: rgba(255,255,255,0.38);
+      z-index: 9999; display: flex;
+      align-items: center; justify-content: center;
+      flex-direction: column; font-family: 'Nunito Sans',sans-serif;
+      backdrop-filter: blur(2px);
+      transition: opacity 0.3s;
     }
-    .shop__sidebar ul li a {
-      color: #000;
-      font-size: .9rem;
-      border: 1px solid #eee;
-      padding-inline: 5px;
-      padding-block: 5px;
-      margin-block: 4px;
-      margin-inline: 8px;
-    }
-    a.active {
-      color: #fff !important;
-      font-size: .9rem;
-      background-color: #000;
-      font-weight: 800;
-    }
-    @media (max-width: 991.98px) {
-      .shop__sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        width: 280px;
-        background: #fff;
-        z-index: 1050;
-        overflow-y: auto;
-        padding: 1.25rem 1rem;
-        transform: translateX(-100%);
-        transition: transform .3s ease-in-out;
-      }
-      .shop__sidebar.open {
-        transform: translateX(0);
-      }
-      .sidebar-close {
-        border: none;
-        background: transparent;
-        font-size: 1.75rem;
-        line-height: 1;
-        margin-bottom: .75rem;
-      }
-      .sidebar-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.45);
-        z-index: 1049;
-        display: none;
-      }
-      .sidebar-backdrop.show {
-        display: block;
-      }
-    }
+    #loading-overlay.fade-out { opacity: 0; pointer-events: none;}
+    #loading-message { font-size: 1.5rem; font-weight: 700; color: #222;}
+
+
+
+
+
+
+
+
+.ballon {
+  position: fixed;
+  bottom: 0;
+  opacity: 1;
+  pointer-events: none;
+  display: none;
+  animation: toTop 3s ease-out forwards;
+  width: 100%;
+}
+
+/* Animate "balloon" upward and fade out */
+@keyframes toTop {
+  0% {
+    opacity: 1;
+    bottom: 0;
+   /* transform: translateY(0); */
+  }
+  80% {
+    opacity: 1;
+    /* Move up over time */
+    bottom: 60px;
+  }
+  100% {
+    opacity: 0;
+    bottom: 120px;
+   /* transform: translateY(-120px);  */
+  }
+}
+
+
+
   </style>
 </head>
 <body>
+  <!-- LOADING OVERLAY -->
+  <div id="loading-overlay">
+    <img style="height: 300px;" src="/img/loading/loading12.gif"  alt="Loading..."/>
+    <div id="loading-message">Loading products...</div>
+  </div>
+
   <main style="padding-bottom:50px;">
     <section class="shop">
       <div class="container">
@@ -87,7 +102,7 @@
             <aside class="shop__sidebar">
               <button class="sidebar-close d-lg-none" onclick="closeSidebar()">×</button>
               <div class="header-search mb-4">
-                <input onkeydown="if(event.key === 'Enter') shopSubmit()" name="search" type="text" placeholder="Search products..." />
+                <input onkeydown="if(event.key==='Enter') shopSubmit()" name="search" type="text" placeholder="Search products..." />
                 <button onclick="shopSubmit();" type="submit"><i class="fa fa-search"></i></button>
               </div>
               <div class="shop__sidebar__accordion">
@@ -112,14 +127,7 @@
                     <div class="card-heading"><a data-toggle="collapse" data-target="#priceCollapse">Price</a></div>
                     <div id="priceCollapse" class="collapse show" data-parent="#shopSidebar">
                       <div class="card-body">
-                        <ul class="shop__sidebar__price">
-                          <li><a href="#" class="price-filter" data-price-range="" onclick="shopUpdate('priceRange','')">All</a></li>
-                          <li><a href="#" class="price-filter" data-price-range="0-50" onclick="shopUpdate('priceRange','0-50')">₹0 – ₹50</a></li>
-                          <li><a href="#" class="price-filter" data-price-range="50-100" onclick="shopUpdate('priceRange','50-100')">₹50 – ₹100</a></li>
-                          <li><a href="#" class="price-filter" data-price-range="100-150" onclick="shopUpdate('priceRange','100-150')">₹100 – ₹150</a></li>
-                          <li><a href="#" class="price-filter" data-price-range="150-200" onclick="shopUpdate('priceRange','150-200')">₹150 – ₹200</a></li>
-                          <li><a href="#" class="price-filter" data-price-range="200+" onclick="shopUpdate('priceRange','200+')">₹200+</a></li>
-                        </ul>
+                        <ul class="shop__sidebar__price" id="price-list"></ul>
                       </div>
                     </div>
                   </div>
@@ -144,14 +152,22 @@
             </aside>
           </div>
           <div class="col-lg-9">
-            <button id="filterToggle" class="btn btn-dark d-lg-none mb-3"><i class="fa fa-sliders"></i> Filters</button>
+
+  <div id="category-hero" class="category-hero">
+    <div class="category-hero-gradient"></div>
+    <div class="category-hero-content">
+      <div class="category-hero-title" id="category-hero-title"></div>
+      <div class="category-hero-sub" id="category-hero-sub"></div>
+    </div>
+  </div>
+
             <div class="shop__product__option">
               <div class="shop__active__filters" id="active-filters"></div>
               <div class="row">
-                <div class="col-lg-6 col-md-6">
-                  <div class="shop__product__option__left" id="product-count"></div>
+                <div class="col-lg-6 col-md-6 col-6">
+                              <button id="filterToggle" class="btn btn-dark d-lg-none mb-3"><i class="fa fa-sliders"></i></button>
                 </div>
-                <div class="col-lg-6 col-md-6">
+                <div class="col-lg-6 col-md-6 col-6">
                   <div class="shop__product__option__right">
                     <p>Sort by:</p>
                     <select onchange="shopUpdate('sortBy', this.value)">
@@ -167,13 +183,17 @@
                 </div>
               </div>
             </div>
+
             <div class="product-container">
               <div class="product-box">
                 <div class="product-main">
                   <div class="row mb-4">
                     <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
-                      <h2 class="title mb-0">Showing Products</h2>
-                      <div class="d-flex align-items-center gap-2" id="pagination"></div>
+                    <div class="">
+                          <h2 style="border-bottom: none;" class="title mb-0" id="showing-title">Showing Products</h2>
+                          <div style="border-bottom: 1px solid var(--cultured);" class="shop__product__option__left" id="product-count"></div>
+                </div>
+                  <div class="d-flex align-items-center gap-2" id="pagination"></div>
                     </div>
                   </div>
                   <div class="product-grid" id="product-grid"></div>
@@ -188,103 +208,278 @@
         </div>
       </div>
     </section>
+<!-- 
+    <div class="ballon d-flex">
+      <img src="/img/loading/ballon.gif" alt="">
+
+    </div> -->
   </main>
+
+
+    <script>
+
+
+function bindWishListLIstener () {
+
+    
+    document.querySelectorAll('.whishlist').forEach(btn => {
+
+  btn.addEventListener('click', async function () {
+    const productId = this.dataset.productId;
+    const allButtons = document.querySelectorAll(`.whishlist[data-product-id="${productId}"]`);
+
+    const isActive = this.classList.contains('active');
+    const modal = document.getElementById('wishlistConfirmModal');
+    const yesBtn = document.getElementById('wishlistConfirmYes');
+    const noBtn = document.getElementById('wishlistConfirmNo');
+
+    const updateUI = (active) => {
+      allButtons.forEach(el => {
+        const path = el.querySelector('svg path');
+        if (active) {
+          el.classList.add('active', 'pulse-continuous');
+          path.setAttribute('fill', '#e63946');
+          path.setAttribute('stroke', '#e63946');
+
+        } else {
+          el.classList.remove('active', 'pulse-continuous');
+          path.setAttribute('fill', 'none');
+          path.setAttribute('stroke', '#000');
+        }
+      });
+    };
+
+    if (!isActive) {
+      try {
+        const res = await fetch('/user/wishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, variant: null })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+
+                const r = await fetch("/user/wishlist/count");
+      const d = await r.json();
+      
+document.querySelectorAll(".HeaderwishCount").forEach(el => {
+  console.log(el);
+  if (r.ok && el) el.textContent = d.count;
+});
+
+          updateUI(true);
+          showGlobalToast('Added to wishlist');
+        } else {
+          showGlobalToast(data.message || 'Failed', 'error');
+        }
+      } catch (err) {
+        location.href = '/user/login';
+      }
+    } else {
+      modal.classList.remove('hidden');
+
+      yesBtn.onclick = async () => {
+        modal.classList.add('hidden');
+        try {
+          const res = await fetch(`/user/wishlist/remove/${productId}`, {
+            method: 'DELETE'
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            updateWishlistCount();
+            updateUI(false);
+            showGlobalToast('Removed from wishlist');
+          } else {
+            showGlobalToast(data.message || 'Failed to remove', 'error');
+          }
+        } catch (err) {
+          showGlobalToast('Error removing', 'error');
+        }
+      };
+
+      noBtn.onclick = () => modal.classList.add('hidden');
+    }
+  });
+});
+  
+}
+
+</script>
+
   <script>
+    // --- UTILITIES ---
+    function sleep(ms) {return new Promise(r=>setTimeout(r,ms));}
+
+    const loadingMessages = [
+      "Finding the perfect outfit for you...",
+      "Sprucing up your next wardrobe win...",
+      "Looking for the freshest styles...",
+      "Dressing up your collection...",
+      "Matching trends with your taste...",
+      "Ironing out the wrinkles in our best sellers...",
+      "Just a quick wardrobe change...",
+      "Adding the final stitch...",
+      "Squad shopping for you...",
+      "Pressing your style..."
+    ];
+    function randomLoadingMessage() {
+      return loadingMessages[Math.floor(Math.random()*loadingMessages.length)];
+    }
+    // LOADING OVERLAY CONTROL
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingMsg = document.getElementById('loading-message');
+    function showLoading() {
+      document.body.classList.add('loading');
+      loadingOverlay.style.display = 'flex';
+      loadingOverlay.classList.remove('fade-out');
+      loadingMsg.textContent = randomLoadingMessage();
+    }
+    function hideLoading() {
+      loadingOverlay.classList.add('fade-out');
+      setTimeout(() => {
+        loadingOverlay.style.display='none';
+        document.body.classList.remove('loading');
+      }, 450);
+    }
     const params = new URLSearchParams(window.location.search);
     let mainCategories = [], brands = [], variantSizes = [], tags = [];
+    let allPriceRanges = [
+      {label:'All', range:""},
+      {label:'₹100 – ₹200', range:"100-200"},
+      {label:'₹200 – ₹300', range:"200-300"},
+      {label:'₹300 – ₹400', range:"300-400"},
+      {label:'₹400 – ₹500', range:"400-500"},
+      {label:'₹500+', range:"500+"}
+    ];
+
+    const defaultHeroImg = '/shop/images/default-category.jpg';
 
     async function fetchData() {
+      showLoading();
       try {
+        loadingMsg.textContent = randomLoadingMessage();
         const response = await fetch(`/user/products/shop/api/filtered/all?${params.toString()}`);
+        await sleep(250+Math.random()*600);
+        if (!response.ok) throw new Error("Server error: "+response.statusText);
         const data = await response.json();
+        console.log(data);
+        
         return data;
       } catch (e) {
-        console.error('Error fetching data:', e);
-        return null;
+        showError("Failed to load products. Please refresh or try again. "+(e.message||e));
+        throw e;
+      } finally {
+        hideLoading();
       }
     }
 
+
+    function showError(message) {
+      hideLoading();
+      const main = document.querySelector('main');
+      main.innerHTML = `<div class="d-flex align-items-center justify-content-center" style="height: 48vh;">
+        <div style="max-width:440px;text-align:center"><h2>😟 Oops!</h2><p style="color:#555">${message}</p>
+        <button class="btn btn-dark mt-2" onclick="location.reload()">Reload Page</button></div>
+      </div>`;
+    }
+
+
+    function showCategoryHero(currentCategory) {
+      const hero = document.getElementById('category-hero');
+      const heroTitle = document.getElementById('category-hero-title');
+      const heroSub = document.getElementById('category-hero-sub');
+      if (!currentCategory) { hero.style.display = "none"; return; }
+      hero.style.display = "flex";
+      let bgImg = (currentCategory.bgImage || currentCategory.image || defaultHeroImg);
+      heroTitle.textContent = currentCategory.name;
+      heroSub.textContent = currentCategory.description||"Explore trendy new arrivals!";
+    }
+
+
+    function renderPriceFilters(currentRange) {
+      const priceList = document.getElementById('price-list');
+      priceList.innerHTML = allPriceRanges.map(pr =>
+        `<li>
+          <a class="price-filter${pr.range === currentRange ? ' active' : ''}"
+             data-price-range="${pr.range}"
+             onclick="shopUpdate('priceRange','${pr.range}')">${pr.label}</a>
+        </li>`).join('');
+    }
+
     async function updateUI() {
-      const data = await fetchData();
-      if (!data) return;
 
-      const { products, totalProducts, totalPages, currentPage, mainCategories: mc, brands: br, variantSizes: vs, tags: tg, dealsOfTheDayProducts, wishlistItemIds, queryOptions } = data;
+      showLoading();
+      try {
+        const data = await fetchData();
+        if (!data) { showError("Could not load data."); return; }
+        const total = document.getElementById('showing-title')
+        const {
+          products, totalProducts, totalPages, currentPage, mainCategories:mc,
+          brands:br, variantSizes:vs, tags:tg, dealsOfTheDayProducts,
+          wishlistItemIds, queryOptions
+        } = data;
 
-      mainCategories = mc;
-      brands = br;
-      variantSizes = vs;
-      tags = tg;
+        console.log(data);
+        
 
-      // Update categories
-      const categoriesList = document.getElementById('categories-list');
-      categoriesList.innerHTML = mc.map(c => `
-        <li><a href="#" class="${c._id === queryOptions.mainCat ? 'active' : ''}" onclick="shopUpdate('mainCat','${c._id}')">${c.name}</a></li>
-      `).join('');
-
-      // Update brands
-      const brandsList = document.getElementById('brands-list');
-      brandsList.innerHTML = br.map(b => `
-        <li><a href="#" class="${b._id === queryOptions.brand ? 'active' : ''}" onclick="shopUpdate('brand','${b._id}')">${b.name}</a></li>
-      `).join('');
-
-      // Update sizes
-      const sizeCard = document.getElementById('size-card');
-      const sizesList = document.getElementById('sizes-list');
-      if (vs.length) {
-        sizeCard.style.display = 'block';
-        sizesList.innerHTML = vs.map(s => `
-          <label class="${queryOptions.size === s ? 'active' : ''}">${s}
-            <input type="radio" onchange="shopUpdate('size','${s}')" ${queryOptions.size === s ? 'checked' : ''}>
-          </label>
-        `).join('');
-      } else {
-        sizeCard.style.display = 'none';
-      }
-
-      // Update tags
-      const tagCard = document.getElementById('tag-card');
-      const tagsList = document.getElementById('tags-list');
-      if (tg.length) {
-        tagCard.style.display = 'block';
-        tagsList.innerHTML = tg.map(t => `
-          <a href="#" class="${queryOptions.tag === t ? 'active' : ''}" onclick="shopUpdate('tag','${t}')">${t}</a>
-        `).join('');
-      } else {
-        tagCard.style.display = 'none';
-      }
-
-      // Update active filters
-      const labelMap = { search: 'Search', mainCat: 'Category', brand: 'Brand', priceRange: 'Price', size: 'Size', tag: 'Tag' };
-      const activeFilters = document.getElementById('active-filters');
-      activeFilters.innerHTML = Object.entries(queryOptions)
-        .filter(([k, v]) => v && v !== false)
-        .map(([k, v]) => {
-          let display = v;
-          if (k === 'mainCat') {
-            const c = mc.find(c => c._id === v);
-            if (c) display = c.name;
-          }
-          if (k === 'brand') {
-            const b = br.find(b => b._id === v);
-            if (b) display = b.name;
-          }
-          if (k === 'priceRange') display = v.replace('-', ' – ₹').replace('+', '+');
-          return `
-            <span class="filter-badge" onclick="shopUpdate('${k}','')">
-              ${labelMap[k] || k}: ${display} ×
-            </span>
-          `;
-        }).join('');
-      if (Object.values(queryOptions).some(v => v && v !== false)) {
-        activeFilters.innerHTML += `<button class="clear-all-btn" onclick="clearAllFilters()">Clear All</button>`;
-      }
-
-      // Update product count
-      document.getElementById('product-count').innerHTML = `Showing ${products.length} of ${totalProducts} products`;
-
-      // Update product grid
-      const productGrid = document.getElementById('product-grid');
-      productGrid.innerHTML = products.length > 0 ? products.map(product => `
+        if(products?.length == 0)  total.innerText = "No products Found"
+        total.innerText = "Showing Products"
+        mainCategories = mc; brands = br; variantSizes = vs; tags = tg;
+        const currentCatId = queryOptions.mainCat;
+        let currentCategoryObj = mainCategories.find(c=>c._id===currentCatId);
+        showCategoryHero(currentCategoryObj);
+        document.getElementById('categories-list').innerHTML = mainCategories.map(c =>
+          `<li><a class="${c._id === queryOptions.mainCat ? 'active' : ''}" onclick="shopUpdate('mainCat','${c._id}')">${c.name}</a></li>`
+        ).join('');
+        document.getElementById('brands-list').innerHTML = br.map(b =>
+          `<li><a class="${b._id === queryOptions.brand ? 'active' : ''}" onclick="shopUpdate('brand','${b._id}')">${b.name}</a></li>`
+        ).join('');
+        renderPriceFilters(queryOptions.priceRange || "");
+        {
+          const sizeCard = document.getElementById('size-card');
+          const sizesList = document.getElementById('sizes-list');
+          if (vs.length) {
+            sizeCard.style.display = 'block';
+            sizesList.innerHTML = vs.map(s => `
+              <label class="${queryOptions.size === s ? 'active' : ''}">${s}
+                <input type="radio" onchange="shopUpdate('size','${s}')" ${queryOptions.size === s ? 'checked' : ''}>
+              </label>
+            `).join('');
+          } else sizeCard.style.display = 'none';
+        }
+        {
+          const tagCard = document.getElementById('tag-card');
+          const tagsList = document.getElementById('tags-list');
+          if (tg.length) {
+            tagCard.style.display = 'block';
+            tagsList.innerHTML = tg.map(t =>
+              `<a class="${queryOptions.tag === t ? 'active' : ''}" onclick="shopUpdate('tag','${t}')">${t}</a>`
+            ).join('');
+          } else tagCard.style.display = 'none';
+        }
+        const labelMap = {search:'Search',mainCat:'Category',brand:'Brand',priceRange:'Price',size:'Size',tag:'Tag'};
+        const activeFilters = document.getElementById('active-filters');
+        activeFilters.innerHTML =
+          Object.entries(queryOptions).filter(([k, v])=>v&&v!==false).map(([k, v])=>{
+            let display=v;
+            if (k==='mainCat') display = mainCategories.find(c=>c._id===v)?.name || display;
+            if (k==='brand') display = br.find(b=>b._id===v)?.name || display;
+            if (k==='priceRange')
+              display = "₹"+v.replace('-',' – ₹').replace('+','+');
+            return `
+              <span class="filter-badge" onclick="shopUpdate('${k}','')">
+                ${labelMap[k]||k}: ${display} ×
+              </span>
+            `;
+          }).join('');
+        if (Object.values(queryOptions).some(v=>v&&v!==false))
+          activeFilters.innerHTML += `<button class="filter-badge" onclick="clearAllFilters()">Clear All</button>`;
+        document.getElementById('product-count').innerHTML =
+          `Showing ${products.length} of ${totalProducts} products`;
+        const productGrid = document.getElementById('product-grid');
+        productGrid.innerHTML = products.length > 0 ? products.map(product => `
         <div class="showcase">
           <div class="showcase-banner">
             <img src="${product.images[0]}" alt="product" width="300" class="product-img default">
@@ -326,19 +521,28 @@
             </div>
           </div>
         </div>
-      `).join('') : '<p>No products found.</p>';
+        `).join('') : '';
 
-      // Update pagination
-      const pagination = document.getElementById('pagination');
-      pagination.innerHTML = totalPages ? `
-        <button class="btn btn-sm btn-outline-dark" ${currentPage === 1 ? 'disabled' : ''} onclick="shopUpdate('page', ${currentPage - 1})">Prev</button>
-        <span class="px-2">Page ${currentPage} of ${totalPages}</span>
-        <button class="btn btn-sm btn-outline-dark" ${currentPage === totalPages ? 'disabled' : ''} onclick="shopUpdate('page', ${currentPage + 1})">Next</button>
-      ` : '';
 
-      // Update deals of the day
-      const dealsContainer = document.getElementById('deals-of-the-day');
-      dealsContainer.innerHTML = dealsOfTheDayProducts.length > 0 ? dealsOfTheDayProducts.map(product => `
+        document.getElementById('pagination').innerHTML = totalPages ? `
+          <button class="" ${currentPage === 1 ? 'disabled' : ''} onclick="shopUpdate('page', ${currentPage - 1})">
+            <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.6978 11.7512L12.0698 10.3783C12.3626 10.0853 12.3625 9.61047 12.0695 9.31767C11.7765 9.02487 11.3016 9.02502 11.0088 9.31801L8.37067 11.9578C8.22711 12.0945 8.13764 12.2874 8.13764 12.5012C8.13764 12.7277 8.23803 12.9307 8.39673 13.0682L11.0088 15.6821C11.3016 15.9751 11.7765 15.9753 12.0695 15.6825C12.3625 15.3897 12.3626 14.9148 12.0698 14.6218L10.7001 13.2512L15.7683 13.2512C16.1825 13.2512 16.5183 12.9154 16.5183 12.5012C16.5183 12.087 16.1825 11.7512 15.7683 11.7512L10.6978 11.7512Z" fill="#323544"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2.32812 12.4991C2.32812 6.97668 6.80541 2.5 12.3277 2.5C17.85 2.5 22.3273 6.97668 22.3273 12.4991C22.3273 18.0214 17.85 22.4981 12.3277 22.4981C6.80541 22.4981 2.32812 18.0214 2.32812 12.4991ZM12.3277 4C7.63373 4 3.82812 7.80521 3.82812 12.4991C3.82812 17.1929 7.63373 20.9981 12.3277 20.9981C17.0216 20.9981 20.8273 17.1929 20.8273 12.4991C20.8273 7.80521 17.0216 4 12.3277 4Z" fill="#323544"/>
+</svg>
+</button>
+          <span class="px-2">${currentPage} of ${totalPages}</span>
+          <button class="" ${currentPage === totalPages ? 'disabled' : ''} onclick="shopUpdate('page', ${currentPage + 1})">
+            <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 12.5C2 6.97766 6.47729 2.50098 11.9996 2.50098C17.5218 2.50098 21.9991 6.97766 21.9991 12.5C21.9991 18.0224 17.5218 22.4991 11.9996 22.4991C6.47729 22.4991 2 18.0224 2 12.5ZM12.5016 9.15521C12.2213 9.27126 12.0385 9.54477 12.0385 9.84817L12.0385 11.749L8.55957 11.749C8.14536 11.749 7.80957 12.0847 7.80957 12.499C7.80957 12.9132 8.14536 13.249 8.55957 13.249H12.0385V15.152C12.0385 15.4554 12.2213 15.7289 12.5016 15.8449C12.7819 15.961 13.1046 15.8967 13.319 15.6821L15.9572 13.0423C16.1007 12.9057 16.1902 12.7128 16.1902 12.499C16.1902 12.2725 16.0898 12.0694 15.9311 11.9319L13.319 9.31802C13.1046 9.10342 12.782 9.03915 12.5016 9.15521Z" fill="#323544"/>
+</svg>
+
+            </button>
+        ` : '';
+        
+        document.getElementById('deals-of-the-day').innerHTML =
+          dealsOfTheDayProducts.length > 0
+            ? dealsOfTheDayProducts.map(product => `
         <div class="showcase-container">
           <div class="showcase">
             <div class="showcase-banner">
@@ -356,10 +560,7 @@
                 <h3 class="showcase-title">${product.name}</h3>
               </a>
               <p class="showcase-desc">${product.description}</p>
-              <div class="price-box">
-                <p class="price">₹${product.regularPrice}</p>
-                <del>₹${product.salePrice}</del>
-              </div>
+              <div class="price-box"><p class="price">₹${product.regularPrice}</p><del>₹${product.salePrice}</del></div>
               <div class="product-actions d-flex mb-5">
                 <div>
                   <a onclick="showVariantSidebar('${product._id}')" style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">Add to cart 
@@ -376,12 +577,11 @@
                   </svg>
                 </div>
               </div>
-              <div class="showcase-status">
-                <div class="wrapper">
-                  <p>already sold: <b>50+</b></p>
-                  <p>available: <b>${product.stock}</b></p>
-                </div>
-                <div class="showcase-status-bar"></div>
+              <div class="showcase-status"><div class="wrapper">
+                <p>already sold: <b>50+</b></p>
+                <p>available: <b>${product.stock}</b></p>
+              </div>
+              <div class="showcase-status-bar"></div>
               </div>
               <div class="countdown-box">
                 <p class="countdown-desc mb-2">Hurry Up! Offer ends in:</p>
@@ -407,56 +607,37 @@
             </div>
           </div>
         </div>
-      `).join('') : '<p>No deals available.</p>';
+          `).join('')
+          : '<p>No deals available.</p>';
+      } catch (e) {
+
+      }finally{
+        bindWishListLIstener()
+        hideLoading();
+      }
     }
 
     async function shopUpdate(key, value) {
       if (key === 'page') {
         params.set('page', value);
       } else {
-        if (value === '') {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
+        if (value === '') { params.delete(key); }
+        else { params.set(key, value); }
         params.set('page', 1);
       }
-      // history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
       await updateUI();
     }
-
     async function shopSubmit() {
       const search = document.querySelector('input[name="search"]').value.trim();
-      if (search) {
-        params.set('search', search);
-      } else {
-        params.delete('search');
-      }
+      if (search) params.set('search', search);
+      else params.delete('search');
       params.set('page', 1);
-      // history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
       await updateUI();
     }
-
-    async function addToCart(id) {
-      try {
-        const res = await fetch('/cart/add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: id, qty: 1 })
-        });
-        if (res.ok) alert('Added to cart!');
-      } catch (e) {
-        console.error('Error adding to cart:', e);
-      }
-    }
-
     async function clearAllFilters() {
-      params.forEach((value, key) => params.delete(key));
-      // history.pushState({}, '', window.location.pathname);
+      params.forEach((v, k) => params.delete(k));
       await updateUI();
     }
-
-    // Mobile sidebar
     (function() {
       const sidebar = document.querySelector('.shop__sidebar');
       if (!sidebar) return;
@@ -478,26 +659,12 @@
       });
     })();
 
-    // Event delegation for wishlist buttons
-    document.addEventListener('click', (event) => {
-      const wishlistButton = event.target.closest('.whishlist');
-      if (wishlistButton) {
-        const productId = wishlistButton.getAttribute('data-product-id');
-        if (productId && typeof toggleWishlist === 'function') {
-          toggleWishlist(productId).then(() => {
-            // Re-render UI to reflect updated wishlist state
-            updateUI();
-          }).catch((error) => {
-            console.error('Error toggling wishlist:', error);
-          });
-        } else {
-          console.error('toggleWishlist function not found or invalid product ID');
-        }
-      }
-    });
 
-    // Initialize the page
     updateUI();
+
+
+
+  
   </script>
 </body>
 </html>

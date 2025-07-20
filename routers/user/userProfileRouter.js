@@ -18,6 +18,9 @@ const {
   renderWalletPage,
   addMoneyToWallet,
   verifyWalletPayment,
+  getAdddressPageContent,
+  getOrderPageContent,
+  getWalletPageContent,
 } = require("../../controllers/user/userProfileController")
 
 
@@ -66,12 +69,17 @@ userProfileRouter.get('/orders/:id', renderOrderDetailsPage);
 userProfileRouter.get('/wallet', renderWalletPage);
 
 
+userProfileRouter.get('/orders/api/filtered/all', getOrderPageContent);
+userProfileRouter.get('/wallet/api/filtered/all', getWalletPageContent);
+
+
 userProfileRouter.put("/api/edit", upload.single('avatar'),updateProfile);
 userProfileRouter.post('/api/verify/email/otp', verifyUserProfileEmail);
 userProfileRouter.post('/api/change-password', changePassword);
 userProfileRouter.post("/password", changePassword);
 
 userProfileRouter.get("/address", renderAddressBookPage);
+userProfileRouter.get("/address/api/filtered/all", getAdddressPageContent);
 userProfileRouter.post("/address/add", addAddress);
 userProfileRouter.put("/address/:id/edit", editAddress);
 userProfileRouter.delete("/address/:id/delete", deleteAddress);

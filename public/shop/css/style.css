@@ -1278,7 +1278,7 @@ h6 {
 }
 
 .shop__product__option {
-  margin-bottom: 45px;
+  margin-bottom: 2px;
 }
 
 .shop__product__option p {
@@ -3790,7 +3790,10 @@ h6 {
 .shop__active__filters {
 	display: flex;
 	margin-block: 20px;
+  flex-wrap: wrap;
 }
+
+
 .shop__active__filters .filter-badge {
   background: #000;
   color: #fff;
@@ -3805,7 +3808,10 @@ h6 {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 5px;
 }
+
+
 .shop__active__filters .filter-badge:hover {
   background: #111111bc;
 }

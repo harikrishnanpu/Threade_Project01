@@ -1,4 +1,3 @@
-<!-- views/user/profile/wallet.ejs -->
 <% const page = typeof pageNo !== 'undefined' ? pageNo : 1; %>
 <% const totalPages = typeof totalPagesBck !== 'undefined' ? totalPagesBck : 1; %>
 <!DOCTYPE html>
@@ -7,10 +6,10 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Wallet – <%= user.name %></title>
-
   <!-- Icons & Font -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+
 
   <style>
     /* ---------- Tokens ---------- */
@@ -125,34 +124,56 @@
       .txn-amt{margin-top:.35rem}
     }
   </style>
+  <style>
+    /* ... [All your CSS from above, unmodified] ... */
+    :root{ --bg:#fafafa;--white:#ffffff;--primary:#111827;--muted:#6b7280;
+      --accent:#000;--accent-dark:#000;--radius:12px;--tr:.25s;--shadow:0 2px 6px rgba(0,0,0,.05);
+      --credit:#10b981;--debit:#ef4444;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:var(--primary);line-height:1.45}
+    /* ... Rest of your styles ... */
+    .txn-pagination{display:flex;justify-content:center;align-items:center;gap:.5rem;margin-top:1.5rem}
+    .pg-btn{border:1px solid #d1d5db;background:var(--white);padding:.4rem .75rem;font-size:.8rem;border-radius:8px;cursor:pointer;transition:background var(--tr)}
+    .pg-btn[disabled]{opacity:.4;cursor:not-allowed}
+    .pg-btn:hover:not([disabled]){background:#f3f4f6}
+    .pg-page{border:none;background:none;width:32px;height:32px;display:grid;place-items:center;border-radius:8px;font-size:.8rem;cursor:pointer}
+    .pg-page.active{background:var(--accent);color:#fff}
+    .pg-page:hover:not(.active){background:#f3f4f6}
+    /* Responsive ... */
+    @media(max-width:768px){
+      .profile-wrapper{flex-direction:column}
+      main.profile-main{padding:1.5rem 1.25rem 4rem}
+      .profile-sidebar{position:fixed;inset:0 50% 0 0;transform:translateX(-100%);box-shadow:var(--shadow)}
+      .profile-sidebar.open{transform:translateX(0)}
+      .profile-mobile-top{display:flex}
+      .txn-item{flex-direction:column;align-items:flex-start}
+      .txn-amt{margin-top:.35rem}
+    }
+  </style>
 </head>
 <body>
-
   <!-- Mobile Header -->
   <header class="profile-mobile-top">
     <button class="profile-burger" aria-label="Toggle navigation" onclick="toggleSidebar()">
-      <i class="fas fa-bars"></i>
+     <i class="fas fa-bars"></i>
     </button>
     <span>Wallet</span><span></span>
   </header>
 
-  <!-- Dim overlay -->
   <div class="profile-overlay" onclick="toggleSidebar()"></div>
 
-  <!-- Main wrapper -->
   <div class="profile-wrapper">
-    <!-- Sidebar -->
     <aside class="profile-sidebar" id="profileSide">
       <div class="profile-sidebar-header">
         <div class="profile-avatar-mini">
-          <% if(user.profileImage){ %><img src="<%= user.profileImage %>" alt="profile"/><% }else{ %><%= user.name[0].toUpperCase() %><% } %>
+          <% if(user.profileImage){ %><img src="<%= user.profileImage %>" alt="profile"/><% }else{ %>
+            <%= user.name[0].toUpperCase() %><% } %>
         </div>
         <div>
           <strong><%= user.name %></strong><br/>
           <span style="font-size:.75rem;color:var(--muted)"><%= user.email %></span>
         </div>
       </div>
-
       <nav class="profile-nav">
         <ul>
           <li><a href="/user/profile"><i class="fas fa-user"></i>Personal data</a></li>
@@ -162,11 +183,9 @@
           <li><a href="/contact-us"><i class="fas fa-phone"></i>Contact us</a></li>
         </ul>
       </nav>
-
       <button class="profile-logout" onclick="location.href='/logout'"><i class="fas fa-sign-out-alt"></i>Log out</button>
     </aside>
 
-    <!-- Main -->
     <main class="profile-main">
       <p class="profile-crumb"><i class="fas fa-house"></i> Home <i class="fas fa-angle-right"></i> Account <i class="fas fa-angle-right"></i> Wallet</p>
       <h2 style="font-size:1.35rem;margin-bottom:.4rem">Wallet</h2>
@@ -177,8 +196,6 @@
         <div class="card-body">
           <div class="balance-display">₹<%= wallet.balance.toFixed(2) %></div>
           <div class="balance-sub">Updated on <%= new Date(wallet.updatedAt).toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'}) %></div>
-
-          <!-- Actions -->
           <div class="wallet-actions">
             <button class="wallet-btn" onclick="openModal('deposit')"><i class="fas fa-plus-circle"></i>Add funds</button>
             <button class="wallet-btn" onclick="openModal('withdraw')"><i class="fas fa-arrow-up"></i>Withdraw</button>
@@ -190,58 +207,23 @@
       <div class="card">
         <div class="card-header"><i class="fas fa-receipt"></i> Transactions</div>
         <div class="card-body">
-          <% if(wallet.transactions.length){ %>
           <div class="txn-list">
-            <% wallet.transactions.forEach(txn=>{ %>
-              <div class="txn-item">
-                <div class="txn-icon <%= txn.type %>"><i class="fas <%= txn.type==='credit'?'fa-arrow-down':'fa-arrow-up' %>"></i></div>
-                <div class="txn-info">
-                  <div class="txn-desc"><%= txn.description %></div>
-                  <div class="txn-meta"><%= new Date(txn.createdAt).toLocaleDateString('en-IN',{ hour: '2-digit', minute: '2-digit' }) %> • Ref: <%= txn.reference || '—' %></div>
+            <% if(wallet.transactions.length){ %>
+              <% wallet.transactions.forEach(txn=>{ %>
+                <div class="txn-item">
+                  <div class="txn-icon <%= txn.type %>"><i class="fas <%= txn.type==='credit'?'fa-arrow-down':'fa-arrow-up' %>"></i></div>
+                  <div class="txn-info">
+                    <div class="txn-desc"><%= txn.description %></div>
+                    <div class="txn-meta"><%= new Date(txn.createdAt).toLocaleDateString('en-IN',{ hour: '2-digit', minute: '2-digit' }) %> • Ref: <%= txn.reference || '—' %></div>
+                  </div>
+                  <div class="txn-amt <%= txn.type %>"><%= txn.type==='credit'?'+':'-' %>₹<%= txn.amount.toFixed(2) %></div>
                 </div>
-                <div class="txn-amt <%= txn.type %>"><%= txn.type==='credit'?'+':'-' %>₹<%= txn.amount.toFixed(2) %></div>
-              </div>
-            <% }) %>
+              <% }) %>
+            <% } else { %>
+              <p style="color:var(--muted);text-align:center">No transactions yet.</p>
+            <% } %>
           </div>
-
-          <!-- Pagination controls -->
-         <% if (totalPages > 1) { %>
-  <nav class="txn-pagination">
-
-    <!-- Prev button -->
-    <% if (page > 1) { %>
-      <a class="pg-btn" href="?page=<%= page - 1 %>">&laquo; Prev</a>
-    <% } else { %>
-      <span class="pg-btn" style="opacity:.4;cursor:not-allowed">&laquo; Prev</span>
-    <% } %>
-
-    <!-- Page numbers (max 3 visible) -->
-    <% 
-      const startPage = Math.max(page - 1, 1);
-      const endPage = Math.min(startPage + 2, totalPages);
-      for (let p = startPage; p <= endPage; p++) { 
-    %>
-      <% if (p === page) { %>
-        <span class="pg-page active"><%= p %></span>
-      <% } else { %>
-        <a class="pg-page" href="?page=<%= p %>"><%= p %></a>
-      <% } %>
-    <% } %>
-
-    <!-- Next button -->
-    <% if (page < totalPages) { %>
-      <a class="pg-btn" href="?page=<%= page + 1 %>">Next &raquo;</a>
-    <% } else { %>
-      <span class="pg-btn" style="opacity:.4;cursor:not-allowed">Next &raquo;</span>
-    <% } %>
-
-  </nav>
-<% } %>
-
-
-          <% } else { %>
-            <p style="color:var(--muted);text-align:center">No transactions yet.</p>
-          <% } %>
+          <!-- Automatic pagination: Leave this out. JS will manage it. -->
         </div>
       </div>
     </main>
@@ -263,17 +245,28 @@
   <!-- Scripts -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
-    /* Sidebar toggle */
+    // ------------- GLOBAL STATE -------------
+    const walletState = {
+      page: <%= Number(page) %>,
+      totalPages: <%= Number(totalPages) %>,
+      pageSize: 10,
+      balance: <%= Number(wallet.balance) %>,
+      updatedAt: "<%= wallet.updatedAt.toISOString ? wallet.updatedAt.toISOString() : wallet.updatedAt %>",
+      transactions: <%- JSON.stringify(wallet.transactions) %>,
+      loading: false
+    };
+
+    // SIDEBAR (mobile)
     const sidebar = document.getElementById('profileSide');
     const walletoverlay  = document.querySelector('.profile-overlay');
     function toggleSidebar(){ sidebar.classList.toggle('open'); walletoverlay.classList.toggle('show'); }
 
-    /* ---- Wallet modal helpers ---- */
-    const walletmodal        = document.getElementById('walletModal');
-    const amtInput     = document.getElementById('amtInput');
-    const modalPrimary = document.getElementById('modalPrimary');
-    const modalTitle   = document.getElementById('modalTitle');
-    let currentAction  = null;
+    // WALLET MODAL
+    const walletmodal   = document.getElementById('walletModal');
+    const amtInput      = document.getElementById('amtInput');
+    const modalPrimary  = document.getElementById('modalPrimary');
+    const modalTitle    = document.getElementById('modalTitle');
+    let currentAction   = null;
 
     function openModal(action){
       currentAction          = action;
@@ -285,113 +278,179 @@
       amtInput.focus();
     }
     function closeModal(){ walletmodal.classList.remove('show'); }
-
     amtInput.addEventListener('input',()=> modalPrimary.disabled = !amtInput.value.trim() || Number(amtInput.value)<=0);
 
+    // PAYMENT/WITHDRAW
     modalPrimary.addEventListener('click',async () => {
-
       const amount = Number(amtInput.value);
       if(!amount) return;
       modalPrimary.disabled = true; modalPrimary.textContent = 'Processing...';
       try{
-        const res = await fetch(`/user/profile/api/wallet/${currentAction}`,{
+        const res = await fetch(`/user/profile/api/wallet/${currentAction}`, {
           method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({ amount })
         });
-
         const {razorpay, customer, success, message } = await res.json();
-        if(!res.ok) alert(message||'request failed');
+        if(!res.ok) return alert(message||'request failed');
 
-      const options = {
-
-        key: razorpay.key,
-        amount: razorpay.amount,
-        currency: razorpay.currency,
-        name: "Threade",
-        description: "Wallet Payment",
-        order_id: razorpay.razorpayOrderId,
-
-handler: async function (response) {
-
-  try {
-    const verify = await fetch(`/user/profile/wallet/payment/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_signature: response.razorpay_signature,
-        walletId: razorpay.walletId
-      })
-    });
-
-    const result = await verify.json();
-
-    console.log(result);
-    
-    if (result.success) {
-      console.log("kjbfjkbf");
-        showGlobalToast('payment successfully completed','success')
-
-    } else {
-      console.log("dfkfgf");
-      
-        showGlobalToast('payment failed','error')
-      
-      }
-  
-   }catch(err){
-    console.log(err);
-    
-        showGlobalToast('payment failed','error')
-   }finally{
-          closeModal();
-        setTimeout(()=>{ window.location.reload() },2000)
-   } 
-  
-  },
-        modal: {
-            ondismiss: function () {
-                        closeModal();
-        setTimeout(()=>{ window.location.reload() },2000)
-            showGlobalToast('payment failed','error')
+        const options = {
+          key: razorpay.key,
+          amount: razorpay.amount,
+          currency: razorpay.currency,
+          name: "Threade",
+          description: "Wallet Payment",
+          order_id: razorpay.razorpayOrderId,
+          handler: async function (response) {
+            try {
+              const verify = await fetch(`/user/profile/wallet/payment/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  walletId: razorpay.walletId
+                })
+              });
+              const result = await verify.json();
+              if (result.success) {
+                showGlobalToast('payment successfully completed','success');
+                await fetchWalletData(); // Refresh wallet
+              } else {
+                showGlobalToast('payment failed','error');
+              }
+            } catch(err){
+              showGlobalToast('payment failed','error');
+            } finally {
+              closeModal();
+            }
+          },
+          modal: {
+            ondismiss: async function () {
+              closeModal();
+              showGlobalToast('payment failed','error');
+              await fetchWalletData();
+            }
+          },
+          prefill: {
+            name: customer.name || "User",
+            email: customer.email,
+            contact: customer.phone
+          },
+          theme: {
+            color: "#000"
           }
-        },
-        prefill: {
-          name: customer.name || "User",
-          email: customer.email,
-          contact: customer.phone
-        },
-        theme: {
-          color: "#000"
-        }
-      };
-
-      const rzp = new Razorpay(options);
-
-      rzp.on('payment.failed', function () {
-        showGlobalToast('payment failed','error')
-      });
-
-      rzp.open();
-      return;
-  }catch(err){
-    console.log(err);
-    
-   showGlobalToast(err.message || 'error ocuured','error')
-
-  }finally{
+        };
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function () { showGlobalToast('payment failed','error'); });
+        rzp.open();
+        return;
+      } catch(err){
+        showGlobalToast(err.message || 'error occurred','error');
+      } finally {
         modalPrimary.disabled=false;
         modalPrimary.textContent = currentAction === 'deposit' ? 'Add': 'Withdraw';
-  }
-
-
+      }
     });
-
-    /* Close modal on Esc or outside click */
     window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
-    walletmodal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+    walletmodal.addEventListener('click',e=>{ if(e.target===walletmodal) closeModal(); });
 
+    // GLOBAL FETCH (AJAX)
+    async function fetchWalletData(overrides = {}) {
+      walletState.loading = true;
+      Object.assign(walletState, overrides);
+      try {
+
+        const params = new URLSearchParams({
+          page: walletState.page || 1,
+          pageSize: walletState.pageSize
+        });
+
+        const res = await fetch('/user/profile/wallet/api/filtered/all?' + params.toString());
+        if (!res.ok) throw new Error('Failed to fetch wallet data');
+        const data = await res.json();
+
+        walletState.balance = data.wallet.balance;
+        walletState.updatedAt = data.wallet.updatedAt;
+        walletState.transactions = data.wallet.transactions;
+        walletState.page = data.pageNo;
+        walletState.totalPages = data.totalPagesBck;
+        renderWalletUI();
+      } catch (e) {
+        showGlobalToast('Could not refresh wallet', 'error');
+      } finally {
+        walletState.loading = false;
+      }
+    }
+
+    function renderWalletUI() {
+      document.querySelector('.balance-display').textContent = `₹${(walletState.balance || 0).toFixed(2)}`;
+      document.querySelector('.balance-sub').textContent =
+        'Updated on ' + new Date(walletState.updatedAt).toLocaleDateString('en-IN', {year:'numeric',month:'long',day:'numeric'});
+      const txnList = document.querySelector('.txn-list');
+      if (!txnList) return;
+      if (walletState.transactions.length) {
+        txnList.innerHTML = walletState.transactions.map(txn => `
+          <div class="txn-item">
+            <div class="txn-icon ${txn.type}">
+              <i class="fas ${txn.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+            </div>
+            <div class="txn-info">
+              <div class="txn-desc">${txn.description}</div>
+              <div class="txn-meta">
+                ${new Date(txn.createdAt).toLocaleDateString('en-IN', {hour:'2-digit',minute:'2-digit'})}
+                • Ref: ${txn.reference || '—'}
+              </div>
+            </div>
+            <div class="txn-amt ${txn.type}">
+              ${txn.type === 'credit' ? '+' : '-'}₹${txn.amount.toFixed(2)}
+            </div>
+          </div>
+        `).join('');
+      } else {
+        txnList.innerHTML = '<p style="color:var(--muted);text-align:center">No transactions yet.</p>';
+      }
+      renderWalletPagination();
+    }
+
+    function renderWalletPagination() {
+      let pagHtml = '';
+      const page = walletState.page, totalPages = walletState.totalPages;
+      pagHtml += (page > 1)
+        ? `<button class="pg-btn" onclick="changeWalletPage(${page - 1})">&laquo; Prev</button>`
+        : `<span class="pg-btn" style="opacity:.4;cursor:not-allowed">&laquo; Prev</span>`;
+      const startPage = Math.max(page - 1, 1);
+      const endPage = Math.min(startPage + 2, totalPages);
+
+      for (let p = startPage; p <= endPage; p++) {
+        pagHtml += (p === page)
+          ? `<span class="pg-page active">${p}</span>`
+          : `<button class="pg-page" onclick="changeWalletPage(${p})">${p}</button>`;
+      }
+
+      pagHtml += (page < totalPages)
+        ? `<button class="pg-btn" onclick="changeWalletPage(${page + 1})">Next &raquo;</button>`
+        : `<span class="pg-btn" style="opacity:.4;cursor:not-allowed">Next &raquo;</span>`;
+      let pagNode = document.querySelector('.txn-pagination');
+      if (!pagNode) {
+        pagNode = document.createElement('nav');
+        pagNode.className = 'txn-pagination';
+        document.querySelector('.txn-list').parentElement.appendChild(pagNode);
+      }
+      pagNode.innerHTML = pagHtml;
+    }
+
+    function changeWalletPage(newPage) {
+      if (newPage === walletState.page || newPage < 1 || newPage > walletState.totalPages) return;
+      fetchWalletData({page: newPage});
+    }
+
+    window.changeWalletPage = changeWalletPage;
+
+    // On first load, replace SSR values with initial JS state for consistency
+    window.addEventListener('DOMContentLoaded', function() {
+      renderWalletUI();
+    });
   </script>
 </body>
 </html>
