@@ -1,5 +1,6 @@
 const Brand = require('../../models/brandModel');
 const Category = require('../../models/categoryModel');
+const Orders = require('../../models/orderModel');
 const Product = require('../../models/productModel');
 const productReviewModel = require('../../models/productReviewModel');
 const Wishlist = require('../../models/wishListModel');
@@ -21,9 +22,9 @@ const renderShopPage = async (req, res) => {
     const dealsOfTheDayProducts = await productService.getDealOfTheDayProducts();
 
     const [mainCategories, subCategories, brands, tags] = await Promise.all([
-      Category.find({ parentCategory: null, isActive: true }).sort({ name: 1 }).lean(),
-      Category.find({ parentCategory: queryOptions.mainCat, isActive: true }).sort({ name: 1 }).lean(),
-      Brand.find({ category: queryOptions.mainCat, isActive: true }).sort({ name: 1 }).lean(),
+      Category.find({ parentCategory: null, isActive: true }).sort({ createdAt: -1 }).lean(),
+      Category.find({ parentCategory: queryOptions.mainCat, isActive: true }).sort({ createdAt: -1 }).lean(),
+      Brand.find({ category: queryOptions.mainCat, isActive: true }).sort({ createdAt: -1 }).lean(),
       productService.getAllTags()
     ])
 
@@ -48,7 +49,6 @@ const renderShopPage = async (req, res) => {
       dealsOfTheDayProducts
     })
   } catch (e) {
-    console.error('Error in shop page route:', e)
     res.status(500).render('error', { message: 'Failed to load shop page', error: e })
   }
 }
@@ -67,9 +67,9 @@ const getShopPageContents = async (req, res) => {
     const dealsOfTheDayProducts = await productService.getDealOfTheDayProducts();
 
     const [mainCategories, subCategories, brands, tags] = await Promise.all([
-      Category.find({ parentCategory: null, isActive: true }).sort({ name: 1 }).lean(),
-      Category.find({ parentCategory: queryOptions.mainCat, isActive: true }).sort({ name: 1 }).lean(),
-      Brand.find({ category: queryOptions.mainCat, isActive: true }).sort({ name: 1 }).lean(),
+      Category.find({ parentCategory: null, isActive: true }).sort({ createdAt: -1 }).lean(),
+      Category.find({ parentCategory: queryOptions.mainCat, isActive: true }).sort({ createdAt: -1 }).lean(),
+      Brand.find({ category: queryOptions.mainCat, isActive: true }).sort({ createdAt: -1 }).lean(),
       productService.getAllTags()
     ])
 
@@ -336,7 +336,7 @@ const addReview = async (req, res) => {
     
 
     if (!userId || !productId || !size || !color || !rating || !comment) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ success: false, message: 'all fields are required' });
     }
 
     const UserReview = await productReviewModel.findOne({ product: productId, user: req.user?._id, isActive: true  });
@@ -345,6 +345,19 @@ const addReview = async (req, res) => {
 if (!product || !product.variants.some(v => v.color === color && v.size === size && v.isActive)) {
   return res.status(400).json({ message: 'product is unavailable or variant not found' });
 }
+
+   const orderedItem = await Orders.findOne({
+      user: userId,
+      'items.productId': productId,
+      'items.variant.size': size,
+      'items.variant.color': color,
+      status: { $nin: ['cancelled', 'returned'] } 
+    });
+    
+
+    if (!orderedItem) {
+      return res.status(400).json({ success: false, message: 'review only available for ordered items only' });
+    }
 
 
     if(UserReview){
@@ -386,16 +399,16 @@ const deleteReview = async (req,res) => {
 
   try{
     const userId = req.user?._id; 
-    const { productId } = req.body;
+    const reviewId = req.params.id;
 
     // console.log(req.body);
     
 
-    if (!userId || !productId) {
-      return res.status(400).json({ message: 'All fields are required' });
+    if (!userId || !reviewId) {
+      return res.status(400).json({ message: 'all fields are required' });
     }
 
-    const UserReview = await productReviewModel.findOne({ product: productId, user: req.user?._id, isActive: true  });
+    const UserReview = await productReviewModel.findById(reviewId);
 
     if(!UserReview){
       return res.status(400).json({message: 'review not found'})
@@ -403,6 +416,8 @@ const deleteReview = async (req,res) => {
 
     UserReview.isActive = false;
     await UserReview.save();
+
+    res.status(200).json({message:'success', success: true})
 
   }catch(err){
     res.status(500).json({message: err.message})

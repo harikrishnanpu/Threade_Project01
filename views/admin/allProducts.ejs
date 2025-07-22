@@ -93,12 +93,12 @@
     .products-table { width:100%; border-collapse:collapse; }
     .products-table th, .products-table td { padding:1rem; border-bottom:1px solid var(--gray-100); vertical-align:top; }
     .products-table th { background:var(--gray-50); font-size:.8125rem; font-weight:600; color:var(--gray-700); }
-    .sortable { cursor:pointer; user-select:none; transition:background .2s; }
+    .sortable { cursor:pointer; user-select:none; transition: background .2s; }
     .sortable:hover { background:var(--gray-100); }
     .sort-icon { font-size:.75rem; color:var(--primary); }
 
     .product-cell { min-width:250px; }
-    .product-info { display:flex; gap Jonah; gap:1rem; align-items:center; }
+    .product-info { display:flex; gap:1rem; align-items:center; }
     .product-image { position:relative; width:3rem; height:3rem; border-radius:var(--radius); overflow:hidden; background:var(--gray-100); flex-shrink:0; }
     .product-image img { width:100%; height:100%; object-fit:cover; }
     .image-placeholder { display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:var(--gray-400); font-size:1.25rem; }
@@ -339,7 +339,7 @@
               </div>
 
               <!-- Reset -->
-              <div class="filter-item">
+              <div class="filter-item ">
                 <button id="reset-filters" class="btn btn-ghost btn-reset"><i class="icon-refresh"></i><span>Reset</span></button>
               </div>
             </div>
@@ -623,7 +623,7 @@ function updateUI(data) {
         </span>
       </td>
       <td>
-        ${product.category ? `<span class="category-tag">${product.category.name}</span>` : ''}
+        ${product.category ? `<span style="" class="category-tag">${product.category.name}</span>` : ''}
       </td>
       <td class="variants-cell">
         <div class="variants-info">

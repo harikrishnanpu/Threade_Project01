@@ -59,8 +59,10 @@ const io = new Server(httpServer, {
 
 chatSocketHandler(io)
 
+app.set('socketio', io);
 
 
 
 
-module.exports = httpServer;
+
+module.exports = {httpServer,io};

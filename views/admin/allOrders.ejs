@@ -13,17 +13,17 @@
         <div class="page-header">
           <h6 class="page-title">Order Management</h6>
           <div class="header-stats">
-            <span class="stat-item">
+            <span class="stat-item ml-4">
               <i class="lni lni-package"></i>
               Total: <span id="total-count"><%= totalOrders %></span>
             </span>
-            <span class="stat-item">
+            <span class="stat-item ml-4">
               <i class="lni lni-eye"></i>
               Showing: <span id="result-count"><%= orders.length %></span>
             </span>
-            <span class="stat-item">
+            <span class="stat-item ml-4">
               <i class="lni lni-revenue"></i>
-              Revenue: ₹<span id="revenue-count"><%= totalRevenue.toFixed(2) %></span>
+              Total Order Amount: ₹<span id="revenue-count"><%= totalRevenue.toFixed(2) %></span>
             </span>
           </div>
         </div>
@@ -1083,14 +1083,7 @@
     document.getElementById('loading-overlay').classList.remove('active');
   }
 
-  function showError(message) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = message;
-    errorMsg.classList.add('show');
-    setTimeout(() => {
-      errorMsg.classList.remove('show');
-    }, 5000);
-  }
+
 
   function showSuccess(message) {
     const successMsg = document.getElementById('success-msg');
@@ -1235,12 +1228,11 @@
         showSuccess(`Order ${newStatus} successfully`);
          refetchAndUpdateOrders()
       } else {
-        showError(result.message || `Failed to ${newStatus} order`);
+        showGlobalToast(result.message || `Failed to ${newStatus} order`,'error');
       }
     })
     .catch(error => {
-      showError(`Error updating order status`);
-      console.log('Error:', error);
+      showGlobalToast(`Error updating order status`,'error');
     })
     .finally(() => {
       hideLoading();
@@ -1273,21 +1265,7 @@
     }
   }
 
-  function updateBulkActions() {
-    const checkboxes = document.querySelectorAll('.order-checkbox:checked');
-    const bulkAction = document.getElementById('bulk-action');
-    const applyBulk = document.getElementById('apply-bulk');
-    
-    if (checkboxes.length > 0) {
-      bulkAction.disabled = false;
-      applyBulk.disabled = false;
-      STATE.selectedOrders = new Set(Array.from(checkboxes).map(cb => cb.value));
-    } else {
-      bulkAction.disabled = true;
-      applyBulk.disabled = true;
-      STATE.selectedOrders.clear();
-    }
-  }
+
 
   function exportOrders() {
     const params = new URLSearchParams(window.location.search);
@@ -1296,6 +1274,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+
+    try{
 
       const confirmForm = document.getElementById('confirm-form');
 
@@ -1350,47 +1330,8 @@
     document.getElementById('reset-filters').addEventListener('click', resetFilters);
     // document.getElementById('export-orders').addEventListener('click', exportOrders);
 
-    document.getElementById('select-all').addEventListener('change', function(e) {
-      const checkboxes = document.querySelectorAll('.order-checkbox');
-      checkboxes.forEach(cb => cb.checked = e.target.checked);
-      updateBulkActions();
-    });
-
-    document.querySelectorAll('.order-checkbox').forEach(cb => {
-      cb.addEventListener('change', updateBulkActions);
-    });
     
 
-  document.getElementById('apply-bulk').addEventListener('click', async function () {
-  const action = document.getElementById('bulk-action').value;
-  const orderIds = Array.from(STATE.selectedOrders);
-
-  if (action && orderIds.length > 0) {
-    if (confirm(`Apply "${action}" to ${orderIds.length} orders?`)) {
-      try {
-        showLoading();
-
-        const res = await fetch(`${BASE_URL}/admin/orders/bulk-update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderIds, action })
-        });
-
-        const result = await res.json();
-        if (result.success) {
-          showSuccess(result.message);
-          refetchAndUpdateOrders()
-        } else {
-          showError(result.message || 'Bulk update failed');
-        }
-      } catch (error) {
-        showError('Error processing bulk update');
-      } finally {
-        hideLoading();
-      }
-    }
-  }
-});
 
     document.getElementById('confirm-form').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -1449,6 +1390,12 @@
         }
       });
     });
+
+
+  }catch(err){
+    console.error(err);
+    
+  }
   });
 
 
@@ -1505,11 +1452,10 @@
       updateHistory();
     } else {
       console.error('Fetch failed:', data.message);
-      showError(data.message || 'Failed to fetch orders');
+      showGlobalToast(data.message || 'Failed to fetch orders','error');
     }
   } catch (error) {
-    console.error('Error in refetchAndUpdateOrders:', error);
-    showError('Error loading orders: ' + error.message);
+    showGlobalToast('Error loading orders: ' + error.message,'error');
   } finally {
     hideLoading();
   }
@@ -1662,9 +1608,7 @@ function updateTable(orders, totalOrders, totalPages) {
     });
 
     // Re-attach checkbox event listeners
-    document.querySelectorAll('.order-checkbox').forEach(cb => {
-      cb.addEventListener('change', updateBulkActions);
-    });
+
   } else {
     tableBody.innerHTML = `
       <tr class="no-data-row">
@@ -1720,6 +1664,46 @@ function updateSortIndicators() {
     const field = header.getAttribute('onclick').match(/'([^']+)'/)[1];
     const indicator = content.querySelector('.sort-indicator');
 
+    const amountRange = document.getElementById('amount-filter');
+
+    const searchField = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter')
+    const StatusFilter = document.getElementById('status-filter');
+    const sortField = document.getElementById('sort-field');
+    const dateRange = document.getElementById('date-filter');
+    const paymentFilter = document.getElementById('payment-filter');
+
+
+
+      if(categoryFilter){
+        categoryFilter.value = STATE.categoryFilter
+      }
+
+      if(paymentFilter){
+        paymentFilter.value = STATE.paymentFilter
+      }
+
+      if(dateRange){
+        dateRange.value = STATE.dateRange
+      }
+
+
+      if(amountRange){
+        amountRange.value = STATE.amountRange
+      }
+
+      if(StatusFilter){
+        StatusFilter.value = STATE.status
+      }
+
+      if(searchField){
+        searchField.value = STATE.search
+      }
+
+      if(sortField){
+        sortField.value = STATE.sortField
+      }
+
     if (field === STATE.sortField) {
       if (!indicator) {
         const span = document.createElement('span');
@@ -1732,6 +1716,7 @@ function updateSortIndicators() {
     } else if (indicator) {
       indicator.remove();
     }
+
   });
 
   const sortOrderBtn = document.getElementById('sort-order');

@@ -1041,7 +1041,7 @@
         <% } %>
 
         <div class="product-description">
-          <%= product.description || 'Choosing a brand name, make sure it aligns with your target audience, product range, and overall brand identity audience, product range.' %>
+          <%= product.description %>
         </div>
 
         <!-- Price -->
@@ -1111,7 +1111,7 @@
                 <div>
                   <div class="d-flex ">
                     <div class="review-author"><%= review.user.name || 'Anonymous' %></div>
-                    <i style="cursor: pointer;" class="fa fa-trash text-danger ml-4" ></i>
+                    <i  data-review-id="<%= review._id %>" style="cursor: pointer;" class="fa review-delete-button fa-trash text-danger ml-4" ></i>
                   </div>
                   <div class="review-date">
                     <%= new Date(review.createdAt || review.date).toLocaleDateString('en-IN', {
@@ -1125,9 +1125,13 @@
               <div class="review-rating">
                 <% for(let i = 1; i <= 5; i++) { %>
                   <i class="fas fa-star star <%= i <= review.rating ? '' : 'empty' %>"></i>
-                <% } %>
-              </div>
-              <p class="review-text"><%= review.comment %></p>
+                  <% } %>
+                </div>
+                <div class="d-flex">
+                  <p class="px-2" style="border: .2px solid black;"><%= review.size %></p>
+                  <p class="px-2" style="border: .2px solid black;"><%= review.color %></p>
+                </div>
+                <p class="review-text"><%= review.comment %></p>
             </div>
           <% }); %>
         <% } else { %>
@@ -1301,6 +1305,8 @@ document.addEventListener('DOMContentLoaded', function() {
   setupReviewModal();
 });
 
+ 
+
 
   const BASE_URL = window.location.origin;
   const productData = <%- JSON.stringify(product || {}) %>;
@@ -1329,6 +1335,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupWishlist();
     updateVariantInfo();
   }
+
 
   // Setup Images
   function setupImages() {
@@ -1692,7 +1699,7 @@ function updateVariantImages() {
       // Validate variant selection
       if (productData.variants && productData.variants.length > 0) {
         if (!currentVariant.size || !currentVariant.color) {
-          showNotification('Please select size and color', 'error');
+          showGlobalToast('Please select size and color', 'error');
           return;
         }
       }
@@ -1820,7 +1827,7 @@ updateUI(false,productData._id)
         const result = await response.json();
 
         if (response.ok) {
-          showNotification(
+          showGlobalToast(
             isAdding ? 'Added to wishlist!' : 'Removed from wishlist!', 
             'success'
           );
@@ -1846,11 +1853,46 @@ updateUI(false,productData._id)
             window.location.href = '/user/login';
           }
         } else {
-          showNotification(error.message || 'Wishlist operation failed', 'error');
+          showGlobalToast(error.message || 'Wishlist operation failed', 'error');
         }
       }
     });
   }
+
+
+document.querySelectorAll('.review-delete-button').forEach(button => {
+  button.addEventListener('click', event => {
+    const reviewId = event.target.dataset.reviewId;
+    deleteReview(reviewId);
+  });
+});
+
+  async function deleteReview(id) {
+ 
+
+  try {
+    const res = await fetch(`/user/products/review/delete/${id}`, {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'}
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showGlobalToast('Review deleted successfully','success');
+      window.location.reload();
+    } else {
+      showGlobalToast(data.message || 'Failed to delete review','error');
+    }
+  } catch (err) {
+    showGlobalToast(err.message,'error');
+  }
+
+}
+
+
+
+  
 
   // Review Modal
   function setupReviewModal() {
@@ -1867,7 +1909,7 @@ const reviewColorInput = document.getElementById('review-color');
 if (reviewBtn && reviewModalEl) {
   reviewModalEl.addEventListener('shown.bs.modal', () => {
   if (!currentVariant.size || !currentVariant.color) {
-    showNotification('Please select size and color first', 'error');
+    showGlobalToast('Please select size and color first', 'error');
     bootstrap.Modal.getInstance(reviewModalEl)?.hide();
     return;
   }
@@ -1904,7 +1946,7 @@ if (reviewBtn && reviewModalEl) {
     e.preventDefault();
 
     if (parseInt(ratingValue.value) === 0) {
-      showNotification('Please select a rating', 'error');
+      showGlobalToast('Please select a rating', 'error');
       return;
     }
 
@@ -1926,7 +1968,7 @@ if (reviewBtn && reviewModalEl) {
       const result = await res.json();
 
 if (res.ok) {
-  showNotification('Review submitted!', 'success');
+  showGlobalToast('Review submitted!', 'success');
   window.location.reload();
 
 
@@ -1935,7 +1977,7 @@ if (res.ok) {
         throw new Error(result.message || 'Failed to submit review');
       }
     } catch (err) {
-      showNotification(err.message, 'error');
+      showGlobalToast(err.message, 'error');
     } finally {
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
@@ -1966,7 +2008,9 @@ if (res.ok) {
       }
     }, 4000);
   }
+
 });
+
 </script>
 
 </body>

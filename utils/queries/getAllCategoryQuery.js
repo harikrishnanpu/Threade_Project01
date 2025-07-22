@@ -8,7 +8,7 @@ const getAllCategoriesQuery = (query) => {
     parentFilter = 'all',
     sortField: sortBy = 'createdAt',
     sortOrder = 'desc',
-    showInactive='false',
+    showInactive='true',
     page = 1,
     limit = 10
   } = query;
@@ -26,7 +26,7 @@ const getAllCategoriesQuery = (query) => {
   }
 
   if (status !== 'all') {
-    filter.isActive = status === 'true';
+    filter.isActive = status == 'active';
   }
 
   if (isFeatured !== 'all') {

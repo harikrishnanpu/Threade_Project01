@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 const Category = require("../../models/categoryModel");
 const { escapeRegex } = require("../regex");
 const productModel = require("../../models/productModel");
+const Brand = require("../../models/brandModel");
 
 
 const getFilteredProductList = async (queryParams) => {
@@ -99,7 +100,13 @@ const getUserProductFiltersAndSort = async query => {
    filters.category = { $in: [...subCatIds.map(s => new mongoose.Types.ObjectId(s._id)), catId._id] };
   }
 
+
+  const brands = await Brand.find({ category: filters.category, isActive: true }).lean()
+  const brandIds = brands.map((brand) => brand._id);
+      
+  
   if (brand) filters.brand = new mongoose.Types.ObjectId(brand)
+  
   if (size) filters['variants.size'] = size
   if (color) filters['variants.color'] = { $in: [color] }
   if (tag) filters.tags = { $in: [tag] }
@@ -133,18 +140,26 @@ const getUserProductFiltersAndSort = async query => {
     popular: { rating: -1, createdAt: -1 }
 
   }
-  
+
+  const   queryOptions= {
+      search, mainCat: mainCatfromUser, subCat, brand, priceRange, size, color, tag,
+      rating, isNew: isNew === 'true', isSale: isSale === 'true',
+      isFeatured: isFeatured === 'true', inStock: inStock === 'true', sortBy
+    }
+
+  if(filters.brand){    
+    if(!brandIds.includes(filters.brand)){
+            delete filters.brand
+    }
+  }
+      
 
   return {
     filters,
     sortOptions: sortMap[sortBy] || sortMap.newest,
     pageNum: parseInt(page, 10),
     limitNum: parseInt(limit, 10),
-    queryOptions: {
-      search, mainCat: mainCatfromUser, subCat, brand, priceRange, size, color, tag,
-      rating, isNew: isNew === 'true', isSale: isSale === 'true',
-      isFeatured: isFeatured === 'true', inStock: inStock === 'true', sortBy
-    }
+    queryOptions
   }
 }
 

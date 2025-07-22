@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose');
 const Category = require('../models/categoryModel');
 const Offer = require('../models/offerModel');
 const Product= require('../models/productModel');
@@ -14,6 +15,11 @@ const updateAllProductSalePrices = async () => {
     let updatedCount = 0;
 
     for (const product of products) {
+
+
+  if (!product.category || !product.category.isActive) {
+    continue; 
+  }
 
       const productCategoryId = product.category._id.toString();
       const parentCategoryId = product.category.parentCategory?.toString();
@@ -68,7 +74,7 @@ const updateAllProductSalePrices = async () => {
         const newSalePrice = bestDiscountAmount > 0 ? variant.price - bestDiscountAmount : variant.price;
 
         if (variant.salePrice !== newSalePrice){  
-          variant.salePrice = newSalePrice;
+          variant.salePrice = Math.round(newSalePrice);
           isUpdated = true;
         }
 
@@ -89,7 +95,7 @@ const updateAllProductSalePrices = async () => {
     // console.log(err.message);
     
 
-    // console.log(err);
+    console.log(err);
 
     throw new Error(err.message);
   }
@@ -103,12 +109,18 @@ const createOffer = async (data) => {
 
  const { title, description, discount, maxDiscountAmount, applicableOn, startDate, endDate, isActive, products, categories   } = data;
 
-    if(!title || !discount || !applicableOn){
+    if(!title.trim() || !discount || !applicableOn.trim()){
       throw new Error('all fields are required')
     }
 
     if(parseInt(discount) > 90){
       throw new Error('discont not greater than 90')
+    }
+
+    const existingOffer = await Offer.findOne({ title: {$regex: new RegExp(title.trim(), 'i') } })
+
+    if(existingOffer){
+      throw new Error('offer title already exists')
     }
 
 
@@ -122,7 +134,7 @@ const createOffer = async (data) => {
         endDate,
         products,
         categories,        
-        isActive: isActive == "on" ? true : false
+        isActive: (isActive == "on" || isActive == true) ? true : false
 
        });
 
@@ -142,12 +154,19 @@ const updateOffer = async (id, data) => {
 
     const { title, description, discount, maxDiscountAmount, applicableOn, startDate, endDate, isActive, products, categories   } = data;
 
-    if(!title || !discount || !applicableOn){
+    if(!title.trim() || !discount || !applicableOn){
       throw new Error('all fields are required')
     }
 
     if(parseInt(discount) > 90){
       throw new Error('discont not greater than 90')
+    }
+
+    const existingOffer = await Offer.findOne({ title: {$regex: new RegExp(title.trim(), 'i') } , _id: { $ne: new mongoose.Types.ObjectId(id)  } })
+
+    if(existingOffer){
+      
+      throw new Error('offer title already exists')
     }
 
 
@@ -162,7 +181,7 @@ const updateOffer = async (id, data) => {
         endDate,
         products,
         categories,        
-        isActive: isActive == "on" ? true : false
+        isActive: (isActive == "on" || isActive == true) ? true : false
 
        }, { new: true });
 
@@ -171,6 +190,8 @@ const updateOffer = async (id, data) => {
 
     return offer;
   } catch (err) {
+    console.log(err);
+    
     throw new Error(err.message);
   }
 };
@@ -265,7 +286,7 @@ const listOffers = async (query) => {
       sortField = 'createdAt',
       sortOrder = 'desc',
       search = '',
-      showExpired = false,
+      showExpired = true,
     } = query;
 
     page = parseInt(page);

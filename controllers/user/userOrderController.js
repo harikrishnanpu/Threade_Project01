@@ -46,7 +46,7 @@ if (paymentMethod === 'online') {
     return res.status(400).json({ success: false, message: 'Invalid payment method' });
     
   } catch (err) {
-    return res.status(400).json({ success: false, message: err.message });
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -118,8 +118,10 @@ const verifyRazorpayPayment = async (req, res) => {
   try {
 // console.log(req.body);
 
+const io = req.app.get('socketio')
 
-    const result = await paymentService.verifyRazorpayPayment(req.body);
+
+    const result = await paymentService.verifyRazorpayPayment(req.body,req.user._id,io);
     if (result.success) {
 // console.log("SUCCESS");
 
@@ -168,12 +170,17 @@ const cancelFullOrder = async (req, res) => {
     const { cancellationReason, additionalComments = '' } = req.body
     if (!cancellationReason) return res.status(400).json({ message: 'cancellationReason required' })
 
+      const io = req.app.get('socketio')
+
     const data = await orderService.cancelFullOrder({
       orderId: req.params.orderId,
       userId: req.user._id,
       reason: cancellationReason,
       note: additionalComments
     });
+
+
+        io.to(`admin:order:${req.params.orderId}`).emit('order:updated', { orderId: req.params.orderId });
 
     res.status(200).json({ success: true, data });
 
@@ -191,6 +198,7 @@ const cancelSingleItem = async (req, res) => {
 
     const { itemId, cancellationReason, notes = '' } = req.body
 
+    const io = req.app.get('socketio')
 
     if (!itemId) return res.status(400).json({ message: 'itemId required' })
     if (!cancellationReason) return res.status(400).json({ message: 'cancellationReason required' })
@@ -200,6 +208,8 @@ const cancelSingleItem = async (req, res) => {
       reason: cancellationReason,
       note: notes
     })
+
+        io.to(`admin:order:${req.params.orderId}`).emit('order:updated', { orderId: req.params.orderId });
 
     res.status(200).json({ success: true, data })
   } catch (err) {
@@ -216,12 +226,17 @@ const returnFullOrder = async (req, res) => {
     const { returnReason, returnNote } = req.body
     if (!returnReason || !returnNote) return res.status(400).json({ message: 'returnReason and returnNote required' })
 
+      const io = req.app.get('socketio')
+
     const data = await orderService.returnFullOrder({
       orderId: req.params.orderId,
       userId: req.user._id,
       reason: returnReason,
       note: returnNote
     })
+
+        io.to(`admin:order:${req.params.orderId}`).emit('order:updated', { orderId: req.params.orderId });
+
     res.json({ success: true, data })
   } catch (e) {
     res.status(400).json({ message: e.message })
@@ -240,6 +255,8 @@ const returnSingleItem = async (req, res) => {
     if (!itemId) return res.status(400).json({ message: 'itemId required' })
     if (!returnReason || !returnNote) return res.status(400).json({ message: 'returnReason and returnNote required' })
 
+      const io = req.app.get('socketio')
+
     const data = await orderService.returnSingleItem({
       orderId: req.params.orderId,
       userId: req.user._id,
@@ -247,6 +264,9 @@ const returnSingleItem = async (req, res) => {
       reason: returnReason,
       note: returnNote
     })
+
+        io.to(`admin:order:${req.params.orderId}`).emit('order:updated', { orderId: req.params.orderId });
+
     res.json({ success: true, data })
   } catch (err) {
     // console.log(err);

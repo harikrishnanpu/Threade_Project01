@@ -83,7 +83,7 @@ const createCodOrder = async (userId) => {
     let couponData = null;
 
     if (session.couponCode) {
-      const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase() });
+      const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase(), isActive: true });
 
       if (!coupon) throw new Error('coupon is no longer valid');
   
@@ -286,7 +286,7 @@ const createWalletOrder = async (userId) => {
     let couponData = null;
 
     if (session.couponCode) {
-      const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase() });
+      const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase() , isActive: true });
 
       if (!coupon) throw new Error('coupon is no longer valid');
   
@@ -500,7 +500,7 @@ const prepareOnlineOrder = async (userId) => {
 
     if (session.couponCode) {
 
-      const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase() });
+      const coupon = await Coupon.findOne({ code: session.couponCode.toUpperCase(), isActive: true });
       if (!coupon) throw new Error('coupon is no longer valid');
 
       if (!coupon.isActive || (coupon.expiresAt && new Date(coupon.expiresAt) < new Date())) {

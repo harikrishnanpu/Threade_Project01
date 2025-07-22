@@ -73,7 +73,7 @@ userProfileRouter.get('/orders/api/filtered/all', getOrderPageContent);
 userProfileRouter.get('/wallet/api/filtered/all', getWalletPageContent);
 
 
-userProfileRouter.put("/api/edit", upload.single('avatar'),updateProfile);
+userProfileRouter.put("/api/edit", upload.single('avatar'), updateProfile);
 userProfileRouter.post('/api/verify/email/otp', verifyUserProfileEmail);
 userProfileRouter.post('/api/change-password', changePassword);
 userProfileRouter.post("/password", changePassword);

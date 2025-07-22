@@ -176,6 +176,11 @@ const ApilistProducts = async (req, res) => {
       sortOrder
     } = await getAllProducts(req.query);
 
+        const [ categoriesResult, brandsResult] = await Promise.all([
+      getAllCategories({ status: 'active', limit: 100}),
+      getAllBrands({ status: 'active', limit: 100 })
+    ]);
+
     res.status(200).json({
       success: true,
       data: data,
@@ -188,6 +193,8 @@ const ApilistProducts = async (req, res) => {
       categoryFilter: filters.category,
       brandFilter: filters.brand,
       sortField,
+            categories: categoriesResult.data,
+      brands: brandsResult,
       sortOrder
     });
   } catch (error) {

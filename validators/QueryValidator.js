@@ -1,5 +1,5 @@
 const { query } = require('express-validator');
-
+const mongoose = require('mongoose')
 
   const validateQueryEmail = [
     query('email')

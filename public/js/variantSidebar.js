@@ -95,8 +95,24 @@
                   const allBtns=document.querySelectorAll(`.whishlist-page-icon[data-product-id="${id}"]`);
      allBtns.forEach(el=>{
                 const card = el.closest('.showcase') || el.parentElement;
-      if (card) card.remove(); 
+      if (card) {
+        card.remove(); 
+  const gridEmpty = !document.querySelector('.showcase');
+  if(gridEmpty){
+    const container = document.getElementById('wishlistContainer');
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i class="far fa-heart"></i></div>
+        <h2 class="empty-title">Your wishlist is empty</h2>
+        <p class="empty-subtitle">Save items you love to your wishlist and never lose track of them.</p>
+        <a href="/user/products/shop" class="btn-custom btn-primary-custom mt-4" style="color:#fff">
+          <i class="fas fa-shopping-bag"></i> Start Shopping
+        </a>
+      </div>`;
+      }
+    }
      })
+
           }
 
           

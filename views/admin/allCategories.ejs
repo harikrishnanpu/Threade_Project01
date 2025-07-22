@@ -1,3 +1,11 @@
+<style>
+  .form-error{
+    color: red;
+    font-size: 12px;
+  }
+</style>
+
+
 <section class="table-components">
   <div class="container-fluid">
     <!-- Loading overlay -->
@@ -73,8 +81,8 @@
               <div class="sort-group">
                 <label class="sort-label">Sort by:</label>
                 <select class="sort-field form-select" id="sort-field">
-                  <option value="name" <%= sortField==='name' ? 'selected' : '' %>>Name</option>
-                  <option value="createdAt" <%= sortField==='createdAt' ? 'selected' : '' %>>Created Date</option>
+                  <option value="name" <%= sortField === 'name' ? 'selected' : '' %>>Name</option>
+                  <option value="createdAt" <%= sortField === 'createdAt' ? 'selected' : '' %>>Created Date</option>
                 </select>
                 
                 <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
@@ -277,6 +285,7 @@
   <div class="modal-content modal-lg">
     <div class="modal-header">
       <h5 class="modal-title" id="category-modal-title">Add Category</h5>
+      <p class="modal-error-msg" id="modal-error-msg" style="color: red; display: none;"></p>
       <button class="modal-close" onclick="closeCategoryModal()" aria-label="Close">
         <i class="lni lni-close"></i>
       </button>
@@ -291,7 +300,7 @@
                    name="name" 
                    class="form-control" 
                    placeholder="Enter category name"
-                   required>
+                   >
             <div class="form-error" id="name-error"></div>
           </div>
         </div>
@@ -494,23 +503,22 @@
     document.getElementById('loading-overlay').classList.remove('active');
   }
 
-  function showError(message) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = message;
-    errorMsg.classList.add('show');
-    setTimeout(() => {
-      errorMsg.classList.remove('show');
-    }, 5000);
-  }
 
-  function showSuccess(message) {
-    const successMsg = document.getElementById('success-msg');
-    successMsg.textContent = message;
-    successMsg.classList.add('show');
-    setTimeout(() => {
-      successMsg.classList.remove('show');
-    }, 5000);
-  }
+
+
+
+  function showModalError(message) {
+  const errorMsg = document.getElementById('modal-error-msg');
+  errorMsg.textContent = message;
+  errorMsg.style.display = 'block';
+}
+
+function hideModalError() {
+  const errorMsg = document.getElementById('modal-error-msg');
+  errorMsg.textContent = '';
+  errorMsg.style.display = 'none';
+}
+
 
   function buildUrl(overrides = {}) {
     const params = {
@@ -560,27 +568,10 @@
     navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
   }
 
-  function resetFilters() {
-    STATE.page = 1;
-    STATE.status = 'all';
-    STATE.parentFilter = 'all';
-    STATE.sortField = 'name';
-    STATE.sortOrder = 'asc';
-    STATE.search = '';
-    STATE.showInactive = 'false';
-    
-    navigateToUrl(buildUrl({
-      page: 1,
-      status: 'all',
-      parentFilter: 'all',
-      sortField: 'name',
-      sortOrder: 'asc',
-      search: '',
-      showInactive: 'false'
-    }));
-  }
+  
 
   function openCategoryModal(mode, categoryId = null, parentId = null) {
+
     const modal = document.getElementById('category-modal-overlay');
     const title = document.getElementById('category-modal-title');
     const form = document.getElementById('category-form');
@@ -644,12 +635,12 @@
         document.getElementById('category-featured').checked = category.isFeatured;
         document.getElementById('category-id').value = category._id;
       } else {
-        showError('Failed to load category data');
+        showGlobalToast('Failed to load category data','error');
         closeCategoryModal();
       }
     } catch (error) {
       console.error('Error loading category:', error);
-      showError('Error loading category data');
+      showGlobalToast('Error loading category data','error');
       closeCategoryModal();
     } finally {
       showFormLoading(false);
@@ -706,6 +697,7 @@
     const error = document.getElementById(`${fieldName}-error`);
     
     if (field) field.classList.add('error');
+
     if (error) {
       error.textContent = message;
       error.classList.add('show');
@@ -736,149 +728,7 @@
   }
 
   // Event listeners
-  document.addEventListener('DOMContentLoaded', function() {
-    // Load categories for dropdown
-    loadCategoriesForDropdown();
-    
-    // Category form submission
-    document.getElementById('category-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      if (!validateForm()) {
-        return;
-      }
-      
-      showFormLoading(true);
-      
-      try {
-        const formData = new FormData(this);
-        const data = {
-          name: formData.get('name').trim(),
-          description: formData.get('description').trim(),
-          parentCategory: formData.get('parentCategory') || null,
-          isActive: formData.get('isActive'),
-          isFeatured: formData.get('isFeatured')
-        };
-        
-        const isEdit = STATE.currentEditId;
-        const url = isEdit 
-          ? `${BASE_URL}/admin/categories/update/${STATE.currentEditId}`
-          : `${BASE_URL}/admin/categories/create`;
-        
-        const method = isEdit ? 'PUT' : 'POST';
-        
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          showSuccess(isEdit ? 'Category updated successfully' : 'Category created successfully');
-          closeCategoryModal();
-          
-          setTimeout(() => {
-           refetchAndUpdateCategories()
-          }, 1000);
-        } else {
-          if (result.errors) {
-            Object.keys(result.errors).forEach(field => {
-              showFormError(field, result.errors[field]);
-            });
-          } else {
-            showError(result.message || 'Failed to save category');
-          }
-        }
-      } catch (error) {
-        
-        showError('An error occurred while saving the category');
-      } finally {
-        showFormLoading(false);
-      }
-    });
-
-    document.getElementById('status-filter').addEventListener('change', function(e) {
-      STATE.status = e.target.value;
-      STATE.page = 1;
-      if(e.target.value == 'inactive'){
-        STATE.showInactive = 'true';
-      }else if(e.target.value == 'active'){
-        STATE.showInactive = 'false';
-      }else{
-        STATE.showInactive = 'true';
-      }
-      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('parent-filter').addEventListener('change', function(e) {
-      STATE.parentFilter = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ parentFilter: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('show-inactive').addEventListener('change', function(e) {
-      STATE.showFeatured = e.target.checked;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ showInactive: e.target.checked, page: 1 }));
-    });
-
-    document.getElementById('sort-field').addEventListener('change', function(e) {
-      STATE.sortField = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('sort-order').addEventListener('click', function() {
-      const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
-      STATE.sortOrder = newOrder;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
-    });
-
-    document.getElementById('search-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const searchValue = document.getElementById('search-input').value.trim();
-      STATE.search = searchValue;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
-    });
-
-    document.getElementById('reset-filters').addEventListener('click', resetFilters);
-
-    document.getElementById('page-number').addEventListener('input', function(e) {
-      const value = parseInt(e.target.value);
-      const maxPages = parseInt('<%= totalPages %>');
-      if (value < 1) e.target.value = 1;
-      if (value > maxPages) e.target.value = maxPages;
-    });
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        if (document.getElementById('category-modal-overlay').classList.contains('active')) {
-          closeCategoryModal();
-        }
-        if (document.getElementById('confirm-modal-overlay').classList.contains('active')) {
-          closeConfirmModal();
-        }
-      }
-    });
-
-    document.getElementById('category-modal-overlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeCategoryModal();
-      }
-    });
-
-    document.getElementById('confirm-modal-overlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeConfirmModal();
-      }
-    });
-  });
+  
 
 
 
@@ -910,12 +760,12 @@
        refetchAndUpdateCategories()
       } else {
         hideLoading();
-        showError(data.message || 'Failed to update category');
+        showGlobalToast(data.message || 'Failed to update category','error');
       }
     })
     .catch(error => {
       hideLoading();
-      showError('An error occurred while updating the category');
+      showGlobalToast('An error occurred while updating the category','error');
       console.error('Error:', error);
     });
   }
@@ -1000,7 +850,6 @@ async function refetchAndUpdateCategories() {
     }
     
     const data = await response.json();
-    console.debug('Fetch response:', data);
     
     if (data.success) {
       if (!data.categories || !Array.isArray(data.categories)) {
@@ -1015,11 +864,11 @@ async function refetchAndUpdateCategories() {
       updateHistory();
     } else {
       console.error('Fetch failed:', data.message);
-      showError(data.message || 'Failed to fetch categories');
+      showGlobalToast(data.message || 'Failed to fetch categories','error');
     }
   } catch (error) {
     console.error('Error in refetchAndUpdateCategories:', error);
-    showError('Error loading categories: ' + error.message);
+    showGlobalToast('Error loading categories: ' + error.message,'error');
   } finally {
     hideLoading();
   }
@@ -1174,7 +1023,6 @@ function goToPage(page) {
   refetchAndUpdateCategories();
 }
 
-// Modify: Update setSortField to use refetchAndUpdateCategories
 function setSortField(field) {
   const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
   STATE.sortField = field;
@@ -1183,21 +1031,20 @@ function setSortField(field) {
   refetchAndUpdateCategories();
 }
 
-// Modify: Update resetFilters to use refetchAndUpdateCategories
 function resetFilters() {
   STATE.page = 1;
   STATE.status = 'all';
   STATE.parentFilter = 'all';
-  STATE.sortField = 'name';
-  STATE.sortOrder = 'asc';
+  STATE.sortField = 'createdAt';
+  STATE.sortOrder = 'desc';
   STATE.search = '';
-  STATE.showInactive = false;
+  STATE.showInactive = true;
 
   document.getElementById('status-filter').value = 'all';
   document.getElementById('parent-filter').value = 'all';
-  document.getElementById('show-inactive').checked = false;
-  document.getElementById('sort-field').value = 'name';
-  document.getElementById('sort-order').querySelector('.sort-icon').textContent = '↑';
+  document.getElementById('show-inactive').checked = true;
+  document.getElementById('sort-field').value = 'createdAt';
+  document.getElementById('sort-order').querySelector('.sort-icon').textContent = '↓';
   document.getElementById('search-input').value = '';
 
   refetchAndUpdateCategories();
@@ -1212,11 +1059,13 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('category-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    if (!validateForm()) {
-      return;
-    }
-    
-    showFormLoading(true);
+hideModalError(); // Always hide on submit
+
+  if (!validateForm()) {
+    return;
+  }
+
+  showFormLoading(true);
     
     try {
       const formData = new FormData(this);
@@ -1244,22 +1093,26 @@ document.addEventListener('DOMContentLoaded', function() {
       const result = await response.json();
       
       if (result.success) {
-        showSuccess(isEdit ? 'Category updated successfully' : 'Category created successfully');
+        showGlobalToast(isEdit ? 'Category updated successfully' : 'Category created successfully','success');
         closeCategoryModal();
         await new Promise(resolve => setTimeout(resolve, 500)); // Delay for backend sync
         await refetchAndUpdateCategories();
+        hideModalError();
+
       } else {
-        if (result.errors) {
-          Object.keys(result.errors).forEach(field => {
-            showFormError(field, result.errors[field]);
-          });
-        } else {
-          showError(result.message || 'Failed to save category');
-        }
+      if (result.errors) {
+            Object.keys(result.errors).forEach(field => {
+              showFormError(field, result.errors[field]);
+            });
+            showGlobalToast('Please correct the highlighted errors.','error');
+          } else {
+        showGlobalToast(result.message || 'Failed to save category','error');
       }
+    }
+
+
     } catch (error) {
-      console.error('Error saving category:', error);
-      showError('An error occurred while saving the category');
+      showGlobalToast('An error occurred while saving the category','error');
     } finally {
       showFormLoading(false);
     }
@@ -1369,8 +1222,16 @@ async function loadCategoriesForDropdown() {
     await refetchAndUpdateCategories();
   } catch (error) {
     console.error('Error loading categories for dropdown:', error);
-    showError('Error loading categories');
+    showGlobalToast('Error loading categories','error');
   }
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+
+function initPage () {
+  loadCategoriesForDropdown();
+  attachEventListeners();
+  refetchAndUpdateCategories();
 }
 
 </script>

@@ -27,11 +27,19 @@ const fetchAllOrders = async (req) => {
     if (paymentFilter !== 'all') filters.paymentMethod = paymentFilter;
 
     if (amountRange !== 'all') {
+      
+      if(amountRange == '5000+'){
+        filters.totalAmount = {
+         $gte: 5000,
+         $lte: Infinity,
+      };
+      }else{
       const [min, max] = amountRange.split('-');
       filters.totalAmount = {
          $gte: parseInt(min),
          $lte: parseInt(max),
       };
+    }
     }
 
     if (search) {
@@ -96,7 +104,7 @@ const getOrderById = async (orderId) => {
 
 
 
-const updateOrderStatus = async (data) => {
+const updateOrderStatus = async (data,io) => {
   try {
 
 
@@ -110,6 +118,8 @@ const updateOrderStatus = async (data) => {
     if (!order) {
       return { success: false, message: 'Order not found' };
     }
+
+    if(status == 'delivered')
 
 
     if(status == 'confirmed' && deliveryDate) {
@@ -288,6 +298,10 @@ const updateOrderStatus = async (data) => {
     });
   
     await order.save();
+
+
+          io.to(`user:order:${userId}`).emit('order:updated', { orderId: order._id });
+        io.to(`admin:order:${order._id}`).emit('order:updated', { orderId: order._id });
     
     return { success: true, message: 'Order status updated successfully', data: order };
   } catch (err) {
@@ -384,7 +398,7 @@ const quickStatusUpdate = async (orderId, {
   notes,
   deliveryDate,
   updatedBy = 'admin'
-}) => {
+},io) => {
   try {
 
   const allowed = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'return-complete'];
@@ -393,6 +407,7 @@ const quickStatusUpdate = async (orderId, {
     if (!allowed.includes(newStatus)) {
       return { success: false, message: 'invalid status' };
     }
+
 
     const now = new Date();
 
@@ -434,6 +449,10 @@ const quickStatusUpdate = async (orderId, {
 
 
     const userId = order.user;
+
+        if(newStatus == 'delivered' && order.paymentStatus !== 'paid'){
+          return { success: false, message: 'order cannot delivered: order is not paid ' }
+        }
 
 
 
@@ -664,6 +683,10 @@ order.coupon.discountAmount = null;
       { arrayFilters: [{ 'elem.status': { $nin: ['cancelled','return-complete','return-processing','pickup'] } }] }
     );
 
+
+        io.to(`user:order:${userId}`).emit('order:updated', { orderId: order._id });
+        io.to(`admin:order:${order._id}`).emit('order:updated', { orderId: order._id });
+
     return { success: true, message: 'Status updated successfully' };
   } catch (err) {
     throw new Error(err.message);
@@ -672,7 +695,7 @@ order.coupon.discountAmount = null;
 
 
 
-const updateReturnReuqestAction = async (orderId, { itemIndex, actionType, notes, pickupDate }) => {
+const updateReturnReuqestAction = async (orderId, { itemIndex, actionType, notes, pickupDate },io) => {
   
   
   // console.log(orderId);
@@ -931,12 +954,14 @@ if (actionType === 'return-approved') {
 
     await order.save();
 
+          io.to(`user:order:${userId}`).emit('order:updated', { orderId: order._id });
+        io.to(`admin:order:${order._id}`).emit('order:updated', { orderId: order._id });
 
     return { success: true, data: order };
 
   } catch (err) {
 
-    // console.log(err);
+    console.log(err);
     
     return { success: false, message: err.message };
   }
