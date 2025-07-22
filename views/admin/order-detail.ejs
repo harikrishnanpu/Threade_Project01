@@ -750,7 +750,7 @@
                       Mark as Shipped
                     </button>
 
-                    <% if(order.items?.some(itm=> itm.status !== 'cancelled')) { %>
+                    <% if(!order.items?.some(itm=> itm.status == 'cancelled')) { %>
 
                     <button class="btn btn-danger btn-block mb-2" onclick="quickStatusUpdate('cancelled')">
                       <i class="lni lni-close"></i>
