@@ -1335,14 +1335,25 @@
         const price = block.querySelector(`[name="variants[${idx}][price]"]`).value;
         const salePrice = block.querySelector(`[name="variants[${idx}][salePrice]"]`).value;
         const stock = block.querySelector(`[name="variants[${idx}][stock]"]`).value;
-        if (!size||!color||!price||!stock)
-          return showFormError('variants-error','All variant fields are required');
+
+        if (!size||!color||!price||!stock) return showFormError('variants-error','All variant fields are required');
         if (STATE.variants[idx].images.length < MIN_IMAGES)
           return showFormError('variants-error',`Each variant needs ${MIN_IMAGES} images`);
 
-                  if(price < salePrice){
-          return showFormError('variants-error', 'sale price cannot be grater than price')
-        }
+const actualPrice = parseInt(price);
+const sale = parseInt(salePrice);
+
+if (sale > actualPrice) {
+  return showFormError('variants-error', 'sale price cannot be greater than regular price');
+}
+
+const discountPercentage = ((actualPrice - sale) / actualPrice) * 100;
+
+if (discountPercentage < 90) {
+  return showFormError('variants-error', 'minimum 90% discount is allowed');
+}
+
+
       }
 
       const maxQty = document.getElementById('product-max-cart-qty').value;

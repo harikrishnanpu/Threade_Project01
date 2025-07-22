@@ -69,9 +69,7 @@ const insertOneProduct = async (data) => {
   
   try {
 
-    const existingProduct = await Product.findOne({ 
-      name: name.trim()
-    });
+    const existingProduct = await Product.findOne({ name: {$regex:  new RegExp(name.trim() , 'i') }});
     
     if (existingProduct) {
       throw new Error('Product with this name already exists');
@@ -131,20 +129,20 @@ const editProductById = async (productId, data) => {
 
     if (name && name.trim() !== product.name) {
       const conflict = await Product.findOne({
-        name: name.trim(),
+        name: {$regex: new RegExp(name.trim() , 'i')},
         _id: { $ne: productId }
       });
-      if (conflict) throw new Error('Product with this name already exists');
+      if (conflict) throw new Error('product with this name already exists');
     }
 
     const updateData = {};
-    if (name !== undefined) updateData.name = name.trim();
-    if (description !== undefined) updateData.description  = description.trim();
-    if (category !== undefined) updateData.category = category;
-    if (brand !== undefined) updateData.brand = brand || null;
-    if (images !== undefined)updateData.images = images;
-    if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
-    if (isActive !== undefined) updateData.isActive = Boolean(isActive);
+    if (name!== undefined) updateData.name = name.trim();
+    if (description!== undefined) updateData.description  = description.trim();
+    if (category!== undefined) updateData.category = category;
+    if (brand!== undefined) updateData.brand = brand || null;
+    if (images!== undefined)updateData.images = images;
+    if (isFeatured!== undefined) updateData.isFeatured = Boolean(isFeatured);
+    if (isActive!== undefined) updateData.isActive = Boolean(isActive);
     if (createdBy !== undefined) updateData.createdBy   = createdBy;
     if (maxCartQuantity !== undefined) updateData.maxCartQuantity   = maxCartQuantity;
 
