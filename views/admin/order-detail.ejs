@@ -749,10 +749,16 @@
                       <i class="lni lni-delivery"></i>
                       Mark as Shipped
                     </button>
+
+                    <% if(order.items?.some(itm=> itm.status !== 'cancelled')) { %>
+
                     <button class="btn btn-danger btn-block mb-2" onclick="quickStatusUpdate('cancelled')">
                       <i class="lni lni-close"></i>
                       Cancel Order
                     </button>
+
+                    <% } %>
+
                   <% } else if (order.orderStatus === 'shipped') { %>
                     <button  class="btn btn-success btn-block mb-2" onclick="quickStatusUpdate('delivered')">
                       <i class="lni lni-package"></i>
