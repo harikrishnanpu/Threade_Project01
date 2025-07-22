@@ -96,7 +96,7 @@ ProductSchema.virtual('discountPercentage').get(function () {
 ProductSchema.pre('save', function(next) {
   
   if (this.variants && this.variants.length) {
-    const prices     = this.variants.map(v => v.price).filter(p => p > 0);
+    const prices = this.variants.map(v => v.price).filter(p => p > 0);
     const stockArr = this.variants.map(v => v.stock);
     const salePrices = this.variants.map(v => v.salePrice).filter(sp => sp > 0);
 
@@ -104,7 +104,7 @@ ProductSchema.pre('save', function(next) {
     this.stock = Math.min(...stockArr);
 
     this.salePrice = salePrices.length
-      ? Math.min(...salePrices)
+      ? Math.min(...salePrices).toFixed(2)
       : 0;
   } else {
     this.regularPrice = 0;

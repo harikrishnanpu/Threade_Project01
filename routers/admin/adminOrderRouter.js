@@ -11,8 +11,8 @@ adminOrderRouter.get('/api/filtered/all', orderController.getAllOrdersFilteredLi
 adminOrderRouter.get('/api/order/:orderId', orderController.getOneOrder);
 
 adminOrderRouter.post('/update-status', orderController.updateOrderStatus);
-
 adminOrderRouter.post('/:orderId/status', orderController.orderDetailsStatusUpdate);
+adminOrderRouter.put('/order/:orderId/update-payment', orderController.updatePaymentStatus)
 
 adminOrderRouter.put('/:orderId/update', orderController.updateFullOrder);
 

@@ -188,7 +188,7 @@ const verifyWalletPayment = async ({
 
 
 
-const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId }) => {
+const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId },userId,io) => {
   try {
 
 
@@ -204,6 +204,8 @@ const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, r
     const order = await Orders.findById(orderId);
     if (!order) return { success: false, message: 'order not found' };
 
+
+    if(order.orderStatus == 'pending') {
 
 
        const dbProducts = await Product.find({ _id: { $in: order.items.map(i => i.productId.toString()) } });
@@ -249,7 +251,24 @@ const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, r
       date: new Date()
     });
 
+  }else if(!order.orderStatus.includes('return')){
+
+    order.paymentStatus = 'paid'
+    order.paymentId = razorpay_payment_id;
+    
+    order.timeline.push({
+      status: 'paid',
+      note: 'Payment successful via Razorpay',
+      date: new Date()
+    });
+
+  }
+
     await order.save();
+
+
+          io.to(`user:order:${userId}`).emit('order:updated', { orderId: order._id });
+        io.to(`admin:order:${order._id}`).emit('order:updated', { orderId: order._id });
 
     return { success: true, message: 'Payment verified and order updated' };
   } catch (err) {

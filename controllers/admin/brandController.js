@@ -1,17 +1,20 @@
 const brandService = require('../../services/brandServices');
 const Category = require('../../models/categoryModel');
 const { getAllBrandListQuery } = require('../../utils/queries/getAllBrandQuery');
+const mongoose = require('mongoose');
+
 
 
 
 async function renderAllBrands(req, res, next) {
   try {
+
  const { query, sort, limit, skip, currentPage, finalSortField, finalSortOrder, ...filters } = getAllBrandListQuery(req.query);
 
     const [brands, totalBrands, categories] = await Promise.all([
       brandService.getBrands(query, sort, skip, limit),
       brandService.countBrands(query),
-      Category.find({ isActive: true }).select('name').sort({ name: 1 }),
+      Category.find({ isActive: true }).select('name').sort({ createdAt: -1 }),
     ]);
 
     const totalPages = Math.max(1, Math.ceil(totalBrands / limit));
@@ -26,8 +29,6 @@ async function renderAllBrands(req, res, next) {
       ...filters
     });
   } catch (error) {
-
-    console.log('Error rendering brands page:', error);
     res.status(500).json({message: error.message});
     
   }
@@ -44,7 +45,7 @@ async function getFilteredBrands(req, res, next) {
     const [brands, totalBrands, categories] = await Promise.all([
       brandService.getBrands(query, sort, skip, limit),
       brandService.countBrands(query),
-      Category.find({ isActive: true }).select('name').sort({ name: 1 }),
+      Category.find({ isActive: true }).select('name').sort({ createdAt: -1 }),
     ]);
 
     const totalPages = Math.max(1, Math.ceil(totalBrands / limit));
@@ -62,8 +63,7 @@ async function getFilteredBrands(req, res, next) {
 
 
   } catch (error) {
-
-    console.log('Error rendering brands page:', error);
+    
     res.status(500).json({message: error.message , success: false});
 
   }
@@ -71,20 +71,25 @@ async function getFilteredBrands(req, res, next) {
 
 
 async function getAllBrands(req, res, next) {
+
   try {
+
     const brands = await brandService.getAllBrands();
+
     res.status(200).json({ 
       success: true, 
       data: brands,
       count: brands.length 
     });
   } catch (error) {
-    console.error('Error getting all brands:', error);
+
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to fetch brands'
     });
+
   }
+
 }
 
 
@@ -133,6 +138,7 @@ async function createBrand(req, res, next) {
       data: brand, 
       message: 'Brand created successfully' 
     });
+
   } catch (error) {
 
     res.status(500).json({
@@ -154,34 +160,9 @@ async function updateBrand(req, res, next) {
       data: updatedBrand, 
       message: 'Brand updated successfully' 
     });
-  } catch (error) {
-    console.error('Error updating brand:', error);
-    
-    if (error.message === 'Brand not found') {
-      return res.status(404).json({
-        success: false,
-        message: error.message
-      });
-    }
-    
-    if (error.message === 'Brand name already exists') {
-      return res.status(409).json({
-        success: false,
-        message: error.message,
-        errors: { name: error.message }
-      });
-    }
-    
-    if (error.message === 'Invalid brand ID format') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid brand ID format'
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to update brand'
+  } catch (error) {    
+    res.status(500).json({success: false,
+      message: error.message
     });
   }
 }

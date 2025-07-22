@@ -113,7 +113,7 @@ const createOffer = async (req, res) => {
   } catch (err) {
     // console.log(err);
     
-    res.status(400).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -137,7 +137,7 @@ const updateOffer = async (req, res) => {
   } catch (err) {
     console.log(err);
     
-    res.status(400).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 
 };

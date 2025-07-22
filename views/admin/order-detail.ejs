@@ -754,10 +754,16 @@
                       Cancel Order
                     </button>
                   <% } else if (order.orderStatus === 'shipped') { %>
-                    <button class="btn btn-success btn-block mb-2" onclick="quickStatusUpdate('delivered')">
+                    <button  class="btn btn-success btn-block mb-2" onclick="quickStatusUpdate('delivered')">
                       <i class="lni lni-package"></i>
                       Mark as Delivered
                     </button>
+                    <% if(order.paymentStatus !== 'paid'){ %>
+                     <button onclick="updatePaymentStatus('<%= order._id %>')"  class="btn btn-success btn-block mb-2" id="paymentStatus">
+                      <i class="lni lni-package"></i>
+                      Mark as Paid
+                    </button>
+                    <%} %>
                   <% } else if (order.orderStatus === 'delivered') { %>
                     <!-- <button class="btn btn-warning btn-block mb-2" onclick="quickStatusUpdate('return-requested')">
                       <i class="lni lni-reload"></i>
@@ -1964,6 +1970,9 @@
 }
 </style>
 
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
+
+
 <script>
   const BASE_URL = window.location.origin;
   const ORDER_ID = '<%= order._id %>';
@@ -1979,27 +1988,48 @@
     document.getElementById('loading-overlay').classList.remove('active');
   }
 
-  function showError(message) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = message;
-    errorMsg.classList.add('show');
-    setTimeout(() => {
-      errorMsg.classList.remove('show');
-    }, 5000);
-  }
 
-  function showSuccess(message) {
-    const successMsg = document.getElementById('success-msg');
-    successMsg.textContent = message;
-    successMsg.classList.add('show');
-    setTimeout(() => {
-      successMsg.classList.remove('show');
-    }, 5000);
-  }
 
   function goBack() {
     window.history.back();
   }
+
+
+
+const socket = io();
+
+const path = window.location.pathname.split('/');
+const orderId = path[path.length - 1]
+
+socket.emit('OrderRoom', { type: 'admin', orderId });
+
+socket.on('order:updated', (payload) => {
+  if (payload.orderId === orderId) {
+    window.location.reload();
+  }
+});
+
+
+
+  async function updatePaymentStatus(orderId) {
+  try {
+    const response = await fetch(`/admin/orders/order/${orderId}/update-payment`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'}
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update payment status');
+    }
+
+    showGlobalToast('payment status updated','success')
+    setTimeout(()=>{ location.reload()},2000)
+  } catch (error) {
+    showGlobalToast(error.message || 'error occured','error')
+  }
+}
 
   function toggleEditMode() {
     isEditMode = !isEditMode;
@@ -2176,18 +2206,17 @@
     .then(response => response.json())
     .then(result => {
       if (result.success) {
-        showSuccess('Order updated successfully');
+        showGlobalToast('Order updated successfully','success');
         toggleEditMode();
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       } else {
-        showError(result.message || 'Failed to update order');
+        showGlobalToast(result.message || 'Failed to update order','error');
       }
     })
     .catch(error => {
-      showError('Error updating order');
-      console.error('Error:', error);
+      showGlobalToast('Error updating order','error');
     })
     .finally(() => {
       hideLoading();
@@ -2413,18 +2442,17 @@ function updateOrderSummary(){
     .then(response => response.json())
     .then(result => {
       if (result.success) {
-        showSuccess('Timeline entry added successfully');
+        showGlobalToast('Timeline entry added successfully','error');
         cancelAddTimeline();
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       } else {
-        showError(result.message || 'Failed to add timeline entry');
+        showGlobalToast(result.message || 'Failed to add timeline entry','error');
       }
     })
     .catch(error => {
-      showError('Error adding timeline entry');
-      console.error('Error:', error);
+      showGlobalToast('Error adding timeline entry','error');
     })
     .finally(() => {
       hideLoading();
@@ -2637,18 +2665,17 @@ function updateOrderSummary(){
       .then(response => response.json())
       .then(result => {
         if (result.success) {
-          showSuccess('Order status updated successfully');
+          showGlobalToast('Order status updated successfully','success');
           closeStatusModal();
           setTimeout(() => {
             window.location.reload();
           }, 1000);
         } else {
-          showError(result.message || 'Failed to update order status');
+          showGlobalToast(result.message || 'Failed to update order status','error');
         }
       })
       .catch(error => {
-        showError('Error updating order status');
-        console.error('Error:', error);
+        showGlobalToast('Error updating order status','error');
       })
       .finally(() => {
         hideLoading();
@@ -2675,18 +2702,17 @@ function updateOrderSummary(){
       .then(response => response.json())
       .then(result => {
         if (result.success) {
-          showSuccess(`Order return request ${actionType}ed successfully`);
+          showGlobalToast(`Order return request ${actionType}ed successfully`,'error');
           closeOrderReturnRequestModal();
           setTimeout(() => {
             window.location.reload();
           }, 1000);
         } else {
-          showError(result.message || `Failed to ${actionType} order return request`);
+          showGlobalToast(result.message || `Failed to ${actionType} order return request`,'error');
         }
       })
       .catch(error => {
-        showError('Error processing order return request action');
-        console.error('Error:', error);
+        showGlobalToast('Error processing order return request action','error');
       })
       .finally(() => {
         hideLoading();
@@ -2816,20 +2842,27 @@ function updateOrderSummary(){
       addTimelineEntry(data);
     });
 
-    // Update relative times initially and every minute
     updateRelativeTimes();
     setInterval(updateRelativeTimes, 60000);
 
-    // Add data-status attributes to timeline items for styling
     document.querySelectorAll('.timeline-item').forEach((item, index) => {
       const statusText = item.querySelector('h6')?.textContent?.toLowerCase().replace(/\s+/g, '-');
       if (statusText) {
         item.setAttribute('data-status', statusText);
       }
+
+
+
+      
     });
+
+
   });
 
-  // Hide loading on page load
+
+
+
+
   window.addEventListener('load', function() {
     hideLoading();
   });

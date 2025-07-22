@@ -1453,7 +1453,6 @@
           Loading coupons...
         </div>
         <div id="coupons-list">
-          <!-- Coupons will be loaded here -->
         </div>
       </div>
     </div>
@@ -1706,7 +1705,7 @@ window.openAddressModal = function () {
         
         const isApplied = couponCode === coupon.code;
         const couponCard = document.createElement('div');
-        couponCard.className = `coupon-card ${isApplied ? 'applied' : ''} ${coupon.usedBy?.includes(`<%= user._id %>`) ? 'disabled' : '' }`;
+        couponCard.className = `coupon-card ${isApplied ? 'applied' : ''} ${(coupon.usedBy?.includes(`<%= user._id %>`) || coupon.usedCount > coupon.maxUsage) ? 'disabled' : '' }`;
         
         const expiryDate = coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString() : 'No expiry';
         const minOrder = coupon.minOrderAmount > 0 ? `Min order: ₹${coupon.minOrderAmount}` : 'No min order';

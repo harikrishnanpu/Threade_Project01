@@ -965,7 +965,7 @@ a:hover{
               
 <% if (
   order.orderStatus === 'delivered' &&
-  order.items.every(item => !item.isCancelled && (!item.status || (!item.status.includes('return') && item.status !== 'cancelled')))
+  order.items.every(item => !item.isCancelled && (!item.status.includes('return') && item.status !== 'cancelled'))
 ) { %>
   <button class="action-btn warning" onclick="OrderManager.showFullOrderReturnModal()">
     <i class="fas fa-undo"></i> Return Full Order
@@ -978,10 +978,15 @@ a:hover{
   </a>
 <% } %>
 
+
+<% if(!['pending','confirmed','shipped','return-complete'].includes(order.orderStatus)){ %>
+
               
-              <button onclick="downloadPdf(`<%= order._id %>`)" id="download-invoice" class="action-btn">
+               <button onclick="downloadPdf(`<%= order._id %>`)" id="download-invoice" class="action-btn">
                 <i class="fas fa-download"></i> Download Invoice
-              </button>
+              </button> 
+
+              <% } %>
               
               <a href="/contact-us?order=<%= order._id %>" class="action-btn">
                 <i class="fas fa-headset"></i> Contact Support
@@ -1257,6 +1262,8 @@ a:hover{
 
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
+
 
 <script>
  const orderPayment = async function (orderId) {
@@ -1665,9 +1672,6 @@ const totalAmountAfterCancel = orderObject.items?.reduce((total, itm) => {
   return total;
 }, 0);
 
-console.log(orderObject);
-console.log("Total:", totalAmountAfterCancel);
-console.log("Coupon:", couponObject);
 
 if(couponObject && totalAmountAfterCancel < parseInt(couponObject.minOrderAmount)){
 
@@ -2501,9 +2505,21 @@ async function downloadPdf (orderId) {
 
 
 
-// Initialize OrderManager when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-  OrderManager.init();
+OrderManager.init();
+
+const socket = io();
+const orderId = OrderManager.config.orderId;
+
+socket.emit('OrderRoom', { type: 'user', orderId, userId: '<%= user._id %>' });
+
+socket.on('order:updated', function(payload) {
+  if (payload.orderId === orderId) {
+    OrderManager.updateUI();
+  }
+});
+
+
 });
 
 // Make OrderManager globally available for onclick handlers

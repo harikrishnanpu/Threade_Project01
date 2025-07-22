@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 
 
 const getAllBrandListQuery =  (queryParams) => {
@@ -9,7 +10,7 @@ const getAllBrandListQuery =  (queryParams) => {
     sortField = 'createdAt',
     sortOrder = 'desc',
     search = '',
-    showInactive = 'false',
+    showInactive = 'true',
   } = queryParams;
 
   const limit = 10;

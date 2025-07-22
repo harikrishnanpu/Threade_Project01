@@ -67,6 +67,15 @@ const room = await Room.findOneAndUpdate(
     );
 
 
+    socket.on('OrderRoom', ({ type, orderId, userId }) => {
+    if (type === 'admin') {
+      socket.join(`admin:order:${orderId}`);
+    } else if (type === 'user' && userId) {
+      socket.join(`user:order:${userId}`);
+    }
+  });
+
+
     
 
     socket.on('disconnect', async () => {

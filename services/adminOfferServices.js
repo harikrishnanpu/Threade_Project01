@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose');
 const Category = require('../models/categoryModel');
 const Offer = require('../models/offerModel');
 const Product= require('../models/productModel');
@@ -73,7 +74,7 @@ const updateAllProductSalePrices = async () => {
         const newSalePrice = bestDiscountAmount > 0 ? variant.price - bestDiscountAmount : variant.price;
 
         if (variant.salePrice !== newSalePrice){  
-          variant.salePrice = newSalePrice;
+          variant.salePrice = Math.round(newSalePrice);
           isUpdated = true;
         }
 
@@ -116,6 +117,12 @@ const createOffer = async (data) => {
       throw new Error('discont not greater than 90')
     }
 
+    const existingOffer = await Offer.findOne({ title: {$regex: new RegExp(title.trim(), 'i') } })
+
+    if(existingOffer){
+      throw new Error('offer title already exists')
+    }
+
 
     const offer = await Offer.create({
         title,
@@ -153,6 +160,13 @@ const updateOffer = async (id, data) => {
 
     if(parseInt(discount) > 90){
       throw new Error('discont not greater than 90')
+    }
+
+    const existingOffer = await Offer.findOne({ title: {$regex: new RegExp(title.trim(), 'i') } , _id: { $ne: new mongoose.Types.ObjectId(id)  } })
+
+    if(existingOffer){
+      
+      throw new Error('offer title already exists')
     }
 
 

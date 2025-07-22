@@ -11,6 +11,9 @@ const getProducts = async (filters = {}, sortOptions = { createdAt: -1 }, page =
     filters.isActive = true;
     filters.isCategoryActive = true;
     filters.isBrandActive = true;
+
+    
+
     
     const totalProducts = await Product.countDocuments(filters);
     
@@ -46,6 +49,8 @@ const getProducts = async (filters = {}, sortOptions = { createdAt: -1 }, page =
     };
 
   } catch (err) {
+    console.log(err);
+    
     throw new Error(err.message);
   }
 };
