@@ -9,6 +9,8 @@ const mongoose = require('mongoose');
 const Users = require('../models/userModel');
 const StockRegistry = require('../models/stockRegsitryModel');
 const Category = require('../models/categoryModel');
+const { randomUUID } = require('crypto');
+
 
 const findUserOrder = async (orderId, userId) => {
   const order = await Order.findOne({ _id: orderId, user: userId });
@@ -124,7 +126,7 @@ if (totalAmount > 1000) {
 throw new Error('cash on delivery is not available for orders above ₹1000')
 }
 
-    const orderNumber = `ORD-${Date.now()}-${userId}`;
+      const orderNumber = `ORD-${randomUUID()}`;
 
     const orderItems = cart.items.map(item => {
 
@@ -321,7 +323,7 @@ const createWalletOrder = async (userId) => {
     const shippingCost = session.shippingMethod === 'free' ? 0 : session.shippingMethod === 'express' ? 100 : 50;
     const totalAmount = subtotal + shippingCost - discountAmount;
 
-const orderNumber = `ORD-${Date.now()}-${userId}`;
+const orderNumber = `ORD-${randomUUID()}`;
 
   const wallet = await UserWallet.findOne({ user: userId });
 
@@ -532,7 +534,7 @@ const prepareOnlineOrder = async (userId) => {
     const shippingCost = session.shippingMethod === 'free' ? 0 : session.shippingMethod === 'express' ? 100 : 50;
 const totalAmount = subtotal + shippingCost - discountAmount;
 
-    const orderNumber = `ORD-${Date.now()}-${userId}`;
+const orderNumber = `ORD-${randomUUID()}`;
 
     const orderItems = cart.items.map(item => {
       const matchedVariant = item.product.variants.find(v =>

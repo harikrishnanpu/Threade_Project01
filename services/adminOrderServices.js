@@ -469,7 +469,8 @@ const quickStatusUpdate = async (orderId, {
             const product = await Product.findById(item.productId);
 
       if (!item.isCancelled &&
-        !item.status.includes('return')
+        !item.status.includes('return') &&
+        !item.status.includes('cancelled') 
       ) {
 
         if (!product) continue;
@@ -501,94 +502,94 @@ const quickStatusUpdate = async (orderId, {
           reason: 'order cancelled',
           updatedBy: 'admin'
         });
+        
+        
+        const isProductEligible = async (order,proId,variant) => {
+          
+          if (!order.coupon || !order.coupon.code) return false;
+          
+          const coupon = await Coupon.findOne({ code: order.coupon.code });
+          if (!coupon) return false;
+          
+          const totalOrderAmountAfter = order.items.reduce((total, itm) => {
+            // console.log(itm);
+            
+            if (
+              !(itm.productId.toString() == proId.toString() && itm.variant.color == variant.color && itm.variant.size == variant.size) &&
+              !['pending', 'cancelled', 'return-complete'].includes(itm.status)
+            ) {
+              total += itm.quantity * itm.price;
+            }
+            
+            return total;
+          }, 0);
+          
+          return totalOrderAmountAfter >= coupon.minOrderAmount;
+          
+        };
+        
+        
+        
+        
+        
+        const eligible = await isProductEligible(order,item.productId,item.variant);
+        // console.log(eligible);
+        
+        
+        const itemTotal = item.price * item.quantity;
+        const itemsSubtotal = order.items.reduce((total, itm) => {
+          return total + (itm.price * itm.quantity);
+        }, 0);
+        
+        
+        if (order.coupon && order.coupon.discountAmount && eligible) {
+          
+          const discountAmount = order.coupon.discountAmount || 0;
+          
+          const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
+          
+          refundPrice = Math.round(itemTotal - itemDiscountShare);
+          
+        } else if (order.coupon && order.coupon.discountAmount && !eligible) { 
+          
+          const discountAmount = order.coupon.discountAmount;
+          const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
+          const itemPaidAmount = Math.round(itemTotal - itemDiscountShare);
+          
+          const remainingItemsDiscountEarned = order.items.reduce((total, itm) => {
+            
+            if (
+              !(itm.productId.toString() === item.productId.toString() &&
+              itm.variant.color === item.variant.color &&
+              itm.variant.size === item.variant.size) &&
+              !['pending', 'cancelled', 'return-complete'].includes(itm.status)
+            ) {
+              const itemPrice = itm.quantity * itm.price;
+              const itemShare = (itemPrice / itemsSubtotal) * discountAmount;
+              total += itemShare;
+            }
+            return total;
+          }, 0);
+          
+          
+          refundPrice = Math.round(itemPaidAmount - remainingItemsDiscountEarned);
+          
+          refundPrice = Math.max(refundPrice, 0);
+          
+          order.coupon.code = null;
+          order.coupon.discountAmount = null;
+          
+        }else{
+          refundPrice += Math.round(itemTotal);
+        }
+        
+        item.isCancelled = true;
+        item.cancellationReason = reason;
+        item.cancelledBy = 'admin';
+        item.cancelledAt = new Date();
+        item.status = 'cancelled';
+        
       }
-
-    
-  const isProductEligible = async (order,proId,variant) => {
-
-  if (!order.coupon || !order.coupon.code) return false;
-
-  const coupon = await Coupon.findOne({ code: order.coupon.code });
-  if (!coupon) return false;
-
-  const totalOrderAmountAfter = order.items.reduce((total, itm) => {
-    // console.log(itm);
-    
-    if (
-      !(itm.productId.toString() == proId.toString() && itm.variant.color == variant.color && itm.variant.size == variant.size) &&
-      !['pending', 'cancelled', 'return-complete'].includes(itm.status)
-    ) {
-      total += itm.quantity * itm.price;
-    }
-
-    return total;
-  }, 0);
-
-  return totalOrderAmountAfter >= coupon.minOrderAmount;
-  
-};
-
-
-
-    
-
-const eligible = await isProductEligible(order,item.productId,item.variant);
-// console.log(eligible);
-
-
-  const itemTotal = item.price * item.quantity;
-const itemsSubtotal = order.items.reduce((total, itm) => {
-  return total + (itm.price * itm.quantity);
-}, 0);
-
-
-if (order.coupon && order.coupon.discountAmount && eligible) {
-
-  const discountAmount = order.coupon.discountAmount || 0;
-
-  const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
-
-  refundPrice = Math.round(itemTotal - itemDiscountShare);
-
-} else if (order.coupon && order.coupon.discountAmount && !eligible) { 
-
-  const discountAmount = order.coupon.discountAmount;
-const itemDiscountShare = (itemTotal / itemsSubtotal) * discountAmount;
-const itemPaidAmount = Math.round(itemTotal - itemDiscountShare);
-
-const remainingItemsDiscountEarned = order.items.reduce((total, itm) => {
-
-  if (
-    !(itm.productId.toString() === item.productId.toString() &&
-      itm.variant.color === item.variant.color &&
-      itm.variant.size === item.variant.size) &&
-    !['pending', 'cancelled', 'return-complete'].includes(itm.status)
-  ) {
-    const itemPrice = itm.quantity * itm.price;
-    const itemShare = (itemPrice / itemsSubtotal) * discountAmount;
-    total += itemShare;
-  }
-  return total;
-}, 0);
-
-
-refundPrice = Math.round(itemPaidAmount - remainingItemsDiscountEarned);
-
-refundPrice = Math.max(refundPrice, 0);
-
-order.coupon.code = null;
-order.coupon.discountAmount = null;
-
-}else{
-  refundPrice += Math.round(itemTotal);
-}
-    
-          item.isCancelled = true;
-          item.cancellationReason = reason;
-          item.cancelledBy = 'admin';
-          item.cancelledAt = new Date();
-          item.status = 'cancelled';
-    
 
     }
     

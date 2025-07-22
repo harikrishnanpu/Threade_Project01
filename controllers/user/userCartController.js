@@ -417,10 +417,12 @@ const getAllCouponsAvailable = async (req, res) => {
   try {
     const userId = req.user?._id;
 
-    const coupons = await coupounModel.find({
+    const dbcoupons = await coupounModel.find({
       isActive: true,
       expiresAt: { $gt: new Date() }
     }).lean();
+
+    const coupons = dbcoupons.filter((coupon) => coupon.isActive && coupon.maxUsage > coupon.usedCount)
 
     res.json({ success: true, coupons });
   } catch (err) {
