@@ -1349,8 +1349,8 @@ if (sale > actualPrice) {
 
 const discountPercentage = ((actualPrice - sale) / actualPrice) * 100;
 
-if (discountPercentage < 90) {
-  return showFormError('variants-error', 'minimum 90% discount is allowed');
+if (discountPercentage > 90) {
+  return showFormError('variants-error', 'maximum 90% discount is allowed');
 }
 
 

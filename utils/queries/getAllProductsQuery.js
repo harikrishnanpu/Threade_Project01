@@ -81,7 +81,7 @@ const getUserProductFiltersAndSort = async query => {
   if (search) filters.name = { $regex: search, $options: 'i' }
 
   if (mainCatfromUser && subCat){
-    console.log("fff",subCat);
+    // console.log("fff",subCat);
     
     filters.category = new mongoose.Types.ObjectId(subCat)
   }
@@ -92,21 +92,20 @@ const getUserProductFiltersAndSort = async query => {
     if (subCatIds.length) filters.category = { $in: [...subCatIds.map(s => new mongoose.Types.ObjectId(s._id)), new mongoose.Types.ObjectId(mainCatfromUser) ]  };
     else filters.category = new mongoose.Types.ObjectId(mainCatfromUser);
 
-  }else {
-    const randomProduct = await productModel.findOne().sort({ createdAt: -1 });
-    const catId = await Category.findOne({ $or: [{ _id: randomProduct.category , parentCategory: null, isActive: true } ,{ parentCategory: null ,isActive: true }]}).sort({ createdAt: -1 }).lean();
-    mainCatfromUser = catId._id.toString();
-    const subCatIds = await Category.find({ parentCategory: mainCatfromUser, isActive: true }).select('_id').lean();
-   filters.category = { $in: [...subCatIds.map(s => new mongoose.Types.ObjectId(s._id)), catId._id] };
   }
 
 
-  const brands = await Brand.find({ category: filters.category, isActive: true }).lean()
+  const brandQuery = {};
+  if(filters.category){
+    brandQuery.category = filters.category
+    brandQuery.isActive = true 
+  }
+
+  const brands = await Brand.find(brandQuery).lean()
   const brandIds = brands.map((brand) => brand._id);
       
   
   if (brand) filters.brand = new mongoose.Types.ObjectId(brand)
-  
   if (size) filters['variants.size'] = size
   if (color) filters['variants.color'] = { $in: [color] }
   if (tag) filters.tags = { $in: [tag] }
@@ -147,7 +146,7 @@ const getUserProductFiltersAndSort = async query => {
       isFeatured: isFeatured === 'true', inStock: inStock === 'true', sortBy
     }
 
-  if(filters.brand){    
+  if(filters.category && filters.brand){    
     if(!brandIds.includes(filters.brand)){
             delete filters.brand
     }

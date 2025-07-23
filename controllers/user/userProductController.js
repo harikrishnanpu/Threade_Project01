@@ -21,10 +21,17 @@ const renderShopPage = async (req, res) => {
     const wishlistItemIds  = userWishlist?.items.map(i => i.product.toString()) || []
     const dealsOfTheDayProducts = await productService.getDealOfTheDayProducts();
 
+
+      const brandQuery = {};
+      if(filters.category){
+        brandQuery.category = filters.category
+        brandQuery.isActive = true 
+      }
+
     const [mainCategories, subCategories, brands, tags] = await Promise.all([
       Category.find({ parentCategory: null, isActive: true }).sort({ createdAt: -1 }).lean(),
       Category.find({ parentCategory: queryOptions.mainCat, isActive: true }).sort({ createdAt: -1 }).lean(),
-      Brand.find({ category: queryOptions.mainCat, isActive: true }).sort({ createdAt: -1 }).lean(),
+      Brand.find(brandQuery).sort({ createdAt: -1 }).lean(),
       productService.getAllTags()
     ])
 
@@ -66,10 +73,16 @@ const getShopPageContents = async (req, res) => {
     const wishlistItemIds  = userWishlist?.items.map(i => i.product.toString()) || []
     const dealsOfTheDayProducts = await productService.getDealOfTheDayProducts();
 
+      const brandQuery = {};
+      if(filters.category ){
+        brandQuery.category = filters.category
+        brandQuery.isActive = true 
+      }
+
     const [mainCategories, subCategories, brands, tags] = await Promise.all([
       Category.find({ parentCategory: null, isActive: true }).sort({ createdAt: -1 }).lean(),
       Category.find({ parentCategory: queryOptions.mainCat, isActive: true }).sort({ createdAt: -1 }).lean(),
-      Brand.find({ category: queryOptions.mainCat, isActive: true }).sort({ createdAt: -1 }).lean(),
+      Brand.find(brandQuery).sort({ createdAt: -1 }).lean(),
       productService.getAllTags()
     ])
 
@@ -94,8 +107,9 @@ const getShopPageContents = async (req, res) => {
       wishlistItemIds,
       dealsOfTheDayProducts
     })
-  } catch (e) {
-    res.status(500).render({ message: 'Failed to load shop page', success: false })
+  } catch (err) {
+    
+    res.status(500).render({ message: err.message, success: false })
   }
 }
 

@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop</title>
-  <!-- Fonts and Styles (Unchanged) -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
@@ -26,7 +20,7 @@
     .shop__sidebar__price a.active {background: #000; color: #fff !important; font-weight: 800;}
     body.loading { pointer-events: none;}
     @media (max-width: 991.98px){
-      .shop__sidebar{position:fixed;top:0;left:0;height:100vh;width:280px;background:#fff;z-index:1050;overflow-y:auto;padding:1.25rem 1rem;transform:translateX(-100%);transition:transform .3s;}
+      .shop__sidebar{position:fixed;top:0;left:0;height:100%;width:280px;background:#fff;z-index:1050;overflow-y:auto;padding:1.25rem 1rem;transform:translateX(-100%);transition:transform .3s;}
       .shop__sidebar.open{transform:translateX(0);}
       .sidebar-close{border:none;background:transparent;font-size:1.75rem;line-height:1;margin-bottom:.75rem;}
       .sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1049;display:none;}
@@ -87,8 +81,8 @@
 
 
   </style>
-</head>
-<body>
+
+
   <!-- LOADING OVERLAY -->
   <div id="loading-overlay">
     <img style="height: 300px;" src="/img/loading/loading12.gif"  alt="Loading..."/>
@@ -103,7 +97,7 @@
             <aside class="shop__sidebar">
               <button class="sidebar-close d-lg-none" onclick="closeSidebar()">×</button>
               <div class="header-search mb-4">
-                <input onkeydown="if(event.key==='Enter') shopSubmit()" name="search" type="text" placeholder="Search products..." />
+                <input id="shopPageSearchInput" onkeydown="if(event.key==='Enter') shopSubmit()" name="search" type="text" placeholder="Search products..." />
                 <button onclick="shopSubmit();" type="submit"><i class="fa fa-search"></i></button>
               </div>
               <div class="shop__sidebar__accordion">
@@ -394,7 +388,7 @@ document.querySelectorAll(".HeaderwishCount").forEach(el => {
       if (!currentCategory) { hero.style.display = "none"; return; }
       hero.style.display = "flex";
       let bgImg = (currentCategory.bgImage || currentCategory.image || defaultHeroImg);
-      heroTitle.textContent = currentCategory.name;
+      heroTitle.textContent = currentCategory.name || 'All Products';
       heroSub.textContent = currentCategory.description||"Explore trendy new arrivals!";
     }
 
@@ -423,7 +417,13 @@ document.querySelectorAll(".HeaderwishCount").forEach(el => {
         } = data;
 
         console.log(data);
-        
+
+
+        const searchInputField = document.getElementById('shopPageSearchInput')
+
+        if(searchInputField){
+          searchInputField.value = queryOptions.search
+        }
 
         if(products?.length == 0)  total.innerText = "No products Found"
         total.innerText = "Showing Products"
@@ -485,7 +485,9 @@ document.querySelectorAll(".HeaderwishCount").forEach(el => {
           <div class="showcase-banner">
             <img src="${product.images[0]}" alt="product" width="300" class="product-img default">
             <img src="${product.images[1]}" alt="product" width="300" class="product-img hover">
-            <p class="showcase-badge">15%</p>
+<p class="showcase-badge">
+  ${Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100).toFixed(1)}%
+</p>
             <div class="showcase-actions">
               <button class="btn-action"><ion-icon name="heart-outline"></ion-icon></button>
               <button class="btn-action"><ion-icon name="eye-outline"></ion-icon></button>
@@ -495,23 +497,25 @@ document.querySelectorAll(".HeaderwishCount").forEach(el => {
           </div>
           <div class="showcase-content">
             <a href="/user/products/${product._id}" class="showcase-category">${product.category.name}</a>
-            <a href="/user/products/${product._id}"><h3 class="showcase-title text-truncate">${product.name}</h3></a>
-            <div class="showcase-rating">
-              <ion-icon name="star"></ion-icon>
-              <ion-icon name="star"></ion-icon>
-              <ion-icon name="star"></ion-icon>
-              <ion-icon name="star-outline"></ion-icon>
-              <ion-icon name="star-outline"></ion-icon>
-            </div>
+            <a href="/user/products/${product._id}"><h3 class="showcase-title text-truncate font-bold">${product.name}</h3></a>
+<div class="showcase-rating">
+  ${Array.from({ length: 5 }, (_, i) => `
+    <i class="fas fa-star star ${i + 1 <= Math.round(product.rating) ? '' : 'empty'}"></i>
+  `).join('')}
+</div>
             <div class="price-box"><p class="price">₹${product.regularPrice}</p><del>₹${product.salePrice}</del></div>
             <div class="product-actions d-flex mb-2">
               <div>
-                <a onclick="showVariantSidebar('${product._id}')" style="color:#fff;" class="action-btn btn-dark text-truncate" href="javascript:void(0);">Add to cart 
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
-                    <path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
-                    <path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
-                  </svg>
+                <a onclick="showVariantSidebar('${product._id}')" style="color:#fff;" class="action-btn btn-dark text-truncate" href="javascript:void(0);">
+
+                      <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1.56641 4.48242C1.56641 4.06821 1.90219 3.73242 2.31641 3.73242H3.49696C4.37456 3.73242 5.14722 4.23809 5.51674 4.99023H21.0662C21.3045 4.99023 21.5287 5.10354 21.6701 5.29548C21.8114 5.48741 21.8531 5.7351 21.7824 5.96274L19.8601 12.1504C19.5678 13.0915 18.6969 13.7329 17.7114 13.7329H6.85901L6.9791 14.5869C7.03116 14.9571 7.34793 15.2324 7.72179 15.2324L18.0664 15.2324C18.4806 15.2324 18.8164 15.5682 18.8164 15.9824C18.8164 16.3966 18.4806 16.7324 18.0664 16.7324L7.72179 16.7324C6.60021 16.7324 5.6499 15.9064 5.49371 14.7957L4.23965 5.87799L4.23709 5.86111C4.17805 5.49955 3.86513 5.23242 3.49696 5.23242H2.31641C1.90219 5.23242 1.56641 4.89664 1.56641 4.48242Z" fill="#fff"/>
+<g opacity="0.4">
+<path d="M7.7832 18.2324C6.8167 18.2324 6.0332 19.0159 6.0332 19.9824C6.0332 20.9489 6.8167 21.7324 7.7832 21.7324H7.7932C8.7597 21.7324 9.5432 20.9489 9.5432 19.9824C9.5432 19.0159 8.7597 18.2324 7.7932 18.2324H7.7832Z" fill="#fff"/>
+<path d="M16.3203 18.2324C15.3538 18.2324 14.5703 19.0159 14.5703 19.9824C14.5703 20.9489 15.3538 21.7324 16.3203 21.7324H16.3303C17.2968 21.7324 18.0803 20.9489 18.0803 19.9824C18.0803 19.0159 17.2968 18.2324 16.3303 18.2324H16.3203Z" fill="#fff"/>
+</g>
+</svg>
+                  Add to cart 
                 </a>
               </div>
               <div class="whishlist ${wishlistItemIds.includes(product._id) ? 'active pulse-continuous' : ''}" data-product-id="${product._id}">
@@ -550,13 +554,11 @@ document.querySelectorAll(".HeaderwishCount").forEach(el => {
               <img src="${product.images[0]}" alt="product" class="showcase-img">
             </div>
             <div class="showcase-content">
-              <div class="showcase-rating">
-                <ion-icon name="star"></ion-icon>
-                <ion-icon name="star"></ion-icon>
-                <ion-icon name="star"></ion-icon>
-                <ion-icon name="star-outline"></ion-icon>
-                <ion-icon name="star-outline"></ion-icon>
-              </div>
+<div class="showcase-rating">
+  ${Array.from({ length: 5 }, (_, i) => `
+    <i class="fas fa-star star ${i + 1 <= Math.round(product.rating) ? '' : 'empty'}"></i>
+  `).join('')}
+</div>
               <a href="/user/products/${product._id}">
                 <h3 class="showcase-title">${product.name}</h3>
               </a>
@@ -564,12 +566,16 @@ document.querySelectorAll(".HeaderwishCount").forEach(el => {
               <div class="price-box"><p class="price">₹${product.regularPrice}</p><del>₹${product.salePrice}</del></div>
               <div class="product-actions d-flex mb-5">
                 <div>
-                  <a onclick="showVariantSidebar('${product._id}')" style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">Add to cart 
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
-                      <path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
-                      <path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
-                    </svg>
+                  <a onclick="showVariantSidebar('${product._id}')" style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">
+  
+                      <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1.56641 4.48242C1.56641 4.06821 1.90219 3.73242 2.31641 3.73242H3.49696C4.37456 3.73242 5.14722 4.23809 5.51674 4.99023H21.0662C21.3045 4.99023 21.5287 5.10354 21.6701 5.29548C21.8114 5.48741 21.8531 5.7351 21.7824 5.96274L19.8601 12.1504C19.5678 13.0915 18.6969 13.7329 17.7114 13.7329H6.85901L6.9791 14.5869C7.03116 14.9571 7.34793 15.2324 7.72179 15.2324L18.0664 15.2324C18.4806 15.2324 18.8164 15.5682 18.8164 15.9824C18.8164 16.3966 18.4806 16.7324 18.0664 16.7324L7.72179 16.7324C6.60021 16.7324 5.6499 15.9064 5.49371 14.7957L4.23965 5.87799L4.23709 5.86111C4.17805 5.49955 3.86513 5.23242 3.49696 5.23242H2.31641C1.90219 5.23242 1.56641 4.89664 1.56641 4.48242Z" fill="#fff"/>
+<g opacity="0.4">
+<path d="M7.7832 18.2324C6.8167 18.2324 6.0332 19.0159 6.0332 19.9824C6.0332 20.9489 6.8167 21.7324 7.7832 21.7324H7.7932C8.7597 21.7324 9.5432 20.9489 9.5432 19.9824C9.5432 19.0159 8.7597 18.2324 7.7932 18.2324H7.7832Z" fill="#fff"/>
+<path d="M16.3203 18.2324C15.3538 18.2324 14.5703 19.0159 14.5703 19.9824C14.5703 20.9489 15.3538 21.7324 16.3203 21.7324H16.3303C17.2968 21.7324 18.0803 20.9489 18.0803 19.9824C18.0803 19.0159 17.2968 18.2324 16.3303 18.2324H16.3203Z" fill="#fff"/>
+</g>
+</svg>
+                    Add to cart 
                   </a>
                 </div>
                 <div class="whishlist ${wishlistItemIds.includes(product._id) ? 'active pulse-continuous' : ''}" data-product-id="${product._id}">
@@ -667,5 +673,4 @@ document.querySelectorAll(".HeaderwishCount").forEach(el => {
 
   
   </script>
-</body>
-</html>
+
