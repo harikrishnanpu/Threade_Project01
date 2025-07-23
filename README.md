@@ -85,8 +85,8 @@ A complete production-ready **e-commerce platform** for fashion retail built wit
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/fashionverse-ecommerce.git
-cd  threade_project001
+git clone https://github.com/harikrishnanpu/Threade_Project01.git
+cd  Threade_Project01
 
 npm install
 
