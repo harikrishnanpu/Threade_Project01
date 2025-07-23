@@ -251,10 +251,10 @@
                 <ul class="sidebar-submenu-category-list" data-accordion>
 
                   <% mainCat.subCategories.forEach((cat)=> { %>
+
                   <li class="sidebar-submenu-category">
                     <a href="#" class="sidebar-submenu-title">
                       <a style="color: #000000b7;font-size: .8rem;font-weight: 800;" href="/user/products/shop?mainCat=<%= mainCat._id  %>" class="product-name"><%= cat.name %></a>
-                      <!-- <data value="300" class="stock" title="Available Stock"></data> -->
                     </a>
                   </li>
 
@@ -698,7 +698,9 @@
                   <img src="<%= product.images[0] %>" alt="Mens Winter Leathers Jackets" width="300" class="product-img default">
                   <img src="<%= product.images[1] %>" alt="Mens Winter Leathers Jackets" width="300" class="product-img hover">
 
-                  <p class="showcase-badge">15%</p>
+<p class="showcase-badge">
+  <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100).toFixed(1) %>%
+</p>
 
                   <div class="showcase-actions">
 

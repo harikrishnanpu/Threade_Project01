@@ -1,32 +1,146 @@
-
-<div class="order-success-wrapper mx-auto px-3 py-5">
-  <!-- tick animation -->
-  <div class="order-success-check mb-4">
-    <svg viewBox="0 0 52 52">
-      <polyline points="14,27 23,36 40,19"></polyline>
-    </svg>
-  </div>
-
-  <!-- order number -->
-  <p class="order-success-id mb-4">
-    Order&nbsp;ID:&nbsp;<%= order.orderNumber %>
-  </p>
-
-  <!-- actions -->
-  <div class="order-success-actions">
-    <a href="/user/products/shop" class="order-success-btn">Continue Shopping</a>
-    <a href="/user/profile/orders/<%= order._id %>" class="order-success-btn">View Order</a>
-  </div>
-</div>
-
 <style>
-  :root{--black:#000;--white:#fff;}
+  :root {
+  --black: #181818;
+  --white: #fff;
+  --accent: #1fb357;
+  --btn-bg: #181818;
+  --btn-outline: #ececec;
+  --shadow: 0 8px 32px rgba(32,32,64,0.08);
+  --radius: 18px;
+  --font: 'Inter', system-ui, sans-serif;
+}
 
-  .order-success-wrapper{
-    max-width:420px;text-align:center;background:var(--white);
+body {
+  background: #fafbfc;
+  font-family: var(--font);
+}
+
+.order-success-container {
+  margin: 7vh auto 2rem;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2.5rem 1.25rem 2rem;
+  text-align: center;
+  position: relative;
+  width: 90%;
+  max-width: 420px;
+}
+
+
+.order-success-circle {
+  stroke: #b6ffd8;
+  stroke-width: 2;
+  fill: none;
+}
+.order-success-tick {
+  stroke: var(--black);
+  stroke-width: 6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 156;
+  stroke-dashoffset: 156;
+  animation: tick-draw 1s cubic-bezier(0.23,1,0.32,1) forwards 0.3s;
+}
+@keyframes tick-draw { to{ stroke-dashoffset: 0; } }
+
+/* Popper Animations */
+.popper-gif {
+  position: fixed;
+  top: 40px;
+  width: 56px; height: 56px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  z-index: 3;
+  opacity: 0;
+  animation: popper-in 600ms cubic-bezier(.58,1.55,.61,1.02) 0.8s forwards;
+}
+.popper-gif--left {
+  left: 35px;
+}
+.popper-gif--right {
+  right: 35px;
+}
+@keyframes popper-in {
+  0% { transform: translateY(30px) scale(0.8); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.order-success-msg h2 {
+  margin: 0 0 .3rem;
+  font-size: 1.5rem;
+  letter-spacing: -.02em;
+  font-weight: 700;
+}
+.order-success-msg p {
+  margin: 0 0 .5rem;
+  color: #222c;
+  font-size: 1.02rem;
+}
+.order-success-id {
+  font-size: .98rem;
+  font-weight: 600;
+  word-break: break-all;
+  color: var(--accent);
+  margin: 6px 0 0;
+}
+
+.order-success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+  margin: 1.8rem 0 0;
+}
+
+.order-success-btn {
+  display: block;
+  padding: .9rem 0;
+  background: var(--btn-bg);
+  color: var(--white);
+  border-radius: .65em;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background .2s, color .2s, box-shadow .2s;
+  box-shadow: 0 2px 6px 0 #e6e6e6;
+  letter-spacing: 0.01em; 
+}
+.order-success-btn--outline {
+  background: var(--btn-outline);
+  color: var(--btn-bg);
+  border: 2px solid var(--btn-bg);
+  box-shadow: none;
+}
+.order-success-btn:active,
+.order-success-btn:hover {
+  background: #2e2e2e;
+  color: #fff;
+}
+
+@media (min-width: 500px) {
+  .order-success-container {
+    padding: 3rem 2.25rem 2.2rem;
   }
+}
+@media (min-width: 530px) {
+  .order-success-actions {
+    flex-direction: row;
+    gap: 1rem;
+  }
+  .order-success-btn {
+    width: 50%;
+    margin: 0 auto;
+  }
+}
 
-  /* tick circle */
+/* Mobile responsiveness */
+@media (max-width: 420px) {
+  .order-success-container { padding: 1.2rem .5rem 1.7rem; }
+  .order-success-btn { font-size: 1rem; padding: 1rem 0; }
+}
+
   .order-success-check{
     width:120px;height:120px;border:6px solid var(--black);
     border-radius:50%;margin-inline:auto;display:flex;
@@ -41,21 +155,48 @@
   }
   @keyframes order-success-draw{to{stroke-dashoffset:0;}}
 
-  /* text */
-  .order-success-id{font-size:.8rem;font-weight:600;word-break:break-all;}
 
-  /* buttons */
-  .order-success-btn{
-    display:block;text-decoration:none;text-align:center;
-    background:var(--black);color:var(--white);border-radius:0;
-    padding:.75rem 1rem;font-weight:600;transition:.3s;
-  }
-  .order-success-btn:hover{opacity:.9;color:var(--white);}
-
-  /* responsive two-column buttons ≥576px */
-  .order-success-actions{display:grid;gap:.75rem;}
-  @media (min-width:576px){
-    .order-success-actions{grid-template-columns:repeat(2,1fr);}
-  }
 </style>
-<!-- ▴▴ Order-Success component ▴▴ -->
+
+<div id="loading-container" style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;background:#fafbfc;z-index:1000;">
+  <img src="/gifs/truck.gif" alt="Loading..." style="height:25%;">
+</div>
+
+
+
+<div class="order-success-container" style="display:none;">
+  <div class="popper-gif popper-gif--left">
+    <img src="/gifs/popper.gif" alt="">
+  </div>
+  <div class="popper-gif popper-gif--right">
+    <img style="transform: rotate(265deg);" src="/gifs/popper.gif" alt="">
+  </div>
+  <div class="order-success-check mb-4">
+    <svg viewBox="0 0 52 52">
+      <polyline points="14,27 23,36 40,19"></polyline>
+    </svg>
+  </div>
+  <div class="order-success-msg">
+    <h2>Thank you!</h2>
+    <p>Your order was placed successfully.</p>
+    <p class="order-success-id">Order&nbsp;#<span><%= order.orderNumber %></span></p>
+  </div>
+  <div class="order-success-actions">
+    <a href="/user/products/shop" class="order-success-btn">Continue Shopping</a>
+    <a href="/user/profile/orders/<%= order._id %>" class="order-success-btn order-success-btn--outline">View Order</a>
+  </div>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const loadingContainer = document.getElementById('loading-container');
+    const successContainer = document.querySelector('.order-success-container');
+    successContainer.style.display = 'none';
+    setTimeout(() => {
+      loadingContainer.style.display = 'none';
+      successContainer.style.display = 'block';
+    }, 1000);
+  });
+</script>
+
