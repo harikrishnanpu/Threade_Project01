@@ -14,10 +14,8 @@ const UserSchema = mongoose.Schema({
     isBlocked: { type: Boolean, default: false },
 
     isListed: { type: Boolean, default: true },
-    
 referralCode: {
     type: String,
-    unique: true,
     uppercase: true,
     trim: true
   },
@@ -25,7 +23,10 @@ referralCode: {
     type: mongoose.Types.ObjectId,
     ref: 'users',
     default: null
-  }
+  },
+  isOnline: {type: Boolean, default: false},
+  currentRoomId: String,
+  socketId: String
 
 }, { timestamps: true });
 

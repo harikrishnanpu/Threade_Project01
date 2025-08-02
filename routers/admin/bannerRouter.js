@@ -1,6 +1,5 @@
 const express = require('express');
 const bannerRouter = express.Router();
-const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { 
@@ -10,43 +9,38 @@ const {
   getBannerDetails, 
   updateBannerById, 
   toggleBannerStatusById, 
-  uploadBannerImage 
+  uploadBannerImage, 
+  getBannersList
 } = require('../../controllers/admin/bannerController');
 
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 
-const uploadDir = 'uploads/banners/';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLODINARY_API_KEY,
+  api_secret: process.env.CLODINARY_API_SECRET
+});
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir)
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'banner-' + uniqueSuffix + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'products',
+    allowed_formats: ['jpg', 'png']
   }
 });
 
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
-  }
+const upload = multer({ storage,
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
+
 
 
 
 bannerRouter.get('/', listBanners);
 
+bannerRouter.get('/api/filtered/all', getBannersList);
 bannerRouter.get('/api/list', apiBannerList);
 bannerRouter.get('/api/get/:id', getBannerDetails);
 bannerRouter.post('/api/create', createNewBanner);

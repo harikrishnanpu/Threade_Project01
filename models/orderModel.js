@@ -83,7 +83,6 @@ const orderSchema = new Schema({
   shippingMethod: {type: String, enum: ['free','regular','express'] , required: true},
   shippingCharge: { type: Number, required: true },
 
-
   coupon: {
     code: String,
     discountAmount: Number
@@ -148,6 +147,8 @@ const orderSchema = new Schema({
   isUrgent: { type: Boolean, default: false },
   userNotes: { type: String},
   adminNotes: { type:  String },
+
+  refundAmount: { type: Number, default: 0  },
 
 
   timeline: [

@@ -16,7 +16,7 @@
   #chatFab {
     position: fixed;
     right: 24px;
-    bottom: 24px;
+    bottom: 54px;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -55,7 +55,7 @@
   #chatWindow {
     position: fixed;
     right: 24px;
-    bottom: 90px;           /* fab height + gap */
+    bottom: 114px;           /* fab height + gap */
     width: 320px;
     max-height: 440px;
     display: flex;
@@ -144,46 +144,81 @@
     <button id="chatSend"><i class="fas fa-paper-plane"></i></button>
   </div>
 </div>
-
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
-
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
 <script>
-  const socket = io();                              // same origin
-  const userId = "<%= user._id %>";
+  /* ---------- initial setup ---------- */
+  const socket   = io();                 // same-origin
+  const userId   = "<%= user._id %>";
   const userName = "<%= user.name %>";
+  let   ROOM_ID  = null;                 // filled once
 
-  socket.emit('register', { id: userId, name: userName });
+  /* ---------- DOM refs ---------- */
+  const fab  = document.getElementById('chatFab');
+  const win  = document.getElementById('chatWindow');
+  const body = document.getElementById('chatBody');
+  const inp  = document.getElementById('chatInput');
+  const send = document.getElementById('chatSend');
 
-  const fab=document.getElementById('chatFab'),
-        win=document.getElementById('chatWindow'),
-        body=document.getElementById('chatBody'),
-        inp=document.getElementById('chatInput'),
-        send=document.getElementById('chatSend');
+  /* ---------- helper ---------- */
+  const append = ({ senderId, message }) => {
+    const div  = document.createElement('div');
+    div.className = 'chat-msg ' + (senderId === userId ? 'me' : 'other');
+    div.textContent = message;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  };
 
+  /* ---------- open / close fab ---------- */
   fab.onclick = () => win.classList.toggle('open');
 
-  const append = ({ from, text })=>{
-    const div=document.createElement('div');
-    div.className='chat-msg '+(from===userId?'me':'other');
-    div.textContent=text;
-    body.appendChild(div);
-    body.scrollTop=body.scrollHeight;
-  };
+  /* ---------- Socket events ---------- */
 
-  socket.on('chatMessage', msg=>{
-    if(msg.from===userId || msg.to===userId) append(msg);
+  /* 1) tell server we’re here (gets or creates the room) */
+  socket.emit('user_online', { userId, name: userName });
+
+  /* 2) server responds with the roomId */
+  socket.on('room_assigned', ({ roomId }) => {
+    ROOM_ID = roomId;
+    /* you can now safely send/receive */
   });
 
-  const push=()=>{
-    const text=inp.value.trim();
-    if(!text) return;
-    const msg={from:userId,to:'admin',text,ts:Date.now()};
-    socket.emit('chatMessage',msg);
-    append(msg);
-    inp.value='';
+  /* 3) initial chat history */
+  socket.on('load_messages', history => {
+    history.forEach(append);
+    body.scrollTop = body.scrollHeight;
+  });
+
+  /* 4) real-time incoming message */
+  socket.on('new_message', msg => {
+    if (msg.roomId === ROOM_ID) append(msg);
+  });
+
+  /* 5) typing indicator (optional) */
+  socket.on('user_typing', () => {
+    /* show “Agent is typing…” under chat header for 1–2 s */
+  });
+
+  /* ---------- send flow ---------- */
+  const push = () => {
+    const text = inp.value.trim();
+    if (!text || !ROOM_ID) return;
+
+    const msg = {
+      roomId: ROOM_ID,
+      senderId: userId,
+      senderType: 'user',
+      message: text
+    };
+
+    socket.emit('new_message', msg);  // to server
+    inp.value = '';
   };
 
-  
-  send.onclick=push;
-  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') push(); });
+  send.onclick = push;
+  inp.addEventListener('keydown', e => e.key === 'Enter' && push());
+
+  /* ---------- emit typing (optional) ---------- */
+  inp.addEventListener('input', () => {
+    if (ROOM_ID) socket.emit('typing', { roomId: ROOM_ID, senderType: 'user' });
+  });
 </script>

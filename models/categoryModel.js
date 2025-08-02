@@ -5,7 +5,6 @@ const categorySchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'category name is required'],
-    unique: [true, 'catgeory name is already exits' ],
     trim: true
   },
   

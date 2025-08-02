@@ -3,7 +3,7 @@ const Orders = require('../../models/orderModel');
 const orderService = require('../../services/adminOrderServices');
 const moment = require('moment');
 
-const getAllOrders = async (req, res) => {
+const getAllOrders = async (req, res, next) => {
   try {
     const { orders, totalOrders, totalRevenue, totalPages, currentPage, filters } =
     
@@ -23,15 +23,32 @@ const getAllOrders = async (req, res) => {
   } catch (err) {
 
     console.log('ORDERS:', err);
+    next(err)
+  }
+};
 
-    res.status(500).render('admin/orders/all-orders', {
-      orders: [],
-      totalOrders: 0,
-      totalRevenue: 0,
-      totalPages: 1,
-      currentPage: 1,
-      error: err.message,
+
+const getAllOrdersFilteredList = async (req, res) => {
+  try {
+    const { orders, totalOrders, totalRevenue, totalPages, currentPage, filters } =
+    
+    
+    await orderService.fetchAllOrders(req);
+
+    res.status(200).json({
+      orders,
+      totalOrders,
+      totalRevenue,
+      totalPages,
+      currentPage,
+      ...filters,
+      success: true
     });
+
+
+  } catch (err) {
+
+    res.status(500).json({message: err.message , success: false});
 
   }
 };
@@ -45,7 +62,6 @@ const getOneOrder = async (req, res) => {
     }
     res.json({ success: true, data: order });
   } catch (error) {
-    console.error('Error getting order details:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
@@ -53,8 +69,9 @@ const getOneOrder = async (req, res) => {
 
 
 const updateOrderStatus = async (req, res) => {
+  const io = req.app.get('socketio');
   try {
-    const result = await orderService.updateOrderStatus(req.body);
+    const result = await orderService.updateOrderStatus(req.body,io);
     res.status(200).json(result);
 
 
@@ -91,11 +108,11 @@ const updateFullOrder = async (req, res) => {
 
 
 const orderDetailsStatusUpdate = async (req, res) => {
+  const io = req.app.get('socketio');
   try {
     const {orderId} = req.params
-    console.log(req.body);
-    
-    const result = await orderService.quickStatusUpdate(orderId,req.body);
+    // console.log(req.body);
+    const result = await orderService.quickStatusUpdate(orderId,req.body,io);
     return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -157,11 +174,12 @@ const operations = orderIds.map(orderId => ({
 
 
 const returnRequestAction = async (req, res) => {
+  const io = req.app.get('socketio');
   try {
     const orderId = req.params.id;
     const { itemIndex, actionType, notes, pickupDate } = req.body;
 
-    console.log(req.body);
+    // console.log(req.body);
     
 
     const result = await orderService.updateReturnReuqestAction(orderId, {
@@ -169,7 +187,7 @@ const returnRequestAction = async (req, res) => {
       actionType,
       notes,
       pickupDate
-    });
+    },io);
 
     if (!result.success) {
       return res.status(400).json({ success: false, message: result.message });
@@ -257,6 +275,38 @@ const getOrderPdf = async (req,res) =>{
 
 }
 
+
+const updatePaymentStatus = async (req,res) => {
+  try {
+
+    const order = await Orders.findById(req.params.orderId);
+
+    const io = req.app.get('socketio');
+
+    if (!order) {
+       return res.status(400).json({message: 'order not found', success: false})
+    }
+
+    if(order.paymentMethod !== 'cod'){
+      return  res.status(400).json({message: 'order payment status cannot be updated: cod', success: false})
+    }
+
+    if (order.paymentStatus == 'paid') {
+       return res.status(400).json({message: 'order is already paid', success: false})
+    }
+
+    order.paymentStatus = 'paid';
+    await order.save();
+
+    io.to(`user:order:${order.user.toString()}`).emit('order:updated', { orderId: req.params.orderId });
+    io.to(`admin:order:${req.params.orderId}`).emit('order:updated', { orderId: req.params.orderId });
+
+   return res.status(200).json({ message: 'Payment status updated to paid', success: true });
+  } catch (err) {
+    return res.status(500).json({message: err.message, success: false})
+  }
+};
+
 module.exports = {
   getAllOrders,
   getOneOrder,
@@ -267,5 +317,7 @@ module.exports = {
   bulkUpdateOrders,
   returnRequestAction,
   renderInvoice,
-  getOrderPdf
+  getOrderPdf,
+  getAllOrdersFilteredList,
+  updatePaymentStatus
 };

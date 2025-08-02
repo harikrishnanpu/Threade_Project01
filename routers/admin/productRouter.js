@@ -1,6 +1,5 @@
 const express = require('express');
 const productRouter = express.Router();
-const multer = require('multer');
 const path = require('path');
 const { 
   listProducts, 
@@ -12,39 +11,32 @@ const {
   toggleProductFeatured,
   uploadProductImage,
   showCreateProductPage,
-  showEditProductPage
+  showEditProductPage,
+  getProductsFilteredList
 } = require('../../controllers/admin/productController');
 const { createProductValidator } = require('../../validators/bodyValidator');
 const { handleValidationErrors } = require('../../validators/validator');
 const { validateProductId } = require('../../validators/ParamValidator');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 
 
-const uploadDir = 'uploads/products/';
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLODINARY_API_KEY,
+  api_secret: process.env.CLODINARY_API_SECRET
+});
 
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir)
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'products',
+    allowed_formats: ['jpg', 'png']
   }
 });
 
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
-  }
-});
+const upload = multer({ storage });
 
 
 productRouter.get('/all', listProducts);
@@ -53,6 +45,7 @@ productRouter.get('/edit/:id', validateProductId, handleValidationErrors, showEd
 
 productRouter.get('/api/all', ApilistProducts);
 productRouter.get('/api/product/:id', validateProductId, handleValidationErrors, getProductById);
+productRouter.get('/api/all', getProductsFilteredList)
 
 productRouter.post('/api/create',createProductValidator, handleValidationErrors, createNewProduct);
 productRouter.put('/api/update/:id', validateProductId, createProductValidator , handleValidationErrors , updateProductById);

@@ -2,12 +2,15 @@ const express = require('express');
 const {
   getInventoryPage,
   updateStock,
-  getVariantProduct
+  getVariantProduct,
+  getInventorypageList
 } = require('../../controllers/admin/adminInventoryController');
 
 const adminInventoryRouter = express.Router();
 
 adminInventoryRouter.get('/', getInventoryPage);
+adminInventoryRouter.get('/api/list', getInventorypageList);
+
 
 adminInventoryRouter.post('/update-stock', updateStock);
 

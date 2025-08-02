@@ -1,9 +1,11 @@
 const Razorpay = require('razorpay');
 const orderService = require('./userOrderServices');
+const Product = require('../models/productModel');
 const Orders = require('../models/orderModel');
 const Users = require('../models/userModel');
 const crypto = require('crypto');
 const UserWallet = require('../models/userWalletModel');
+const StockRegistry = require('../models/stockRegsitryModel');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -32,7 +34,7 @@ const createRazorpayOrder = async (userId) => {
   };
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     throw new Error(err.message);
   }
@@ -100,15 +102,18 @@ const addToWallet = async (amount, userId) => {
       wallet = await UserWallet.create({ user: user._id });
     }
 
+    wallet.lastRequestedAmount = amount;
+
     const razorpayOrder = await razorpay.orders.create({
       amount: amount * 100,
       currency: 'INR',
       receipt: wallet._id.toString(),
-      payment_capture: 1,
     });
+    
+    await wallet.save();
 
     return {
-      orderId: razorpayOrder.id,
+      walletId: wallet._id,
       razorpayOrderId: razorpayOrder.id,
       amount: amount,
       currency: 'INR',
@@ -120,7 +125,10 @@ const addToWallet = async (amount, userId) => {
       },
     };
 
+
   } catch (err) {
+    console.log(err);
+    
     throw new Error(err.message);
   }
 };
@@ -131,7 +139,8 @@ const verifyWalletPayment = async ({
   razorpay_order_id,
   razorpay_payment_id,
   razorpay_signature,
-  orderId
+  walletId,
+  userId
 }) => {
 
   try {
@@ -145,23 +154,29 @@ const verifyWalletPayment = async ({
       return { success: false, message: 'invalid Razorpay signature' };
     }
 
-    const wallet = await UserWallet.findById(orderId).populate('user');
+    const wallet = await UserWallet.findOne({ _id: walletId , user: userId }).populate('user');
 
     if (!wallet) {
       return { success: false, message: 'wallet not found' };
     }
 
-    wallet.transactions.push({
-      type: 'credit',
-      amount: wallet.lastRequestedAmount || 0, 
-      description: 'wallet top-up via Razorpay',
-      reference: razorpay_payment_id,
-      createdAt: new Date()
-    });
+    const lastRequestedAmount = wallet.lastRequestedAmount;
 
-    wallet.balance += wallet.lastRequestedAmount || 0;
-    
-    await wallet.save();
+    if(lastRequestedAmount > 0){
+
+      wallet.transactions.push({
+        type: 'credit',
+        amount: wallet.lastRequestedAmount || 0, 
+        description: 'wallet top-up via Razorpay',
+        reference: razorpay_payment_id,
+        createdAt: new Date()
+      });
+      
+      wallet.balance += wallet.lastRequestedAmount || 0;
+      
+      await wallet.save();
+      
+    }
 
     return { success: true, message: 'Wallet updated successfully' };
   } catch (err) {
@@ -173,7 +188,7 @@ const verifyWalletPayment = async ({
 
 
 
-const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId }) => {
+const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId },userId,io) => {
   try {
 
 
@@ -189,6 +204,44 @@ const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, r
     const order = await Orders.findById(orderId);
     if (!order) return { success: false, message: 'order not found' };
 
+
+    if(order.orderStatus == 'pending') {
+
+
+       const dbProducts = await Product.find({ _id: { $in: order.items.map(i => i.productId.toString()) } });
+    
+        for(const item of order.items){
+    
+          const dbproduct = dbProducts.find( prod => prod._id.equals(item.productId) );
+          const matchedVariant = dbproduct.variants.find(v => v.color == item.variant.color && v.size == item.variant.size);
+    
+          if(matchedVariant){
+            const previousStock = matchedVariant.stock;
+            if(previousStock - item.quantity >= 0) {
+              matchedVariant.stock -= item.quantity;
+    
+              await StockRegistry.create({
+                  productId: dbproduct._id,
+                  variant: { size: item.variant.size, color: item.variant.color },
+                  productName: dbproduct.name,
+                  action: 'stock_out',
+                  quantity: item.quantity,
+                  previousStock: previousStock,
+                  newStock: matchedVariant.stock,
+                  reason: 'Order confirmed',
+                  updatedBy: 'admin'
+                });
+    
+              await dbproduct.save();
+    
+            }
+          }
+
+          item.status = 'confirmed'
+    
+        }
+
+    order.orderStatus = 'confirmed';
     order.paymentStatus = 'paid';
     order.paymentId = razorpay_payment_id;
     
@@ -198,11 +251,28 @@ const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, r
       date: new Date()
     });
 
+  }else if(!order.orderStatus.includes('return')){
+
+    order.paymentStatus = 'paid'
+    order.paymentId = razorpay_payment_id;
+    
+    order.timeline.push({
+      status: 'paid',
+      note: 'Payment successful via Razorpay',
+      date: new Date()
+    });
+
+  }
+
     await order.save();
+
+
+          io.to(`user:order:${userId}`).emit('order:updated', { orderId: order._id });
+        io.to(`admin:order:${order._id}`).emit('order:updated', { orderId: order._id });
 
     return { success: true, message: 'Payment verified and order updated' };
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     throw new Error(err.message);
   }

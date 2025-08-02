@@ -1,3 +1,11 @@
+<style>
+  .form-error{
+    color: red;
+    font-size: 12px;
+  }
+</style>
+
+
 <section class="table-components">
   <div class="container-fluid">
     <!-- Loading overlay -->
@@ -73,8 +81,8 @@
               <div class="sort-group">
                 <label class="sort-label">Sort by:</label>
                 <select class="sort-field form-select" id="sort-field">
-                  <option value="name" <%= sortField==='name' ? 'selected' : '' %>>Name</option>
-                  <option value="createdAt" <%= sortField==='createdAt' ? 'selected' : '' %>>Created Date</option>
+                  <option value="name" <%= sortField === 'name' ? 'selected' : '' %>>Name</option>
+                  <option value="createdAt" <%= sortField === 'createdAt' ? 'selected' : '' %>>Created Date</option>
                 </select>
                 
                 <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
@@ -277,6 +285,7 @@
   <div class="modal-content modal-lg">
     <div class="modal-header">
       <h5 class="modal-title" id="category-modal-title">Add Category</h5>
+      <p class="modal-error-msg" id="modal-error-msg" style="color: red; display: none;"></p>
       <button class="modal-close" onclick="closeCategoryModal()" aria-label="Close">
         <i class="lni lni-close"></i>
       </button>
@@ -291,7 +300,7 @@
                    name="name" 
                    class="form-control" 
                    placeholder="Enter category name"
-                   required>
+                   >
             <div class="form-error" id="name-error"></div>
           </div>
         </div>
@@ -494,23 +503,22 @@
     document.getElementById('loading-overlay').classList.remove('active');
   }
 
-  function showError(message) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = message;
-    errorMsg.classList.add('show');
-    setTimeout(() => {
-      errorMsg.classList.remove('show');
-    }, 5000);
-  }
 
-  function showSuccess(message) {
-    const successMsg = document.getElementById('success-msg');
-    successMsg.textContent = message;
-    successMsg.classList.add('show');
-    setTimeout(() => {
-      successMsg.classList.remove('show');
-    }, 5000);
-  }
+
+
+
+  function showModalError(message) {
+  const errorMsg = document.getElementById('modal-error-msg');
+  errorMsg.textContent = message;
+  errorMsg.style.display = 'block';
+}
+
+function hideModalError() {
+  const errorMsg = document.getElementById('modal-error-msg');
+  errorMsg.textContent = '';
+  errorMsg.style.display = 'none';
+}
+
 
   function buildUrl(overrides = {}) {
     const params = {
@@ -539,8 +547,8 @@
   }
 
   function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
+    // showLoading();
+ refetchAndUpdateCategories()
   }
 
   function goToPage(page) {
@@ -560,27 +568,10 @@
     navigateToUrl(buildUrl({ sortField: field, sortOrder: newOrder, page: 1 }));
   }
 
-  function resetFilters() {
-    STATE.page = 1;
-    STATE.status = 'all';
-    STATE.parentFilter = 'all';
-    STATE.sortField = 'name';
-    STATE.sortOrder = 'asc';
-    STATE.search = '';
-    STATE.showInactive = 'false';
-    
-    navigateToUrl(buildUrl({
-      page: 1,
-      status: 'all',
-      parentFilter: 'all',
-      sortField: 'name',
-      sortOrder: 'asc',
-      search: '',
-      showInactive: 'false'
-    }));
-  }
+  
 
   function openCategoryModal(mode, categoryId = null, parentId = null) {
+
     const modal = document.getElementById('category-modal-overlay');
     const title = document.getElementById('category-modal-title');
     const form = document.getElementById('category-form');
@@ -644,12 +635,12 @@
         document.getElementById('category-featured').checked = category.isFeatured;
         document.getElementById('category-id').value = category._id;
       } else {
-        showError('Failed to load category data');
+        showGlobalToast('Failed to load category data','error');
         closeCategoryModal();
       }
     } catch (error) {
       console.error('Error loading category:', error);
-      showError('Error loading category data');
+      showGlobalToast('Error loading category data','error');
       closeCategoryModal();
     } finally {
       showFormLoading(false);
@@ -706,6 +697,7 @@
     const error = document.getElementById(`${fieldName}-error`);
     
     if (field) field.classList.add('error');
+
     if (error) {
       error.textContent = message;
       error.classList.add('show');
@@ -736,149 +728,7 @@
   }
 
   // Event listeners
-  document.addEventListener('DOMContentLoaded', function() {
-    // Load categories for dropdown
-    loadCategoriesForDropdown();
-    
-    // Category form submission
-    document.getElementById('category-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      if (!validateForm()) {
-        return;
-      }
-      
-      showFormLoading(true);
-      
-      try {
-        const formData = new FormData(this);
-        const data = {
-          name: formData.get('name').trim(),
-          description: formData.get('description').trim(),
-          parentCategory: formData.get('parentCategory') || null,
-          isActive: formData.get('isActive'),
-          isFeatured: formData.get('isFeatured')
-        };
-        
-        const isEdit = STATE.currentEditId;
-        const url = isEdit 
-          ? `${BASE_URL}/admin/categories/update/${STATE.currentEditId}`
-          : `${BASE_URL}/admin/categories/create`;
-        
-        const method = isEdit ? 'PUT' : 'POST';
-        
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          showSuccess(isEdit ? 'Category updated successfully' : 'Category created successfully');
-          closeCategoryModal();
-          
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        } else {
-          if (result.errors) {
-            Object.keys(result.errors).forEach(field => {
-              showFormError(field, result.errors[field]);
-            });
-          } else {
-            showError(result.message || 'Failed to save category');
-          }
-        }
-      } catch (error) {
-        
-        showError('An error occurred while saving the category');
-      } finally {
-        showFormLoading(false);
-      }
-    });
-
-    document.getElementById('status-filter').addEventListener('change', function(e) {
-      STATE.status = e.target.value;
-      STATE.page = 1;
-      if(e.target.value == 'inactive'){
-        STATE.showInactive = 'true';
-      }else if(e.target.value == 'active'){
-        STATE.showInactive = 'false';
-      }else{
-        STATE.showInactive = 'true';
-      }
-      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('parent-filter').addEventListener('change', function(e) {
-      STATE.parentFilter = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ parentFilter: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('show-inactive').addEventListener('change', function(e) {
-      STATE.showFeatured = e.target.checked;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ showInactive: e.target.checked, page: 1 }));
-    });
-
-    document.getElementById('sort-field').addEventListener('change', function(e) {
-      STATE.sortField = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('sort-order').addEventListener('click', function() {
-      const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
-      STATE.sortOrder = newOrder;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
-    });
-
-    document.getElementById('search-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const searchValue = document.getElementById('search-input').value.trim();
-      STATE.search = searchValue;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
-    });
-
-    document.getElementById('reset-filters').addEventListener('click', resetFilters);
-
-    document.getElementById('page-number').addEventListener('input', function(e) {
-      const value = parseInt(e.target.value);
-      const maxPages = parseInt('<%= totalPages %>');
-      if (value < 1) e.target.value = 1;
-      if (value > maxPages) e.target.value = maxPages;
-    });
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        if (document.getElementById('category-modal-overlay').classList.contains('active')) {
-          closeCategoryModal();
-        }
-        if (document.getElementById('confirm-modal-overlay').classList.contains('active')) {
-          closeConfirmModal();
-        }
-      }
-    });
-
-    document.getElementById('category-modal-overlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeCategoryModal();
-      }
-    });
-
-    document.getElementById('confirm-modal-overlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeConfirmModal();
-      }
-    });
-  });
+  
 
 
 
@@ -897,7 +747,6 @@
   }
 
   function performToggleStatus(categoryId, active) {
-    if (STATE.isLoading) return;
     showLoading();
     
     fetch(`${BASE_URL}/admin/categories/toggle-status/${categoryId}`, {
@@ -908,15 +757,15 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        window.location.reload();
+       refetchAndUpdateCategories()
       } else {
         hideLoading();
-        showError(data.message || 'Failed to update category');
+        showGlobalToast(data.message || 'Failed to update category','error');
       }
     })
     .catch(error => {
       hideLoading();
-      showError('An error occurred while updating the category');
+      showGlobalToast('An error occurred while updating the category','error');
       console.error('Error:', error);
     });
   }
@@ -957,4 +806,432 @@
   window.addEventListener('load', function() {
     hideLoading();
   });
+
+
+// Add: Update the parent category dropdown
+function updateCategoryDropdown(categories) {
+  const parentSelect = document.getElementById('parent-category');
+  parentSelect.innerHTML = '<option value="">Select parent category (optional)</option>';
+  categories.forEach(category => {
+    if (category._id !== STATE.currentEditId) {
+      const option = document.createElement('option');
+      option.value = category._id;
+      option.textContent = category.name;
+      parentSelect.appendChild(option);
+    }
+  });
+}
+
+function updateHistory () {
+
+}
+
+// Add: Fetch and update categories
+async function refetchAndUpdateCategories() {
+  showLoading();
+  
+  try {
+    const params = new URLSearchParams();
+    params.set('page', STATE.page);
+    if (STATE.status !== 'all') params.set('status', STATE.status);
+    if (STATE.parentFilter !== 'all') params.set('parentFilter', STATE.parentFilter);
+    params.set('sortField', STATE.sortField);
+    params.set('sortOrder', STATE.sortOrder);
+    if (STATE.search) params.set('search', STATE.search);
+    if (STATE.showInactive) params.set('showInactive', STATE.showInactive);
+    
+    console.debug('Fetching categories with params:', params.toString());
+    const response = await fetch(`${BASE_URL}/admin/categories/api/filtered/all?${params.toString()}`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      if (!data.categories || !Array.isArray(data.categories)) {
+        throw new Error('Invalid categories data: Expected an array');
+      }
+      updateTable(data.categories, data.totalCategories, data.totalPages);
+      updatePagination(data.currentPage, data.totalPages);
+      updateStats(data.categories.length, data.totalCategories);
+      updateSortIndicators();
+      updateCategoryDropdown(data.categories);
+      STATE.allCategories = data.categories;
+      updateHistory();
+    } else {
+      console.error('Fetch failed:', data.message);
+      showGlobalToast(data.message || 'Failed to fetch categories','error');
+    }
+  } catch (error) {
+    console.error('Error in refetchAndUpdateCategories:', error);
+    showGlobalToast('Error loading categories: ' + error.message,'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Add: Update the table with categories
+function updateTable(categories, totalCategories, totalPages) {
+  const tableBody = document.querySelector('#categories-table tbody');
+  tableBody.innerHTML = '';
+
+  if (categories && categories.length > 0) {
+    categories.forEach(category => {
+      const row = document.createElement('tr');
+      row.className = `category-row ${category.isActive ? '' : 'unlisted-category'}`;
+      row.dataset.categoryId = category._id;
+
+      row.innerHTML = `
+        <td class="category-name">
+          <div class="category-info">
+            <span class="name ${category.isFeatured ? 'featured-category' : ''}">
+              ${category.name || 'N/A'}
+              ${category.isFeatured ? '<i class="lni lni-star-filled featured-icon" title="Featured"></i>' : ''}
+            </span>
+          </div>
+        </td>
+        <td class="category-description">
+          ${category.description 
+            ? `${category.description.substring(0, 100)}${category.description.length > 100 ? '...' : ''}`
+            : '<span class="text-muted">No description</span>'
+          }
+        </td>
+        <td class="parent-category">
+          ${category.parentCategory 
+            ? `<span class="parent-name">${category.parentCategory.name}</span>`
+            : '<span class="main-category-badge">Main Category</span>'
+          }
+        </td>
+        <td class="category-status">
+          <div class="status-badges">
+            <span class="status-badge ${category.isActive ? 'active' : 'blocked'}">
+              ${category.isActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+        </td>
+        <td class="category-created">
+          <span class="date-text">
+            ${category.createdAt ? new Date(category.createdAt).toLocaleDateString() : 'N/A'}
+          </span>
+        </td>
+        <td class="category-actions">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary edit-btn" 
+                    onclick="openCategoryModal('edit', '${category._id}')"
+                    title="Edit Category">
+              <i class="lni lni-pencil"></i>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button class="btn btn-sm ${category.isActive ? 'btn-outline-danger' : 'btn-outline-success'} toggle-status-btn" 
+                    onclick="toggleStatus('${category._id}', '${category.name || 'Category'}', '${category.isActive}')"
+                    title="${category.isActive ? 'Deactivate' : 'Activate'} Category">
+              <i class="lni lni-${category.isActive ? 'lock' : 'unlock'}"></i>
+              <span class="btn-text">${category.isActive ? 'Deactivate' : 'Activate'}</span>
+            </button>
+          </div>
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+    });
+  } else {
+    tableBody.innerHTML = `
+      <tr class="no-data-row">
+        <td colspan="6" class="no-data-cell">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="lni lni-layers"></i>
+            </div>
+            <p>No categories found</p>
+            ${STATE.search || STATE.status !== 'all' || STATE.parentFilter !== 'all' || STATE.showInactive
+              ? '<button class="btn btn-link" onclick="resetFilters()">Clear filters</button>'
+              : '<button class="btn btn-primary" onclick="openCategoryModal(\'create\')"><i class="lni lni-plus"></i> Create First Category</button>'
+            }
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+// Add: Update pagination controls
+function updatePagination(currentPage, totalPages) {
+  STATE.page = currentPage;
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const pageInput = document.getElementById('page-number');
+  const pageTotal = document.querySelector('.page-total');
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInput.value = currentPage;
+  pageInput.max = totalPages;
+  pageTotal.textContent = `of ${totalPages}`;
+
+  prevBtn.setAttribute('onclick', `goToPage(${currentPage - 1})`);
+  nextBtn.setAttribute('onclick', `goToPage(${currentPage + 1})`);
+}
+
+// Add: Update stats display
+function updateStats(resultCount, totalCategories) {
+  const resultCountEl = document.getElementById('result-count');
+  const totalCountEl = document.getElementById('total-count');
+
+  resultCountEl.textContent = resultCount;
+  totalCountEl.textContent = totalCategories;
+}
+
+// Add: Update sort indicators
+function updateSortIndicators() {
+  const headers = document.querySelectorAll('.sortable-header');
+  headers.forEach(header => {
+    const content = header.querySelector('.header-content');
+    const field = header.getAttribute('onclick').match(/'([^']+)'/)[1];
+    const indicator = content.querySelector('.sort-indicator');
+
+    if (field === STATE.sortField) {
+      if (!indicator) {
+        const span = document.createElement('span');
+        span.className = 'sort-indicator';
+        span.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+        content.appendChild(span);
+      } else {
+        indicator.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+      }
+    } else if (indicator) {
+      indicator.remove();
+    }
+  });
+
+  const sortOrderBtn = document.getElementById('sort-order');
+  sortOrderBtn.querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+}
+
+
+
+// Modify: Update goToPage to use refetchAndUpdateCategories
+function goToPage(page) {
+  const pageNum = parseInt(page);
+  const maxPages = parseInt(document.getElementById('page-number').max) || 1;
+  if (pageNum < 1 || pageNum > maxPages) return;
+  
+  STATE.page = pageNum;
+  refetchAndUpdateCategories();
+}
+
+function setSortField(field) {
+  const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+  STATE.sortField = field;
+  STATE.sortOrder = newOrder;
+  STATE.page = 1;
+  refetchAndUpdateCategories();
+}
+
+function resetFilters() {
+  STATE.page = 1;
+  STATE.status = 'all';
+  STATE.parentFilter = 'all';
+  STATE.sortField = 'createdAt';
+  STATE.sortOrder = 'desc';
+  STATE.search = '';
+  STATE.showInactive = true;
+
+  document.getElementById('status-filter').value = 'all';
+  document.getElementById('parent-filter').value = 'all';
+  document.getElementById('show-inactive').checked = true;
+  document.getElementById('sort-field').value = 'createdAt';
+  document.getElementById('sort-order').querySelector('.sort-icon').textContent = '↓';
+  document.getElementById('search-input').value = '';
+
+  refetchAndUpdateCategories();
+}
+
+// Modify: Update event listeners in DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Load categories for dropdown
+  loadCategoriesForDropdown();
+  
+  // Category form submission
+  document.getElementById('category-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+hideModalError(); // Always hide on submit
+
+  if (!validateForm()) {
+    return;
+  }
+
+  showFormLoading(true);
+    
+    try {
+      const formData = new FormData(this);
+      const data = {
+        name: formData.get('name').trim(),
+        description: formData.get('description').trim(),
+        parentCategory: formData.get('parentCategory') || null,
+        isActive: formData.get('isActive') === 'on',
+        isFeatured: formData.get('isFeatured') === 'on'
+      };
+      
+      const isEdit = STATE.currentEditId;
+      const url = isEdit 
+        ? `${BASE_URL}/admin/categories/update/${STATE.currentEditId}`
+        : `${BASE_URL}/admin/categories/create`;
+      
+      const method = isEdit ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        showGlobalToast(isEdit ? 'Category updated successfully' : 'Category created successfully','success');
+        closeCategoryModal();
+        await new Promise(resolve => setTimeout(resolve, 500)); // Delay for backend sync
+        await refetchAndUpdateCategories();
+        hideModalError();
+
+      } else {
+      if (result.errors) {
+            Object.keys(result.errors).forEach(field => {
+              showFormError(field, result.errors[field]);
+            });
+            showGlobalToast('Please correct the highlighted errors.','error');
+          } else {
+        showGlobalToast(result.message || 'Failed to save category','error');
+      }
+    }
+
+
+    } catch (error) {
+      showGlobalToast('An error occurred while saving the category','error');
+    } finally {
+      showFormLoading(false);
+    }
+  });
+
+  // Status filter
+  document.getElementById('status-filter').addEventListener('change', function(e) {
+    STATE.status = e.target.value;
+    STATE.page = 1;
+    STATE.showInactive = e.target.value === 'inactive' || e.target.value === 'all';
+    document.getElementById('show-inactive').checked = STATE.showInactive;
+    refetchAndUpdateCategories();
+  });
+
+  // Parent filter
+  document.getElementById('parent-filter').addEventListener('change', function(e) {
+    STATE.parentFilter = e.target.value;
+    STATE.page = 1;
+    refetchAndUpdateCategories();
+  });
+
+  // Show inactive toggle
+  document.getElementById('show-inactive').addEventListener('change', function(e) {
+    STATE.showInactive = e.target.checked;
+    STATE.page = 1;
+    STATE.status = e.target.checked ? 'all' : 'active';
+    document.getElementById('status-filter').value = STATE.status;
+    refetchAndUpdateCategories();
+  });
+
+  // Sort field
+  document.getElementById('sort-field').addEventListener('change', function(e) {
+    STATE.sortField = e.target.value;
+    STATE.page = 1;
+    refetchAndUpdateCategories();
+  });
+
+  // Sort order
+  document.getElementById('sort-order').addEventListener('click', function() {
+    const newOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
+    STATE.sortOrder = newOrder;
+    STATE.page = 1;
+    refetchAndUpdateCategories();
+  });
+
+  // Search form
+  document.getElementById('search-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const searchValue = document.getElementById('search-input').value.trim();
+    STATE.search = searchValue;
+    STATE.page = 1;
+    refetchAndUpdateCategories();
+  });
+
+  // Reset button
+  document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+  // Page input validation
+  document.getElementById('page-number').addEventListener('input', function(e) {
+    const value = parseInt(e.target.value);
+    const maxPages = parseInt(document.getElementById('page-number').max) || 1;
+    if (value < 1) e.target.value = 1;
+    if (value > maxPages) e.target.value = maxPages;
+  });
+
+  // Page input change
+  document.getElementById('page-number').addEventListener('change', function(e) {
+    goToPage(e.target.value);
+  });
+
+  // Close modals on escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (document.getElementById('category-modal-overlay').classList.contains('active')) {
+        closeCategoryModal();
+      }
+      if (document.getElementById('confirm-modal-overlay').classList.contains('active')) {
+        closeConfirmModal();
+      }
+    }
+  });
+
+  // Close modals on backdrop click
+  document.getElementById('category-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeCategoryModal();
+    }
+  });
+
+  document.getElementById('confirm-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeConfirmModal();
+    }
+  });
+
+  // Remove popstate listener since we're using AJAX
+  // window.addEventListener('popstate', ...) // Removed
+
+  // Initial load
+  refetchAndUpdateCategories();
+});
+
+
+// Modify: Update loadCategoriesForDropdown to use refetchAndUpdateCategories
+async function loadCategoriesForDropdown() {
+  try {
+    await refetchAndUpdateCategories();
+  } catch (error) {
+    console.error('Error loading categories for dropdown:', error);
+    showGlobalToast('Error loading categories','error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+
+function initPage () {
+  loadCategoriesForDropdown();
+  attachEventListeners();
+  refetchAndUpdateCategories();
+}
+
 </script>

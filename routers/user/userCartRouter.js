@@ -8,7 +8,7 @@ const cartRouter = express.Router();
 cartRouter.use((req,res,next)=>{
     res.locals.isSubheaderHidden = true;
     next();
-})
+});
 
 cartRouter.get('/', renderCartPage);
 cartRouter.get('/checkout',checkCartExists, renderCheckout);

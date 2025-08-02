@@ -1,460 +1,676 @@
 
-
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shop/css/bootstrap.min.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/elegant-icons.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/magnific-popup.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/nice-select.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/owl.carousel.min.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/slicknav.min.css" type="text/css">
+  <link rel="stylesheet" href="/shop/css/style.css" type="text/css">
+  <style>
+    
+    a:hover {text-decoration: none; color: inherit;}
+    @media (min-width: 700px){.product-grid{grid-template-columns:repeat(3,1fr);}}
+    .shop__sidebar ul li a{color: #000; font-size:.9rem; border: 1px solid #eee; padding-inline:5px; padding-block:5px; margin-block: 4px; margin-inline:8px;}
+    a.active{color:#fff!important;font-size:.9rem;background-color:#000;font-weight:800;}
+    .shop__sidebar__price a.active {background: #000; color: #fff !important; font-weight: 800;}
+    body.loading { pointer-events: none;}
+    @media (max-width: 991.98px){
+      .shop__sidebar{position:fixed;top:0;left:0;height:100%;width:280px;background:#fff;z-index:1050;overflow-y:auto;padding:1.25rem 1rem;transform:translateX(-100%);transition:transform .3s;}
+      .shop__sidebar.open{transform:translateX(0);}
+      .sidebar-close{border:none;background:transparent;font-size:1.75rem;line-height:1;margin-bottom:.75rem;}
+      .sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1049;display:none;}
+      .sidebar-backdrop.show{display:block;}
+    }
+
+    /* Netflix-like Category Hero Banner */
+    
+    /* Loading Overlay - softer! */
+    #loading-overlay {
+      position: fixed; left: 0; top: 0; width: 100vw; height: 100dvh;
+      background: rgba(255,255,255,0.38);
+      z-index: 9999; display: flex;
+      align-items: center; justify-content: center;
+      flex-direction: column; font-family: 'Nunito Sans',sans-serif;
+      backdrop-filter: blur(2px);
+      transition: opacity 0.3s;
+    }
+    #loading-overlay.fade-out { opacity: 0; pointer-events: none;}
+    #loading-message { font-size: 1.5rem; font-weight: 700; color: #222;}
 
 
-  <link rel="stylesheet" href="/landing/css/style-prefix.css">
-
-  
-<!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-
-<!-- Css -->
-<link rel="stylesheet" href="/shop/css/bootstrap.min.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/font-awesome.min.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/elegant-icons.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/magnific-popup.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/nice-select.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/owl.carousel.min.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/slicknav.min.css" type="text/css">
-<link rel="stylesheet" href="/shop/css/style.css" type="text/css">
 
 
 
 
-<style>
-@media (min-width: 700px){
-  .product-grid{
-    grid-template-columns: repeat(3, 1fr);
+
+
+.ballon {
+  position: fixed;
+  bottom: 0;
+  opacity: 1;
+  pointer-events: none;
+  display: none;
+  animation: toTop 3s ease-out forwards;
+  width: 100%;
+}
+
+/* Animate "balloon" upward and fade out */
+@keyframes toTop {
+  0% {
+    opacity: 1;
+    bottom: 0;
+   /* transform: translateY(0); */
+  }
+  80% {
+    opacity: 1;
+    /* Move up over time */
+    bottom: 60px;
+  }
+  100% {
+    opacity: 0;
+    bottom: 120px;
+   /* transform: translateY(-120px);  */
   }
 }
-.shop__sidebar  ul li a{
-  color:#000;
-  font-size:.9rem;
-  border:1px solid #eee;
-  padding-inline:5px;
-  padding-block:5px;
-  margin-block:4px;
-  margin-inline:8px;
-}
-a.active{
-  color:#fff!important;
-  font-size:.9rem;
-  background-color:#000;
-  font-weight:800;
-}
-/* mobile sidebar */
-@media (max-width: 991.98px){
-  .shop__sidebar{
-    position:fixed;
-    top:0;
-    left:0;
-    height:100vh;
-    width:280px;
-    background:#fff;
-    z-index:1050;
-    overflow-y:auto;
-    padding:1.25rem 1rem;
-    transform:translateX(-100%);
-    transition:transform .3s ease-in-out;
-  }
-  .shop__sidebar.open{transform:translateX(0);}
-  .sidebar-close{
-    border:none;
-    background:transparent;
-    font-size:1.75rem;
-    line-height:1;
-    margin-bottom:.75rem;
-  }
-  .sidebar-backdrop{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    z-index:1049;
-    display:none;
-  }
-  .sidebar-backdrop.show{display:block;}
-}
-</style>
 
-<main style="padding-bottom:50px;">
-  <section class="shop">
-    <div class="container">
-      <div class="row">
 
-        <div class="col-lg-3">
-          <aside class="shop__sidebar">
-            <button class="sidebar-close d-lg-none" onclick="closeSidebar()">&times;</button>
 
-            <div class="header-search mb-4">
-              <input onkeydown="if(event.key === 'Enter') shopSubmit()"  name="search" type="text" value="<%= queryOptions.search %>" placeholder="Search products..." />
-              <button onclick="shopSubmit();" type="submit"><i class="fa fa-search"></i></button>
-            </div>
+  </style>
 
-            <div class="shop__sidebar__accordion">
-              <div class="accordion" id="shopSidebar">
 
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#catCollapse">Categories</a></div>
-                  <div id="catCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <ul class="shop__sidebar__categories nice-scroll">
-                        <% mainCategories.forEach(c=>{ %>
-                          <li><a href="#" class="<%= c._id.toString()===queryOptions.mainCat?'active':'' %>" onclick="shopUpdate('mainCat','<%= c._id %>')"><%= c.name %></a></li>
-                        <% }) %>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+  <!-- LOADING OVERLAY -->
+  <div id="loading-overlay">
+    <img style="height: 300px;" src="/img/loading/loading12.gif"  alt="Loading..."/>
+    <div id="loading-message">Loading products...</div>
+  </div>
 
-                <% if(subCategories.length){ %>
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#subCatCollapse">Sub-Categories</a></div>
-                  <div id="subCatCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <ul class="shop__sidebar__categories nice-scroll">
-                        <% subCategories.forEach(sc=>{ %>
-                          <li><a href="#" class="<%= sc._id.toString()===queryOptions.subCat?'active':'' %>" onclick="shopUpdate('subCat','<%= sc._id %>')"><%= sc.name %></a></li>
-                        <% }) %>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <% } %>
-
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#brandCollapse">Brand</a></div>
-                  <div id="brandCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <ul class="shop__sidebar__brand">
-                        <% brands.forEach(b=>{ %>
-                          <li><a href="#" class="<%= b._id.toString()===queryOptions.brand?'active':'' %>" onclick="shopUpdate('brand','<%= b._id %>')"><%= b.name %></a></li>
-                        <% }) %>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#priceCollapse">Price</a></div>
-                  <div id="priceCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <ul class="shop__sidebar__price">
-                        <% ['','0-50','50-100','100-150','150-200','200+'].forEach(r=>{ %>
-                          <li><a href="#" class="<%= queryOptions.priceRange===r?'active':'' %>" onclick="shopUpdate('priceRange','<%= r %>')"><%= r?('₹'+r.replace('-',' – ₹').replace('+','+')):'All' %></a></li>
-                        <% }) %>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <% if(variantSizes.length){ %>
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#sizeCollapse">Size</a></div>
-                  <div id="sizeCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <div class="shop__sidebar__size">
-                        <% variantSizes.forEach(s=>{ %>
-                          <label class="<%= queryOptions.size===s?'active':'' %>"><%= s %><input type="radio" onchange="shopUpdate('size','<%= s %>')" <%= queryOptions.size===s?'checked':'' %>></label>
-                        <% }) %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <% } %>
-
-                <% if(variantColors.length){ %>
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#colorCollapse">Colors</a></div>
-                  <div id="colorCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <div class="shop__sidebar__color">
-                        <% variantColors.forEach((c,i)=>{ %>
-                          <label class="c-<%= i+1 %> <%= queryOptions.color===c?'active':'' %>"><input type="radio" onchange="shopUpdate('color','<%= c %>')" <%= queryOptions.color===c?'checked':'' %>></label>
-                        <% }) %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <% } %>
-
-                <% if(tags.length){ %>
-                <div class="card">
-                  <div class="card-heading"><a data-toggle="collapse" data-target="#tagCollapse">Tags</a></div>
-                  <div id="tagCollapse" class="collapse show" data-parent="#shopSidebar">
-                    <div class="card-body">
-                      <div class="shop__sidebar__tags">
-                        <% tags.forEach(t=>{ %>
-                          <a href="#" class="<%= queryOptions.tag===t?'active':'' %>" onclick="shopUpdate('tag','<%= t %>')"><%= t %></a>
-                        <% }) %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <% } %>
-
+  <main style="padding-bottom:50px;">
+    <section class="shop">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-3">
+            <aside class="shop__sidebar">
+              <button class="sidebar-close d-lg-none" onclick="closeSidebar()">×</button>
+              <div class="header-search mb-4">
+                <input id="shopPageSearchInput" onkeydown="if(event.key==='Enter') shopSubmit()" name="search" type="text" placeholder="Search products..." />
+                <button onclick="shopSubmit();" type="submit"><i class="fa fa-search"></i></button>
               </div>
-            </div>
-          </aside>
-        </div>
-
-        <div class="col-lg-9">
-          <button id="filterToggle" class="btn btn-dark d-lg-none mb-3"><i class="fa fa-sliders"></i> Filters</button>
-
-          <div class="shop__product__option">
-<div class="shop__active__filters">
-  <% const labelMap = {search:'Search',mainCat:'Category',subCat:'Sub-Category',brand:'Brand',priceRange:'Price',size:'Size',color:'Color',tag:'Tag',rating:'Rating'} %>
-  <% Object.entries(queryOptions).forEach(([k,v])=>{ if(!v || v===false) return
-     let display=v
-     if(k==='mainCat'){ const c=mainCategories.find(c=>c._id.toString()===v); if(c) display=c.name }
-     if(k==='subCat'){  const c=subCategories.find(c=>c._id.toString()===v);  if(c) display=c.name }
-     if(k==='brand'){   const b=brands.find(b=>b._id.toString()===v);        if(b) display=b.name }
-     if(k==='priceRange') display=v.replace('-',' – ₹').replace('+','+')
-  %>
-    <span class="filter-badge" onclick="shopUpdate('<%= k %>','')">
-      <%= (labelMap[k]||k)+': '+display %> &times;
-    </span>
-  <% }) %>
-  <% if(Object.values(queryOptions).some(v=>v && v!==false)){ %>
-    <button class="clear-all-btn" onclick="clearAllFilters()">Clear All</button>
-  <% } %>
-</div>
-
-            <div class="row">
-              <div class="col-lg-6 col-md-6"><div class="shop__product__option__left">Showing <%= products.length %> of <%= totalProducts %> products</div></div>
-              <div class="col-lg-6 col-md-6">
-                <div class="shop__product__option__right">
-                  <p>Sort by:</p>
-                  <select onchange="shopUpdate('sortBy',this.value)">
-                    <option value="newest"      <%= queryOptions.sortBy==='newest'?'selected':'' %>>Newest</option>
-                    <option value="price-low"   <%= queryOptions.sortBy==='price-low'?'selected':'' %>>Price: Low-High</option>
-                    <option value="price-high"  <%= queryOptions.sortBy==='price-high'?'selected':'' %>>Price: High-Low</option>
-                    <option value="name-asc"    <%= queryOptions.sortBy==='name-asc'?'selected':'' %>>Name: A-Z</option>
-                    <option value="name-desc"   <%= queryOptions.sortBy==='name-desc'?'selected':'' %>>Name: Z-A</option>
-                    <option value="rating-high" <%= queryOptions.sortBy==='rating-high'?'selected':'' %>>Top Rated</option>
-                    <option value="popular"     <%= queryOptions.sortBy==='popular'?'selected':'' %>>Popular</option>
-                  </select>
+              <div class="shop__sidebar__accordion">
+                <div class="accordion" id="shopSidebar">
+                  <div class="card">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#catCollapse">Categories</a></div>
+                    <div id="catCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <ul class="shop__sidebar__categories nice-scroll" id="categories-list"></ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#brandCollapse">Brand</a></div>
+                    <div id="brandCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <ul class="shop__sidebar__brand" id="brands-list"></ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#priceCollapse">Price</a></div>
+                    <div id="priceCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <ul class="shop__sidebar__price" id="price-list"></ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card" id="size-card" style="display: none;">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#sizeCollapse">Size</a></div>
+                    <div id="sizeCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <div class="shop__sidebar__size" id="sizes-list"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card" id="tag-card" style="display: none;">
+                    <div class="card-heading"><a data-toggle="collapse" data-target="#tagCollapse">Tags</a></div>
+                    <div id="tagCollapse" class="collapse show" data-parent="#shopSidebar">
+                      <div class="card-body">
+                        <div class="shop__sidebar__tags" id="tags-list"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </aside>
           </div>
+          <div class="col-lg-9">
 
-          <div class="product-container">
-            <div>
+  <div id="category-hero" class="category-hero">
+    <div class="category-hero-gradient"></div>
+    <div class="category-hero-content">
+      <div class="category-hero-title" id="category-hero-title"></div>
+      <div class="category-hero-sub" id="category-hero-sub"></div>
+    </div>
+  </div>
+
+            <div class="shop__product__option">
+              <div class="shop__active__filters" id="active-filters"></div>
+              <div class="row">
+                <div class="col-lg-6 col-md-6 col-6">
+                              <button id="filterToggle" class="btn btn-dark d-lg-none mb-3"><i class="fa fa-sliders"></i></button>
+                </div>
+                <div class="col-lg-6 col-md-6 col-6">
+                  <div class="shop__product__option__right">
+                    <p>Sort by:</p>
+                    <select onchange="shopUpdate('sortBy', this.value)">
+                      <option value="newest">Newest</option>
+                      <option value="price-low">Price: Low-High</option>
+                      <option value="price-high">Price: High-Low</option>
+                      <option value="name-asc">Name: A-Z</option>
+                      <option value="name-desc">Name: Z-A</option>
+                      <option value="rating-high">Top Rated</option>
+                      <option value="popular">Popular</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-container">
               <div class="product-box">
                 <div class="product-main">
-<div class="row mb-4">
-  <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
-
-    <h2 class="title mb-0">Showing Products</h2>
-
-    <% if (totalPages) { %>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-dark" 
-              <%= currentPage === 1 ? 'disabled' : '' %>
-              onclick="shopUpdate('page', <%= currentPage - 1 %>)">
-        Prev
-      </button>
-
-      <span class="px-2">Page <%= currentPage %> of <%= totalPages %></span>
-
-      <button class="btn btn-sm btn-outline-dark" 
-              <%= currentPage === totalPages ? 'disabled' : '' %>
-              onclick="shopUpdate('page', <%= currentPage + 1 %>)">
-        Next
-      </button>
-    </div>
-    <% } %>
-
-  </div>
-</div>
-
-                  <div class="product-grid">
-                    <% if(products && products.length > 0) { %>
-                      <% products.forEach((product)=> { %>
-                        <div class="showcase">
-                          <div class="showcase-banner">
-                            <img src="<%= product.images[0] %>" alt="product" width="300" class="product-img default">
-                            <img src="<%= product.images[1] %>" alt="product" width="300" class="product-img hover">
-                            <p class="showcase-badge">15%</p>
-                            <div class="showcase-actions">
-                              <button class="btn-action"><ion-icon name="heart-outline"></ion-icon></button>
-                              <button class="btn-action"><ion-icon name="eye-outline"></ion-icon></button>
-                              <button class="btn-action"><ion-icon name="repeat-outline"></ion-icon></button>
-                              <button class="btn-action"><ion-icon name="bag-add-outline"></ion-icon></button>
-                            </div>
-                          </div>
-                          <div class="showcase-content">
-                            <a href="<%= `/user/products/${product._id}` %>" class="showcase-category"><%= product.category.name %></a>
-                            <a href="<%= `/user/products/${product._id}` %>"><h3 class="showcase-title text-truncate"><%= product.name %></h3></a>
-                            <div class="showcase-rating"><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star-outline"></ion-icon><ion-icon name="star-outline"></ion-icon></div>
-                            <div class="price-box"><p class="price">₹<%= product.regularPrice %></p><del>₹<%= product.salePrice %></del></div>
-                            <div class="product-actions d-flex mb-2">
-                              <div>
-                                <a onclick="showVariantSidebar('<%= product._id %>')" style="color:#fff;" class="action-btn btn-dark text-truncate" href="javascript:void(0);">Add to cart 
-                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/><path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/><path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/></svg>
-                                </a>
-                              </div>
-                              <div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>" data-product-id="<%= product._id %>">
-                                <svg width="24" height="24" viewBox="0 0 24 24"><path d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z" stroke-width="1.8" stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>" fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>"></path></svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      <% }) } %>
-                  </div>
+                  <div class="row mb-4">
+                    <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+                    <div class="">
+                          <h2 style="border-bottom: none;" class="title mb-0" id="showing-title">Showing Products</h2>
+                          <div style="border-bottom: 1px solid var(--cultured);" class="shop__product__option__left" id="product-count"></div>
                 </div>
-
-              </div>
-            </div>
-          </div>
-
-
-                    <div class="product-featured mt-4">
-
-            <h2 class="title">Deal of the day</h2>
-
-            <div class="showcase-wrapper has-scrollbar">
-
-              <% if(dealsOfTheDayProducts && dealsOfTheDayProducts.length > 0){ %>
-                <% dealsOfTheDayProducts.forEach((product)=>{ %>
-
-              <div class="showcase-container">
-                <div class="showcase">
-                  
-                  <div class="showcase-banner">
-                    <img src="<%= product.images[0] %>" alt="shampoo, conditioner & facewash packs" class="showcase-img">
+                  <div class="d-flex align-items-center gap-2" id="pagination"></div>
+                    </div>
                   </div>
-
-                  <div class="showcase-content">
-                    
-                    <div class="showcase-rating">
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star-outline"></ion-icon>
-                      <ion-icon name="star-outline"></ion-icon>
-                    </div>
-
-                    <a href="<%= `/user/products/${product._id}` %>">
-                      <h3 class="showcase-title"><%= product.name %></h3>
-                    </a>
-
-                    <p class="showcase-desc">
-                      <%= product.description %>
-                    </p>
-
-                    <div class="price-box">
-                      <p class="price">₹<%= product.regularPrice %></p>
-
-                      <del>₹<%= product.salePrice %></del>
-                    </div>
-
-	<div class="product-actions d-flex mb-5">
-									<div>
-										<a onclick="showVariantSidebar('<%= product._id %>')"   style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">Add to cart 
-											<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0 0 0)">
-												<path fill-rule="evenodd" clip-rule="evenodd" d="M2.31641 3.25C1.90219 3.25 1.56641 3.58579 1.56641 4C1.56641 4.41421 1.90219 4.75 2.31641 4.75H3.49696C3.87082 4.75 4.18759 5.02534 4.23965 5.39556L5.49371 14.3133C5.6499 15.424 6.60021 16.25 7.72179 16.25L18.0664 16.25C18.4806 16.25 18.8164 15.9142 18.8164 15.5C18.8164 15.0858 18.4806 14.75 18.0664 14.75L7.72179 14.75C7.34793 14.75 7.03116 14.4747 6.9791 14.1044L6.85901 13.2505H17.7114C18.6969 13.2505 19.5678 12.6091 19.8601 11.668L21.7824 5.48032C21.8531 5.25268 21.8114 5.00499 21.6701 4.81305C21.5287 4.62112 21.3045 4.50781 21.0662 4.50781H5.51677C5.14728 3.75572 4.37455 3.25 3.49696 3.25H2.31641ZM5.84051 6.00781L6.64807 11.7505H17.7114C18.0399 11.7505 18.3302 11.5367 18.4277 11.223L20.0478 6.00781H5.84051Z" fill="#fff"/>
-												<path d="M7.78418 17.75C6.81768 17.75 6.03418 18.5335 6.03418 19.5C6.03418 20.4665 6.81768 21.25 7.78418 21.25C8.75068 21.25 9.53428 20.4665 9.53428 19.5C9.53428 18.5335 8.75068 17.75 7.78418 17.75Z" fill="#fff"/>
-												<path d="M14.5703 19.5C14.5703 18.5335 15.3538 17.75 16.3203 17.75C17.2868 17.75 18.0704 18.5335 18.0704 19.5C18.0704 20.4665 17.2869 21.25 16.3204 21.25C15.3539 21.25 14.5703 20.4665 14.5703 19.5Z" fill="#fff"/>
-											</svg>
-										</a>	
-																</div>
-<div class="whishlist <%= wishlistItemIds.includes(product._id.toString()) ? 'active pulse-continuous' : '' %>"
-     data-product-id="<%= product._id %>">
-  <svg width="24" height="24" viewBox="0 0 24 24">
-    <path
-      d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z"
-      stroke-width="1.8"
-      stroke="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : '#000' %>"
-      fill="<%= wishlistItemIds.includes(product._id.toString()) ? '#e63946' : 'none' %>">
-    </path>
-  </svg>
-</div>
-
-									</div>
-                    <div class="showcase-status">
-                      <div class="wrapper">
-                        <p>
-                          already sold: <b>50+</b>
-                        </p>
-
-                        <p>
-                          available: <b><%= product.stock %></b>
-                        </p>
-                      </div>
-
-                      <div class="showcase-status-bar"></div>
-                    </div>
-
-                    <div class="countdown-box">
-
-                      <p class="countdown-desc mb-2">
-                        Hurry Up! Offer ends in:
-                      </p>
-
- <div class="countdown" id="countdown">
-  <div class="countdown-content">
-    <p class="display-number" id="days">0</p>
-    <p class="display-text">Days</p>
-  </div>
-  <div class="countdown-content">
-    <p class="display-number" id="hours">9</p>
-    <p class="display-text">Hours</p>
-  </div>
-  <div class="countdown-content">
-    <p class="display-number" id="minutes">0</p>
-    <p class="display-text">Min</p>
-  </div>
-  <div class="countdown-content">
-    <p class="display-number" id="seconds">0</p>
-    <p class="display-text">Sec</p>
-  </div>
-</div>
-
-                    </div>
-
-                  </div>
-
+                  <div class="product-grid" id="product-grid"></div>
                 </div>
               </div>
-
-              <% }) } %>
-
             </div>
-
+            <div class="product-featured mt-4">
+              <h2 class="title">Deal of the day</h2>
+              <div class="showcase-wrapper has-scrollbar" id="deals-of-the-day"></div>
+            </div>
           </div>
-
         </div>
-
       </div>
-    </div>
-  </section>
-</main>
+    </section>
+<!-- 
+    <div class="ballon d-flex">
+      <img src="/img/loading/ballon.gif" alt="">
 
-<script>
-const params=new URLSearchParams(window.location.search)
-function shopUpdate(key,value){if(key==='page'){params.set('page',value)}else{if(value===''){params.delete(key)}else{params.set(key,value)}params.set('page',1)}window.location.search=params.toString()}
-function shopSubmit(){const search=document.querySelector('input[name="search"]').value.trim();if(search){params.set('search',search)}else{params.delete('search')}params.set('page',1);window.location.search=params.toString()}
-async function toggleWishlist(id){try{const res=await fetch(`/wishlist/toggle/${id}`,{method:'POST',headers:{'X-Requested-With':'fetch'}});if(res.ok)location.reload()}catch(e){console.error(e)}}
-async function addToCart(id){try{const res=await fetch('/cart/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productId:id,qty:1})});if(res.ok)alert('Added to cart!')}catch(e){console.error(e)}}
-function clearAllFilters(){window.location.href=window.location.pathname}
+    </div> -->
+  </main>
 
-/* mobile sidebar */
-(function(){
-  const sidebar=document.querySelector('.shop__sidebar')
-  if(!sidebar)return
-  const backdrop=document.createElement('div')
-  backdrop.className='sidebar-backdrop'
-  document.body.appendChild(backdrop)
-  window.openSidebar=()=>{sidebar.classList.add('open');backdrop.classList.add('show')}
-  window.closeSidebar=()=>{sidebar.classList.remove('open');backdrop.classList.remove('show')}
-  document.getElementById('filterToggle').addEventListener('click',openSidebar)
-  backdrop.addEventListener('click',closeSidebar)
-  window.addEventListener('resize',()=>{if(window.innerWidth>=992){closeSidebar()}})
-})();
+
+    <script>
+
+
+function bindWishListLIstener () {
+
+    
+    document.querySelectorAll('.whishlist').forEach(btn => {
+
+  btn.addEventListener('click', async function () {
+    const productId = this.dataset.productId;
+    const allButtons = document.querySelectorAll(`.whishlist[data-product-id="${productId}"]`);
+
+    const isActive = this.classList.contains('active');
+    const modal = document.getElementById('wishlistConfirmModal');
+    const yesBtn = document.getElementById('wishlistConfirmYes');
+    const noBtn = document.getElementById('wishlistConfirmNo');
+
+    const updateUI = (active) => {
+      allButtons.forEach(el => {
+        const path = el.querySelector('svg path');
+        if (active) {
+          el.classList.add('active', 'pulse-continuous');
+          path.setAttribute('fill', '#e63946');
+          path.setAttribute('stroke', '#e63946');
+
+        } else {
+          el.classList.remove('active', 'pulse-continuous');
+          path.setAttribute('fill', 'none');
+          path.setAttribute('stroke', '#000');
+        }
+      });
+    };
+
+    if (!isActive) {
+      try {
+        const res = await fetch('/user/wishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, variant: null })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+
+                const r = await fetch("/user/wishlist/count");
+      const d = await r.json();
+      
+document.querySelectorAll(".HeaderwishCount").forEach(el => {
+  console.log(el);
+  if (r.ok && el) el.textContent = d.count;
+});
+
+          updateUI(true);
+          showGlobalToast('Added to wishlist');
+        } else {
+          showGlobalToast(data.message || 'Failed', 'error');
+        }
+      } catch (err) {
+        location.href = '/user/login';
+      }
+    } else {
+      modal.classList.remove('hidden');
+
+      yesBtn.onclick = async () => {
+        modal.classList.add('hidden');
+        try {
+          const res = await fetch(`/user/wishlist/remove/${productId}`, {
+            method: 'DELETE'
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            updateWishlistCount();
+            updateUI(false);
+            showGlobalToast('Removed from wishlist');
+          } else {
+            showGlobalToast(data.message || 'Failed to remove', 'error');
+          }
+        } catch (err) {
+          showGlobalToast('Error removing', 'error');
+        }
+      };
+
+      noBtn.onclick = () => modal.classList.add('hidden');
+    }
+  });
+});
+  
+}
+
 </script>
+
+  <script>
+    // --- UTILITIES ---
+    function sleep(ms) {return new Promise(r=>setTimeout(r,ms));}
+
+    const loadingMessages = [
+      "Finding the perfect outfit for you...",
+      "Sprucing up your next wardrobe win...",
+      "Looking for the freshest styles...",
+      "Dressing up your collection...",
+      "Matching trends with your taste...",
+      "Ironing out the wrinkles in our best sellers...",
+      "Just a quick wardrobe change...",
+      "Adding the final stitch...",
+      "Squad shopping for you...",
+      "Pressing your style..."
+    ];
+    function randomLoadingMessage() {
+      return loadingMessages[Math.floor(Math.random()*loadingMessages.length)];
+    }
+    // LOADING OVERLAY CONTROL
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingMsg = document.getElementById('loading-message');
+    function showLoading() {
+      document.body.classList.add('loading');
+      loadingOverlay.style.display = 'flex';
+      loadingOverlay.classList.remove('fade-out');
+      loadingMsg.textContent = randomLoadingMessage();
+    }
+    function hideLoading() {
+      loadingOverlay.classList.add('fade-out');
+      setTimeout(() => {
+        loadingOverlay.style.display='none';
+        document.body.classList.remove('loading');
+      }, 450);
+    }
+    const params = new URLSearchParams(window.location.search);
+    let mainCategories = [], brands = [], variantSizes = [], tags = [];
+    let allPriceRanges = [
+      {label:'All', range:""},
+      {label:'₹100 – ₹200', range:"100-200"},
+      {label:'₹200 – ₹300', range:"200-300"},
+      {label:'₹300 – ₹400', range:"300-400"},
+      {label:'₹400 – ₹500', range:"400-500"},
+      {label:'₹500+', range:"500+"}
+    ];
+
+    const defaultHeroImg = '/shop/images/default-category.jpg';
+
+    async function fetchData() {
+      showLoading();
+      try {
+        loadingMsg.textContent = randomLoadingMessage();
+        const response = await fetch(`/user/products/shop/api/filtered/all?${params.toString()}`);
+        await sleep(250+Math.random()*600);
+        if (!response.ok) throw new Error("Server error: "+response.statusText);
+        const data = await response.json();
+        console.log(data);
+        
+        return data;
+      } catch (e) {
+        showError("Failed to load products. Please refresh or try again. "+(e.message||e));
+        throw e;
+      } finally {
+        hideLoading();
+      }
+    }
+
+
+    function showError(message) {
+      hideLoading();
+      const main = document.querySelector('main');
+      main.innerHTML = `<div class="d-flex align-items-center justify-content-center" style="height: 48vh;">
+        <div style="max-width:440px;text-align:center"><h2>😟 Oops!</h2><p style="color:#555">${message}</p>
+        <button class="btn btn-dark mt-2" onclick="location.reload()">Reload Page</button></div>
+      </div>`;
+    }
+
+
+    function showCategoryHero(currentCategory) {
+      const hero = document.getElementById('category-hero');
+      const heroTitle = document.getElementById('category-hero-title');
+      const heroSub = document.getElementById('category-hero-sub');
+      if (!currentCategory) { hero.style.display = "none"; return; }
+      hero.style.display = "flex";
+      let bgImg = (currentCategory.bgImage || currentCategory.image || defaultHeroImg);
+      heroTitle.textContent = currentCategory.name || 'All Products';
+      heroSub.textContent = currentCategory.description||"Explore trendy new arrivals!";
+    }
+
+
+    function renderPriceFilters(currentRange) {
+      const priceList = document.getElementById('price-list');
+      priceList.innerHTML = allPriceRanges.map(pr =>
+        `<li>
+          <a class="price-filter${pr.range === currentRange ? ' active' : ''}"
+             data-price-range="${pr.range}"
+             onclick="shopUpdate('priceRange','${pr.range}')">${pr.label}</a>
+        </li>`).join('');
+    }
+
+    async function updateUI() {
+
+      showLoading();
+      try {
+        const data = await fetchData();
+        if (!data) { showError("Could not load data."); return; }
+        const total = document.getElementById('showing-title')
+        const {
+          products, totalProducts, totalPages, currentPage, mainCategories:mc,
+          brands:br, variantSizes:vs, tags:tg, dealsOfTheDayProducts,
+          wishlistItemIds, queryOptions
+        } = data;
+
+        console.log(data);
+
+
+        const searchInputField = document.getElementById('shopPageSearchInput')
+
+        if(searchInputField){
+          searchInputField.value = queryOptions.search
+        }
+
+        if(products?.length == 0)  total.innerText = "No products Found"
+        total.innerText = "Showing Products"
+        mainCategories = mc; brands = br; variantSizes = vs; tags = tg;
+        const currentCatId = queryOptions.mainCat;
+        let currentCategoryObj = mainCategories.find(c=>c._id===currentCatId);
+        showCategoryHero(currentCategoryObj);
+        document.getElementById('categories-list').innerHTML = mainCategories.map(c =>
+          `<li><a class="${c._id === queryOptions.mainCat ? 'active' : ''}" onclick="shopUpdate('mainCat','${c._id}')">${c.name}</a></li>`
+        ).join('');
+        document.getElementById('brands-list').innerHTML = br.map(b =>
+          `<li><a class="${b._id === queryOptions.brand ? 'active' : ''}" onclick="shopUpdate('brand','${b._id}')">${b.name}</a></li>`
+        ).join('');
+        renderPriceFilters(queryOptions.priceRange || "");
+        {
+          const sizeCard = document.getElementById('size-card');
+          const sizesList = document.getElementById('sizes-list');
+          if (vs.length) {
+            sizeCard.style.display = 'block';
+            sizesList.innerHTML = vs.map(s => `
+              <label class="${queryOptions.size === s ? 'active' : ''}">${s}
+                <input type="radio" onchange="shopUpdate('size','${s}')" ${queryOptions.size === s ? 'checked' : ''}>
+              </label>
+            `).join('');
+          } else sizeCard.style.display = 'none';
+        }
+        {
+          const tagCard = document.getElementById('tag-card');
+          const tagsList = document.getElementById('tags-list');
+          if (tg.length) {
+            tagCard.style.display = 'block';
+            tagsList.innerHTML = tg.map(t =>
+              `<a class="${queryOptions.tag === t ? 'active' : ''}" onclick="shopUpdate('tag','${t}')">${t}</a>`
+            ).join('');
+          } else tagCard.style.display = 'none';
+        }
+        const labelMap = {search:'Search',mainCat:'Category',brand:'Brand',priceRange:'Price',size:'Size',tag:'Tag'};
+        const activeFilters = document.getElementById('active-filters');
+        activeFilters.innerHTML =
+          Object.entries(queryOptions).filter(([k, v])=>v&&v!==false).map(([k, v])=>{
+            let display=v;
+            if (k==='mainCat') display = mainCategories.find(c=>c._id===v)?.name || display;
+            if (k==='brand') display = br.find(b=>b._id===v)?.name || display;
+            if (k==='priceRange')
+              display = "₹"+v.replace('-',' – ₹').replace('+','+');
+            return `
+              <span class="filter-badge" onclick="shopUpdate('${k}','')">
+                ${labelMap[k]||k}: ${display} ×
+              </span>
+            `;
+          }).join('');
+        if (Object.values(queryOptions).some(v=>v&&v!==false))
+          activeFilters.innerHTML += `<button class="filter-badge" onclick="clearAllFilters()">Clear All</button>`;
+        document.getElementById('product-count').innerHTML =
+          `Showing ${products.length} of ${totalProducts} products`;
+        const productGrid = document.getElementById('product-grid');
+        productGrid.innerHTML = products.length > 0 ? products.map(product => `
+        <div class="showcase">
+          <div class="showcase-banner">
+            <img src="${product.images[0]}" alt="product" width="300" class="product-img default">
+            <img src="${product.images[1]}" alt="product" width="300" class="product-img hover">
+<p class="showcase-badge">
+  ${Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100).toFixed(1)}%
+</p>
+            <div class="showcase-actions">
+              <button class="btn-action"><ion-icon name="heart-outline"></ion-icon></button>
+              <button class="btn-action"><ion-icon name="eye-outline"></ion-icon></button>
+              <button class="btn-action"><ion-icon name="repeat-outline"></ion-icon></button>
+              <button class="btn-action"><ion-icon name="bag-add-outline"></ion-icon></button>
+            </div>
+          </div>
+          <div class="showcase-content">
+            <a href="/user/products/${product._id}" class="showcase-category">${product.category.name}</a>
+            <a href="/user/products/${product._id}"><h3 class="showcase-title text-truncate font-bold">${product.name}</h3></a>
+<div class="showcase-rating">
+  ${Array.from({ length: 5 }, (_, i) => `
+    <i class="fas fa-star star ${i + 1 <= Math.round(product.rating) ? '' : 'empty'}"></i>
+  `).join('')}
+</div>
+            <div class="price-box"><p class="price">₹${product.regularPrice}</p><del>₹${product.salePrice}</del></div>
+            <div class="product-actions d-flex mb-2">
+              <div>
+                <a onclick="showVariantSidebar('${product._id}')" style="color:#fff;" class="action-btn btn-dark text-truncate" href="javascript:void(0);">
+
+                      <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1.56641 4.48242C1.56641 4.06821 1.90219 3.73242 2.31641 3.73242H3.49696C4.37456 3.73242 5.14722 4.23809 5.51674 4.99023H21.0662C21.3045 4.99023 21.5287 5.10354 21.6701 5.29548C21.8114 5.48741 21.8531 5.7351 21.7824 5.96274L19.8601 12.1504C19.5678 13.0915 18.6969 13.7329 17.7114 13.7329H6.85901L6.9791 14.5869C7.03116 14.9571 7.34793 15.2324 7.72179 15.2324L18.0664 15.2324C18.4806 15.2324 18.8164 15.5682 18.8164 15.9824C18.8164 16.3966 18.4806 16.7324 18.0664 16.7324L7.72179 16.7324C6.60021 16.7324 5.6499 15.9064 5.49371 14.7957L4.23965 5.87799L4.23709 5.86111C4.17805 5.49955 3.86513 5.23242 3.49696 5.23242H2.31641C1.90219 5.23242 1.56641 4.89664 1.56641 4.48242Z" fill="#fff"/>
+<g opacity="0.4">
+<path d="M7.7832 18.2324C6.8167 18.2324 6.0332 19.0159 6.0332 19.9824C6.0332 20.9489 6.8167 21.7324 7.7832 21.7324H7.7932C8.7597 21.7324 9.5432 20.9489 9.5432 19.9824C9.5432 19.0159 8.7597 18.2324 7.7932 18.2324H7.7832Z" fill="#fff"/>
+<path d="M16.3203 18.2324C15.3538 18.2324 14.5703 19.0159 14.5703 19.9824C14.5703 20.9489 15.3538 21.7324 16.3203 21.7324H16.3303C17.2968 21.7324 18.0803 20.9489 18.0803 19.9824C18.0803 19.0159 17.2968 18.2324 16.3303 18.2324H16.3203Z" fill="#fff"/>
+</g>
+</svg>
+                  Add to cart 
+                </a>
+              </div>
+              <div class="whishlist ${wishlistItemIds.includes(product._id) ? 'active pulse-continuous' : ''}" data-product-id="${product._id}">
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <path d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z" stroke-width="1.8" stroke="${wishlistItemIds.includes(product._id) ? '#e63946' : '#000'}" fill="${wishlistItemIds.includes(product._id) ? '#e63946' : 'none'}"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        `).join('') : '';
+
+
+        document.getElementById('pagination').innerHTML = totalPages ? `
+          <button class="" ${currentPage === 1 ? 'disabled' : ''} onclick="shopUpdate('page', ${currentPage - 1})">
+            <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.6978 11.7512L12.0698 10.3783C12.3626 10.0853 12.3625 9.61047 12.0695 9.31767C11.7765 9.02487 11.3016 9.02502 11.0088 9.31801L8.37067 11.9578C8.22711 12.0945 8.13764 12.2874 8.13764 12.5012C8.13764 12.7277 8.23803 12.9307 8.39673 13.0682L11.0088 15.6821C11.3016 15.9751 11.7765 15.9753 12.0695 15.6825C12.3625 15.3897 12.3626 14.9148 12.0698 14.6218L10.7001 13.2512L15.7683 13.2512C16.1825 13.2512 16.5183 12.9154 16.5183 12.5012C16.5183 12.087 16.1825 11.7512 15.7683 11.7512L10.6978 11.7512Z" fill="#323544"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2.32812 12.4991C2.32812 6.97668 6.80541 2.5 12.3277 2.5C17.85 2.5 22.3273 6.97668 22.3273 12.4991C22.3273 18.0214 17.85 22.4981 12.3277 22.4981C6.80541 22.4981 2.32812 18.0214 2.32812 12.4991ZM12.3277 4C7.63373 4 3.82812 7.80521 3.82812 12.4991C3.82812 17.1929 7.63373 20.9981 12.3277 20.9981C17.0216 20.9981 20.8273 17.1929 20.8273 12.4991C20.8273 7.80521 17.0216 4 12.3277 4Z" fill="#323544"/>
+</svg>
+</button>
+          <span class="px-2">${currentPage} of ${totalPages}</span>
+          <button class="" ${currentPage === totalPages ? 'disabled' : ''} onclick="shopUpdate('page', ${currentPage + 1})">
+            <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 12.5C2 6.97766 6.47729 2.50098 11.9996 2.50098C17.5218 2.50098 21.9991 6.97766 21.9991 12.5C21.9991 18.0224 17.5218 22.4991 11.9996 22.4991C6.47729 22.4991 2 18.0224 2 12.5ZM12.5016 9.15521C12.2213 9.27126 12.0385 9.54477 12.0385 9.84817L12.0385 11.749L8.55957 11.749C8.14536 11.749 7.80957 12.0847 7.80957 12.499C7.80957 12.9132 8.14536 13.249 8.55957 13.249H12.0385V15.152C12.0385 15.4554 12.2213 15.7289 12.5016 15.8449C12.7819 15.961 13.1046 15.8967 13.319 15.6821L15.9572 13.0423C16.1007 12.9057 16.1902 12.7128 16.1902 12.499C16.1902 12.2725 16.0898 12.0694 15.9311 11.9319L13.319 9.31802C13.1046 9.10342 12.782 9.03915 12.5016 9.15521Z" fill="#323544"/>
+</svg>
+
+            </button>
+        ` : '';
+        
+        document.getElementById('deals-of-the-day').innerHTML =
+          dealsOfTheDayProducts.length > 0
+            ? dealsOfTheDayProducts.map(product => `
+        <div class="showcase-container">
+          <div class="showcase">
+            <div class="showcase-banner">
+              <img src="${product.images[0]}" alt="product" class="showcase-img">
+            </div>
+            <div class="showcase-content">
+<div class="showcase-rating">
+  ${Array.from({ length: 5 }, (_, i) => `
+    <i class="fas fa-star star ${i + 1 <= Math.round(product.rating) ? '' : 'empty'}"></i>
+  `).join('')}
+</div>
+              <a href="/user/products/${product._id}">
+                <h3 class="showcase-title">${product.name}</h3>
+              </a>
+              <p class="showcase-desc">${product.description}</p>
+              <div class="price-box"><p class="price">₹${product.regularPrice}</p><del>₹${product.salePrice}</del></div>
+              <div class="product-actions d-flex mb-5">
+                <div>
+                  <a onclick="showVariantSidebar('${product._id}')" style="color: #fff;" class="action-btn btn-dark py-2 px-4" href="javascript:void(0);">
+  
+                      <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1.56641 4.48242C1.56641 4.06821 1.90219 3.73242 2.31641 3.73242H3.49696C4.37456 3.73242 5.14722 4.23809 5.51674 4.99023H21.0662C21.3045 4.99023 21.5287 5.10354 21.6701 5.29548C21.8114 5.48741 21.8531 5.7351 21.7824 5.96274L19.8601 12.1504C19.5678 13.0915 18.6969 13.7329 17.7114 13.7329H6.85901L6.9791 14.5869C7.03116 14.9571 7.34793 15.2324 7.72179 15.2324L18.0664 15.2324C18.4806 15.2324 18.8164 15.5682 18.8164 15.9824C18.8164 16.3966 18.4806 16.7324 18.0664 16.7324L7.72179 16.7324C6.60021 16.7324 5.6499 15.9064 5.49371 14.7957L4.23965 5.87799L4.23709 5.86111C4.17805 5.49955 3.86513 5.23242 3.49696 5.23242H2.31641C1.90219 5.23242 1.56641 4.89664 1.56641 4.48242Z" fill="#fff"/>
+<g opacity="0.4">
+<path d="M7.7832 18.2324C6.8167 18.2324 6.0332 19.0159 6.0332 19.9824C6.0332 20.9489 6.8167 21.7324 7.7832 21.7324H7.7932C8.7597 21.7324 9.5432 20.9489 9.5432 19.9824C9.5432 19.0159 8.7597 18.2324 7.7932 18.2324H7.7832Z" fill="#fff"/>
+<path d="M16.3203 18.2324C15.3538 18.2324 14.5703 19.0159 14.5703 19.9824C14.5703 20.9489 15.3538 21.7324 16.3203 21.7324H16.3303C17.2968 21.7324 18.0803 20.9489 18.0803 19.9824C18.0803 19.0159 17.2968 18.2324 16.3303 18.2324H16.3203Z" fill="#fff"/>
+</g>
+</svg>
+                    Add to cart 
+                  </a>
+                </div>
+                <div class="whishlist ${wishlistItemIds.includes(product._id) ? 'active pulse-continuous' : ''}" data-product-id="${product._id}">
+                  <svg width="24" height="24" viewBox="0 0 24 24">
+                    <path d="M11.8227 4.77124L12 4.94862L12.1773 4.77135C14.4244 2.52427 18.0676 2.52427 20.3147 4.77134C22.5618 7.01842 22.5618 10.6616 20.3147 12.9087L13.591 19.6324C12.7123 20.5111 11.2877 20.5111 10.409 19.6324L3.6853 12.9086C1.43823 10.6615 1.43823 7.01831 3.6853 4.77124C5.93237 2.52417 9.5756 2.52417 11.8227 4.77124Z" stroke-width="1.8" stroke="${wishlistItemIds.includes(product._id) ? '#e63946' : '#000'}" fill="${wishlistItemIds.includes(product._id) ? '#e63946' : 'none'}"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="showcase-status"><div class="wrapper">
+                <p>already sold: <b>50+</b></p>
+                <p>available: <b>${product.stock}</b></p>
+              </div>
+              <div class="showcase-status-bar"></div>
+              </div>
+              <div class="countdown-box">
+                <p class="countdown-desc mb-2">Hurry Up! Offer ends in:</p>
+                <div class="countdown" id="countdown">
+                  <div class="countdown-content">
+                    <p class="display-number" id="days">0</p>
+                    <p class="display-text">Days</p>
+                  </div>
+                  <div class="countdown-content">
+                    <p class="display-number" id="hours">9</p>
+                    <p class="display-text">Hours</p>
+                  </div>
+                  <div class="countdown-content">
+                    <p class="display-number" id="minutes">0</p>
+                    <p class="display-text">Min</p>
+                  </div>
+                  <div class="countdown-content">
+                    <p class="display-number" id="seconds">0</p>
+                    <p class="display-text">Sec</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+          `).join('')
+          : '<p>No deals available.</p>';
+      } catch (e) {
+
+      }finally{
+        bindWishListLIstener()
+        hideLoading();
+      }
+    }
+
+    async function shopUpdate(key, value) {
+      if (key === 'page') {
+        params.set('page', value);
+      } else {
+        if (value === '') { params.delete(key); }
+        else { params.set(key, value); }
+        params.set('page', 1);
+      }
+      await updateUI();
+    }
+    async function shopSubmit() {
+      const search = document.querySelector('input[name="search"]').value.trim();
+      if (search) params.set('search', search);
+      else params.delete('search');
+      params.set('page', 1);
+      await updateUI();
+    }
+    async function clearAllFilters() {
+      params.forEach((v, k) => params.delete(k));
+      await updateUI();
+    }
+    (function() {
+      const sidebar = document.querySelector('.shop__sidebar');
+      if (!sidebar) return;
+      const backdrop = document.createElement('div');
+      backdrop.className = 'sidebar-backdrop';
+      document.body.appendChild(backdrop);
+      window.openSidebar = () => {
+        sidebar.classList.add('open');
+        backdrop.classList.add('show');
+      };
+      window.closeSidebar = () => {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('show');
+      };
+      document.getElementById('filterToggle').addEventListener('click', openSidebar);
+      backdrop.addEventListener('click', closeSidebar);
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 992) closeSidebar();
+      });
+    })();
+
+
+    updateUI();
+
+
+
+  
+  </script>
+

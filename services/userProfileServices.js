@@ -3,7 +3,7 @@ const User = require("../models/userModel")
 
 const getUserAddressById = async (userId) => {
   try {
-    const addresses = await Address.find({ user: userId, isActive: true }).sort({ isDefault: -1, createdAt: -1 })
+    const addresses = await Address.find({ user: userId, isActive: true }).sort({ isDefault: -1 , createdAt: -1 })
     return addresses
   } catch (err) {
     throw new Error(err.message)
@@ -27,16 +27,16 @@ const insertOneUserAddressById = async (userId, reqBody) => {
 
   const { fullName, phone, street, city, state, pincode, type, isDefault } = reqBody;
 
-  console.log(reqBody);
+  // console.log(reqBody);
   
 
   try {
 
-    if (!fullName || !phone || !street || !city || !state || !pincode) {
+    if (!fullName.trim() || !phone.trim() || !street.trim() || !city.trim() || !state.trim() || !pincode.trim()) {
       throw new Error("all address fields are required")
     }
 
-    if (isDefault == "on") {
+    if ( isDefault == true || isDefault == "on" ) {
       await Address.updateMany({ user: userId }, { isDefault: false })
     }
 
@@ -49,7 +49,7 @@ const insertOneUserAddressById = async (userId, reqBody) => {
       state: state.trim(),
       pincode: pincode.trim(),
       type,
-      isDefault: isDefault == "on",
+      isDefault: isDefault == true || isDefault == "on" ,
     })
 
     const savedAddress = await newAddress.save()
@@ -65,16 +65,19 @@ const updateUserAddressById = async (userId, addressId, reqBody) => {
 
   const { fullName, phone, street, city, state, pincode, type, isDefault } = reqBody
 
+  console.log(isDefault);
+  
+
   try {
 
-    if (!fullName || !phone || !street || !city || !state || !pincode) {
+    if (!fullName.trim() || !phone.trim() || !street.trim() || !city.trim() || !state.trim() || !pincode.trim()) {
       throw new Error("all address fields are required")
     }
 
-    console.log(isDefault);
+    // console.log(isDefault);
     
 
-    if (isDefault == "on") {
+    if ( isDefault == true || isDefault == "on" ) {
       await Address.updateMany({ user: userId, _id: { $ne: addressId } }, { isDefault: false })
     }
 
@@ -88,7 +91,7 @@ const updateUserAddressById = async (userId, addressId, reqBody) => {
         state: state.trim(),
         pincode: pincode.trim(),
         type,
-        isDefault: isDefault == "on",
+        isDefault: (isDefault == true  || isDefault == "on" ),
       })
 
     return updatedAddress

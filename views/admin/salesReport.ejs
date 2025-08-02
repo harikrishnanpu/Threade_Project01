@@ -789,44 +789,51 @@
 
 
 
-    <div class="stats-grid">
-      <div class="stat-card primary">
-        <div class="stat-header">
-          <div class="stat-title">Total Sales</div>
-          <div class="stat-icon primary">
-            <i class="fas fa-chart-line"></i>
-          </div>
-        </div>
-        <div class="stat-value" id="total-sales">₹<%= totalSales ? totalSales.toFixed(2) : '0.00' %></div>
-        <div class="stat-change positive" id="sales-change">
-        </div>
+<div class="stats-grid">
+  <div class="stat-card primary">
+    <div class="stat-header">
+      <div class="stat-title">Total Order Amount</div>
+      <div class="stat-icon primary">
+        <i class="fas fa-chart-line"></i>
       </div>
-
-      <div class="stat-card success">
-        <div class="stat-header">
-          <div class="stat-title">Total Orders</div>
-          <div class="stat-icon success">
-            <i class="fas fa-shopping-cart"></i>
-          </div>
-        </div>
-        <div class="stat-value" id="total-orders"><%= totalOrders || 0 %></div>
-        <div class="stat-change positive" id="orders-change">
-        </div>
-      </div>
-
-      <div class="stat-card warning">
-        <div class="stat-header">
-          <div class="stat-title">Total Discounts</div>
-          <div class="stat-icon warning">
-            <i class="fas fa-tags"></i>
-          </div>
-        </div>
-        <div class="stat-value" id="total-discounts">₹<%= totalDiscounts ? totalDiscounts.toFixed(2) : '0.00' %></div>
-        <div class="stat-change neutral" id="discounts-change">
-        </div>
-      </div>
-
     </div>
+    <div class="stat-value" id="total-order-amount">₹0.00</div>
+    <div class="stat-change positive" id="order-amount-change"></div>
+  </div>
+
+  <div class="stat-card primary">
+    <div class="stat-header">
+      <div class="stat-title">Total Sales</div>
+      <div class="stat-icon primary">
+        <i class="fas fa-chart-line"></i>
+      </div>
+    </div>
+    <div class="stat-value" id="total-sales-amount">₹0.00</div>
+    <div class="stat-change positive" id="sales-amount-change"></div>
+  </div>
+
+  <div class="stat-card success">
+    <div class="stat-header">
+      <div class="stat-title">Total Orders</div>
+      <div class="stat-icon success">
+        <i class="fas fa-shopping-cart"></i>
+      </div>
+    </div>
+    <div class="stat-value" id="total-orders">0</div>
+    <div class="stat-change positive" id="orders-change"></div>
+  </div>
+
+  <div class="stat-card warning">
+    <div class="stat-header">
+      <div class="stat-title">Total Discounts</div>
+      <div class="stat-icon warning">
+        <i class="fas fa-tags"></i>
+      </div>
+    </div>
+    <div class="stat-value" id="total-discounts">₹0.00</div>
+    <div class="stat-change neutral" id="discounts-change"></div>
+  </div>
+</div>
 
 
     <div class="card-style mb-30">
@@ -984,7 +991,7 @@
                     <% } %>
                   </div>
                 </th>
-                <th>Payment Method</th>
+                <th>Refund</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -1009,7 +1016,7 @@
                   </div>
                 </td>
                 <td class="amount-cell">
-                  ₹<%= order.totalAmount.toFixed(2) %>
+                  ₹<%= order.items?.reduce((total,itm)=>  total + itm.price * itm.quantity,0) %>
                 </td>
                 <td class="discount-cell">
                   <% if (order.coupon && order.coupon.discountAmount > 0) { %>
@@ -1021,11 +1028,12 @@
                   <% } %>
                 </td>
                 <td class="amount-cell">
-                  <strong>₹<%= (order.totalAmount - (order.coupon ? order.coupon.discountAmount : 0)).toFixed(2) %></strong>
+                  <strong>₹<%= (order.totalAmount) %></strong>
+                  <p>shipping: ₹<%= order.shippingCharge %></p>
                 </td>
                 <td>
-                  <span class="badge badge-<%= order.paymentMethod %>">
-                    <%= order.paymentMethod.toUpperCase() %>
+                  <span class="badge badge-<%= order.refundAmount %>">
+                    <p>₹<%= order.refundAmount || 0 %></p>
                   </span>
                 </td>
                 <td>
@@ -1101,412 +1109,653 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   
   <script>
-    // Global state
-    const STATE = {
-      page: parseInt('<%= currentPage %>') || 1,
-      dateRange: '<%= dateRange %>' || 'month',
-      status: '<%= status %>' || 'all',
-      paymentMethod: '<%= paymentMethod %>' || 'all',
-      category: '<%= category %>' || 'all',
-      sortField: '<%= sortField %>' || 'orderDate',
-      sortOrder: '<%= sortOrder %>' || 'desc',
-      startDate: '<%= startDate %>' || '',
-      endDate: '<%= endDate %>' || '',
-      isLoading: false
-    };
+  // Global state
+const STATE = {
+  page: parseInt(new URLSearchParams(window.location.search).get('page')) || 1,
+  dateRange: new URLSearchParams(window.location.search).get('dateRange') || 'month',
+  status: new URLSearchParams(window.location.search).get('status') || 'all',
+  paymentMethod: new URLSearchParams(window.location.search).get('paymentMethod') || 'all',
+  category: new URLSearchParams(window.location.search).get('category') || 'all',
+  sortField: new URLSearchParams(window.location.search).get('sortField') || 'orderDate',
+  sortOrder: new URLSearchParams(window.location.search).get('sortOrder') || 'desc',
+  startDate: new URLSearchParams(window.location.search).get('startDate') || '',
+  endDate: new URLSearchParams(window.location.search).get('endDate') || '',
+  isLoading: false
+};
 
+// Chart instances
+let salesChart = null;
+let paymentChart = null;
 
-    // Chart instances
-    let salesChart = null;
-    let paymentChart = null;
+// Utility functions
+function showLoading() {
+  if (!STATE.isLoading) {
+    STATE.isLoading = true;
+    const overlay = document.getElementById('loading-overlay');
+    overlay.style.display = 'flex'; // Ensure display is set
+    setTimeout(() => {
+      overlay.classList.add('active'); // Add active class after a short delay to trigger transition
+    }, 10); // Small delay to ensure CSS transition triggers
+  }
+}
 
-    // Utility functions
-    function showLoading() {
-      STATE.isLoading = true;
-      document.getElementById('loading-overlay').classList.add('active');
-    }
-
-    function hideLoading() {
+function hideLoading() {
+  if (STATE.isLoading) {
+    const overlay = document.getElementById('loading-overlay');
+    overlay.classList.remove('active');
+    setTimeout(() => {
+      overlay.style.display = 'none'; // Hide after transition
       STATE.isLoading = false;
-      document.getElementById('loading-overlay').classList.remove('active');
+    }, 300); // Match CSS transition duration (0.3s)
+  }
+}
+
+function showError(message) {
+  const errorMsg = document.getElementById('error-msg');
+  errorMsg.textContent = message;
+  errorMsg.classList.add('show');
+  setTimeout(() => {
+    errorMsg.classList.remove('show');
+  }, 5000);
+}
+
+function showSuccess(message) {
+  const successMsg = document.getElementById('success-msg');
+  successMsg.textContent = message;
+  successMsg.classList.add('show');
+  setTimeout(() => {
+    successMsg.classList.remove('show');
+  }, 3000);
+}
+
+// URL building
+function buildUrl(overrides = {}) {
+  const params = {
+    page: overrides.page || STATE.page,
+    dateRange: overrides.dateRange || STATE.dateRange,
+    status: overrides.status || STATE.status,
+    paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
+    category: overrides.category || STATE.category,
+    sortField: overrides.sortField || STATE.sortField,
+    sortOrder: overrides.sortOrder || STATE.sortOrder,
+    startDate: overrides.startDate || STATE.startDate,
+    endDate: overrides.endDate || STATE.endDate
+  };
+
+  Object.keys(params).forEach(key => {
+    if (params[key] === '' || params[key] === null || params[key] === undefined ||
+        params[key] === 'all' || params[key] === 'month') {
+      delete params[key];
     }
+  });
 
-    function showError(message) {
-      const errorMsg = document.getElementById('error-msg');
-      errorMsg.textContent = message;
-      errorMsg.classList.add('show');
-      setTimeout(() => {
-        errorMsg.classList.remove('show');
-      }, 5000);
+  const url = new URL('/admin/reports/api/sales/filtered', window.location.origin);
+  Object.keys(params).forEach(key => {
+    url.searchParams.set(key, params[key]);
+  });
+
+  return url.toString();
+}
+
+function buildExportUrl(overrides = {}) {
+  const params = {
+    page: overrides.page || STATE.page,
+    dateRange: overrides.dateRange || STATE.dateRange,
+    status: overrides.status || STATE.status,
+    paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
+    category: overrides.category || STATE.category,
+    sortField: overrides.sortField || STATE.sortField,
+    sortOrder: overrides.sortOrder || STATE.sortOrder,
+    startDate: overrides.startDate || STATE.startDate,
+    endDate: overrides.endDate || STATE.endDate
+  };
+
+  Object.keys(params).forEach(key => {
+    if (params[key] === '' || params[key] === null || params[key] === undefined ||
+        params[key] === 'all' || params[key] === 'month') {
+      delete params[key];
     }
+  });
 
-    function showSuccess(message) {
-      const successMsg = document.getElementById('success-msg');
-      successMsg.textContent = message;
-      successMsg.classList.add('show');
-      setTimeout(() => {
-        successMsg.classList.remove('show');
-      }, 3000);
-    }
+  const url = new URL(`/admin/reports/${overrides.format}/sales`, window.location.origin);
+  Object.keys(params).forEach(key => {
+    url.searchParams.set(key, params[key]);
+  });
 
-    // URL building and navigation
-    function buildUrl(overrides = {}) {
-      const params = {
-        page: overrides.page || STATE.page,
-        dateRange: overrides.dateRange || STATE.dateRange,
-        status: overrides.status || STATE.status,
-        paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
-        category: overrides.category || STATE.category,
-        sortField: overrides.sortField || STATE.sortField,
-        sortOrder: overrides.sortOrder || STATE.sortOrder,
-        startDate: overrides.startDate || STATE.startDate,
-        endDate: overrides.endDate || STATE.endDate
-      };
+  return url.toString();
+}
 
-      // Remove default/empty values
-      Object.keys(params).forEach(key => {
-        if (params[key] === '' || params[key] === null || params[key] === undefined || 
-            params[key] === 'all' || params[key] === 'month') {
-          delete params[key];
-        }
-      });
+// Fetch data from backend
+async function fetchSalesData(params = {}) {
+  try {
+    showLoading();
+    const url = buildUrl({
+      ...STATE,
+      ...params,
+      page: params.page || STATE.page
+    });
 
-      const url = new URL(window.location.pathname, window.location.origin);
-
-      Object.keys(params).forEach(key => {
-        url.searchParams.set(key, params[key]);
-      });
-
-      return url.toString();
-    }
-
-    function buildExportUrl(overrides = {}) {
-      const params = {
-        page: overrides.page || STATE.page,
-        dateRange: overrides.dateRange || STATE.dateRange,
-        status: overrides.status || STATE.status,
-        paymentMethod: overrides.paymentMethod || STATE.paymentMethod,
-        category: overrides.category || STATE.category,
-        sortField: overrides.sortField || STATE.sortField,
-        sortOrder: overrides.sortOrder || STATE.sortOrder,
-        startDate: overrides.startDate || STATE.startDate,
-        endDate: overrides.endDate || STATE.endDate
-      };
-
-
-      Object.keys(params).forEach(key => {
-        if (params[key] === '' || params[key] === null || params[key] === undefined || 
-            params[key] === 'all' || params[key] === 'month') {
-          delete params[key];
-        }
-      });
-
-      const url = new URL(`/admin/reports/${overrides.format}/sales`, window.location.origin);
-
-      Object.keys(params).forEach(key => {
-        url.searchParams.set(key, params[key]);
-      });
-
-      return url.toString();
-    }
-
-    function navigateToUrl(url) {
-      showLoading();
-      window.location.href = url;
-    }
-
-    // Filter functions
-    function applyFilters() {
-      const dateRange = document.getElementById('date-range-filter').value;
-      const status = document.getElementById('status-filter').value;
-      const paymentMethod = document.getElementById('payment-filter').value;
-
-      let params = {
-        page: 1,
-        dateRange,
-        status,
-        paymentMethod,
-      };
-
-      if (dateRange === 'custom') {
-        const startDate = document.getElementById('start-date').value;
-        const endDate = document.getElementById('end-date').value;
-        
-        if (!startDate || !endDate) {
-          showError('Please select both start and end dates for custom range');
-          return;
-        }
-        
-        if (new Date(startDate) > new Date(endDate)) {
-          showError('Start date cannot be after end date');
-          return;
-        }
-
-        if (new Date(endDate) > new Date()) {
-          showError('End date cannot be in future');
-          return;
-        }
-
-
-
-        params.startDate = startDate;
-        params.endDate = endDate;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
+    });
 
-      navigateToUrl(buildUrl(params));
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    function resetFilters() {
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    showError('Failed to fetch sales data. Please try again.');
+    console.error('Fetch error:', error);
+    return null;
+  } finally {
+    hideLoading();
+  }
+}
 
-      navigateToUrl(buildUrl({
-        page: 1,
-        dateRange: 'month',
-        status: 'all',
-        paymentMethod: 'all',
-        category: 'all',
-        sortField: 'orderDate',
-        sortOrder: 'desc',
-        startDate: '',
-        endDate: ''
-      }));
+// Update stats cards
+function updateStatsCards(data) {
+  if (!data) return;
 
+  // Update total sales (fix duplicate ID issue by using unique IDs)
+  document.getElementById('total-order-amount').textContent = `₹${data.totalOrderAmount ? data.totalOrderAmount.toFixed(2) : '0.00'}`;
+  document.getElementById('total-sales-amount').textContent = `₹${data.totalSales ? data.totalSales.toFixed(2) : '0.00'}`;
+  document.getElementById('total-orders').textContent = data.totalOrders || 0;
+  document.getElementById('total-discounts').textContent = `₹${data.totalDiscounts ? data.totalDiscounts.toFixed(2) : '0.00'}`;
+
+  // Update change indicators
+  const salesChange = document.getElementById('sales-change');
+  const ordersChange = document.getElementById('orders-change');
+  const discountsChange = document.getElementById('discounts-change');
+}
+
+function updateChangeIndicator(element, change) {
+  if (change === undefined || change === null) {
+    element.textContent = 'No change';
+    element.className = 'stat-change neutral';
+    return;
+  }
+
+  const isPositive = change > 0;
+  element.textContent = `${isPositive ? '+' : ''}${change.toFixed(2)}%`;
+  element.className = `stat-change ${isPositive ? 'positive' : 'negative'}`;
+}
+
+// Update charts
+function updateCharts(data) {
+  if (!data?.chartData) return;
+
+  if (salesChart) {
+    salesChart.data.labels = data.chartData.salesTrend?.labels || [];
+    salesChart.data.datasets[0].data = data.chartData.salesTrend?.data || [];
+    salesChart.update();
+  }
+
+  if (paymentChart) {
+    paymentChart.data.labels = data.chartData.paymentMethods?.labels || [];
+    paymentChart.data.datasets[0].data = data.chartData.paymentMethods?.data || [];
+    paymentChart.update();
+  }
+}
+
+// Update table
+function updateTable(data) {
+  const table = document.getElementById('sales-table');
+  const tbody = table.querySelector('tbody');
+
+  if (!data?.salesData || data.salesData.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h4>No Sales Data Found</h4>
+            <p>No sales data available for the selected period and filters.</p>
+            <button class="btn btn-primary" onclick="resetFilters()">
+              <i class="fas fa-undo"></i>
+              Reset Filters
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = data.salesData.map(order => `
+    <tr>
+      <td class="order-date">
+        ${new Date(order.createdAt).toLocaleDateString()}
+        <br>
+        <small class="text-muted">
+          ${new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+        </small>
+      </td>
+      <td>
+        <strong>#${order.orderNumber}</strong>
+      </td>
+      <td>
+        <div>
+          <strong>${order.user.name}</strong>
+          <br>
+          <small class="text-muted">${order.user.email}</small>
+        </div>
+      </td>
+      <td class="amount-cell">
+        ₹${order.items?.reduce((total, itm) => total + itm.price * itm.quantity, 0).toFixed(2)}
+      </td>
+      <td class="discount-cell">
+        ${order.coupon && order.coupon.discountAmount > 0 
+          ? `-₹${order.coupon.discountAmount.toFixed(2)}<br><small class="text-muted">(${order.coupon.code})</small>`
+          : '-'}
+      </td>
+      <td class="amount-cell">
+        <strong>₹${order.totalAmount.toFixed(2)}</strong>
+        <p>shipping: ₹${order.shippingCharge.toFixed(2)}</p>
+      </td>
+      <td>
+        <span class="badge badge-${order.refundAmount}">
+          <p>₹${order.refundAmount || 0}</p>
+        </span>
+      </td>
+      <td>
+        <span class="status-badge status-${order.orderStatus}">
+          ${order.orderStatus}
+        </span>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Update pagination
+function updatePagination(data) {
+  if (!data) return;
+
+  const currentPage = data.currentPage || 1;
+  const totalPages = data.totalPages || 1;
+  const totalRecords = data.totalRecords || 0;
+
+  document.querySelector('.pagination-info span').textContent = 
+    `Showing ${data.salesData ? data.salesData.length : 0} of ${totalRecords} records`;
+
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const pageInput = document.getElementById('page-number');
+  const pageTotal = document.querySelector('.page-total');
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInput.value = currentPage;
+  pageInput.max = totalPages;
+  pageTotal.textContent = `of ${totalPages}`;
+}
+
+// Export reports
+async function exportReport(format) {
+  const btn = document.getElementById('export-btn');
+  btn.classList.add('loading');
+
+  try {
+    const url = buildExportUrl({ format });
+    const response = await fetch(url);
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sales-report-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      showSuccess(`Report exported successfully as ${format.toUpperCase()}`);
+    } else {
+      throw new Error('Export failed');
     }
+  } catch (error) {
+    showError('Failed to export report. Please try again.');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
 
-    function setSortField(field) {
+// Initialize charts
+function initializeCharts() {
+  // Destroy existing charts if they exist
+  if (salesChart) {
+    salesChart.destroy();
+    salesChart = null;
+  }
+  if (paymentChart) {
+    paymentChart.destroy();
+    paymentChart = null;
+  }
 
-      const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
-      navigateToUrl(buildUrl({ 
-        sortField: field, 
-        sortOrder: newOrder, 
-        page: 1 
-      }));
-
-    }
-
-    function goToPage(page) {
-
-
-      const pageNum = parseInt(page);
-      const maxPages = parseInt('<%= totalPages %>') || 1;
-      if (pageNum < 1 || pageNum > maxPages) return;
-      
-      navigateToUrl(buildUrl({ page: pageNum }));
-
-
-    }
-
-    // Export functions
-    async function exportReport(format) {
-      const btn = document.getElementById('export-btn');
-      btn.classList.add('loading');
-      
-      try {
-        const BASE_URL = window.location.origin;
-        let response;
-
-        if(format == 'pdf'){ 
-          const url = buildExportUrl({ format: 'pdf' })
-           response = await fetch(url);
-        }else if(format == 'excel'){
-          const url = buildExportUrl({ format: 'excel' })
-           response = await fetch(url);        
-          }
-        
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `sales-report-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-          
-          showSuccess(`Report exported successfully as ${format.toUpperCase()}`);
-        } else {
-          throw new Error('Export failed');
-        }
-      } catch (error) {
-        showError('Failed to export report. Please try again.');
-      } finally {
-        btn.classList.remove('loading');
-      }
-    }
-
-    function initializeCharts() {
-
-        const salesCtx = document.getElementById('salesChart');
-      if (salesCtx) {
-        salesChart = new Chart(salesCtx, {
-          type: 'line',
-          data: {
-            labels: <%- JSON.stringify(chartData?.salesTrend?.labels || []) %>,
-            datasets: [{
-              label: 'Sales Amount',
-              data: <%- JSON.stringify(chartData?.salesTrend?.data || []) %>,
-              borderColor: '#000',
-              backgroundColor: 'rgba(0, 123, 255, 0.1)',
-              tension: 0.4,
-              fill: true
-            }]
-          },
-          options: {
-          plugins: {
-            tooltip: {
-              callbacks: {
-                labelColor: function (context) {
-                  return {
-                    backgroundColor: "#ffffff",
-                    color: "#171717"
-                  };
-                },
-              },
-              intersect: false,
-              backgroundColor: "#f9f9f9",
-              title: {
-                fontFamily: "Plus Jakarta Sans",
-                color: "#8F92A1",
-                fontSize: 12,
-              },
-              body: {
-                fontFamily: "Plus Jakarta Sans",
-                color: "#171717",
-                fontStyle: "bold",
-                fontSize: 16,
-              },
-              multiKeyBackground: "transparent",
-              displayColors: false,
-              padding: {
-                x: 30,
-                y: 10,
-              },
-              bodyAlign: "center",
-              titleAlign: "center",
-              titleColor: "#8F92A1",
-              bodyColor: "#171717",
-              bodyFont: {
-                family: "Plus Jakarta Sans",
-                size: "16",
-                weight: "bold",
+  const salesCtx = document.getElementById('salesChart');
+  if (salesCtx) {
+    salesChart = new Chart(salesCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Sales Amount',
+          data: [],
+          borderColor: '#000',
+          backgroundColor: 'rgba(0, 123, 255, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        plugins: {
+          tooltip: {
+            callbacks: {
+              labelColor: function (context) {
+                return {
+                  backgroundColor: "#ffffff",
+                  color: "#171717"
+                };
               },
             },
-            legend: {
-              display: false,
+            intersect: false,
+            backgroundColor: "#f9f9f9",
+            title: {
+              fontFamily: "Plus Jakarta Sans",
+              color: "#8F92A1",
+              fontSize: 12,
+            },
+            body: {
+              fontFamily: "Plus Jakarta Sans",
+              color: "#171717",
+              fontStyle: "bold",
+              fontSize: 16,
+            },
+            multiKeyBackground: "transparent",
+            displayColors: false,
+            padding: {
+              x: 30,
+              y: 10,
+            },
+            bodyAlign: "center",
+            titleAlign: "center",
+            titleColor: "#8F92A1",
+            bodyColor: "#171717",
+            bodyFont: {
+              family: "Plus Jakarta Sans",
+              size: "16",
+              weight: "bold",
             },
           },
-          responsive: true,
-          maintainAspectRatio: false,
-          title: {
+          legend: {
             display: false,
           },
-          scales: {
-            y: {
-              grid: {
-                display: false,
-                drawTicks: false,
-                drawBorder: false,
-              },
-              ticks: {
-                padding: 35,
-                max: 1200,
-                min: 500,
-              },
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+        title: {
+          display: false,
+        },
+        scales: {
+          y: {
+            grid: {
+              display: false,
+              drawTicks: false,
+              drawBorder: false,
             },
-            x: {
-              grid: {
-                drawBorder: false,
-                color: "rgba(143, 146, 161, .1)",
-                zeroLineColor: "rgba(143, 146, 161, .1)",
-              },
-              ticks: {
-                padding: 20,
-              },
+            ticks: {
+              padding: 35,
+              max: 1200,
+              min: 500,
             },
           },
-        }
-        });
+          x: {
+            grid: {
+              drawBorder: false,
+              color: "rgba(143, 146, 161, .1)",
+              zeroLineColor: "rgba(143, 146, 161, .1)",
+            },
+            ticks: {
+              padding: 20,
+            },
+          },
+        },
       }
+    });
+  }
 
-      
-      const paymentCtx = document.getElementById('paymentChart');
-      if (paymentCtx) {
-        paymentChart = new Chart(paymentCtx, {
-          type: 'doughnut',
-          data: {
-            labels: <%- JSON.stringify(chartData?.paymentMethods?.labels || []) %>,
-            datasets: [{
-              data: <%- JSON.stringify(chartData?.paymentMethods?.data || []) %>,
-              backgroundColor: [
-      
-  '#000',      // pure black
-  '#28a745',   // green
-  '#ffc107',   // yellow
-  '#dc3545'    // red
-
-
-              ]
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: 'bottom'
-              }
-            }
+  const paymentCtx = document.getElementById('paymentChart');
+  if (paymentCtx) {
+    paymentChart = new Chart(paymentCtx, {
+      type: 'doughnut',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          backgroundColor: ['#000', '#28a745', '#ffc107', '#dc3545']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
           }
-        });
+        }
       }
+    });
+  }
+}
+
+// Apply filters
+async function applyFilters() {
+  const dateRange = document.getElementById('date-range-filter').value;
+  const status = document.getElementById('status-filter').value;
+  const paymentMethod = document.getElementById('payment-filter').value;
+
+  const params = {
+    page: 1,
+    dateRange,
+    status,
+    paymentMethod,
+  };
+
+  if (dateRange === 'custom') {
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+
+    if (!startDate || !endDate) {
+      showError('Please select both start and end dates for custom range');
+      return;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    if (new Date(startDate) > new Date(endDate)) {
+      showError('Start date cannot be after end date');
+      return;
+    }
 
-        initializeCharts();
+    if (new Date(endDate) > new Date()) {
+      showError('End date cannot be in future');
+      return;
+    }
 
-      document.getElementById('date-range-filter').addEventListener('change', function(e) {
-        const customSection = document.getElementById('custom-date-section');
-        if (e.target.value === 'custom') {
-          customSection.classList.add('show');
-        } else {
-          customSection.classList.remove('show');
-        }
-      });
+    params.startDate = startDate;
+    params.endDate = endDate;
+  }
 
-      // Show custom date section if already selected
-      if (STATE.dateRange === 'custom') {
+  Object.assign(STATE, params);
+  const data = await fetchSalesData(params);
+  if (data) {
+    updateStatsCards(data);
+    updateCharts(data);
+    updateTable(data);
+    updatePagination(data);
+    // window.history.pushState({}, '', buildUrl(params));
+  }
+}
+
+// Reset filters
+async function resetFilters() {
+  const params = {
+    page: 1,
+    dateRange: 'month',
+    status: 'all',
+    paymentMethod: 'all',
+    category: 'all',
+    sortField: 'orderDate',
+    sortOrder: 'desc',
+    startDate: '',
+    endDate: ''
+  };
+
+  Object.assign(STATE, params);
+
+  document.getElementById('date-range-filter').value = 'month';
+  document.getElementById('status-filter').value = 'all';
+  document.getElementById('payment-filter').value = 'all';
+  document.getElementById('start-date').value = '';
+  document.getElementById('end-date').value = '';
+  document.getElementById('custom-date-section').classList.remove('show');
+
+  const data = await fetchSalesData(params);
+  if (data) {
+    updateStatsCards(data);
+    updateCharts(data);
+    updateTable(data);
+    updatePagination(data);
+    // window.history.pushState({}, '', buildUrl(params));
+  }
+}
+
+// Set sort field
+async function setSortField(field) {
+  const newOrder = (STATE.sortField === field && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+  const params = {
+    sortField: field,
+    sortOrder: newOrder,
+    page: 1
+  };
+
+  STATE.sortField = field;
+  STATE.sortOrder = newOrder;
+  STATE.page = 1;
+
+  const data = await fetchSalesData(params);
+  if (data) {
+    updateStatsCards(data);
+    updateCharts(data);
+    updateTable(data);
+    updatePagination(data);
+    // window.history.pushState({}, '', buildUrl(params));
+  }
+}
+
+// Go to page
+async function goToPage(page) {
+  const pageNum = parseInt(page);
+  const maxPages = parseInt(document.getElementById('page-number').max) || 1;
+
+  if (pageNum < 1 || pageNum > maxPages) return;
+
+  STATE.page = pageNum;
+  const data = await fetchSalesData({ page: pageNum });
+  if (data) {
+    updateStatsCards(data);
+    updateCharts(data);
+    updateTable(data);
+    updatePagination(data);
+    // window.history.pushState({}, '', buildUrl({ page: pageNum }));
+  }
+}
+
+// Initialize page
+async function initializePage() {
+  showLoading();
+  initializeCharts();
+  const data = await fetchSalesData();
+  if (data) {
+    updateStatsCards(data);
+    updateCharts(data);
+    updateTable(data);
+    updatePagination(data);
+  }
+}
+
+// DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize page with loading state
+  initializePage();
+
+  document.getElementById('date-range-filter').addEventListener('change', function(e) {
+    const customSection = document.getElementById('custom-date-section');
+    if (e.target.value === 'custom') {
+      customSection.classList.add('show');
+    } else {
+      customSection.classList.remove('show');
+      applyFilters();
+    }
+  });
+
+  if (STATE.dateRange === 'custom') {
+    document.getElementById('custom-date-section').classList.add('show');
+  }
+
+  document.getElementById('apply-filters').addEventListener('click', applyFilters);
+  document.getElementById('reset-filters').addEventListener('click', resetFilters);
+  document.getElementById('apply-custom-date').addEventListener('click', applyFilters);
+
+  ['status-filter', 'payment-filter'].forEach(id => {
+    document.getElementById(id).addEventListener('change', applyFilters);
+  });
+
+  window.addEventListener('popstate', async function() {
+    if (!STATE.isLoading) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const params = {
+        page: parseInt(urlParams.get('page')) || 1,
+        dateRange: urlParams.get('dateRange') || 'month',
+        status: urlParams.get('status') || 'all',
+        paymentMethod: urlParams.get('paymentMethod') || 'all',
+        category: urlParams.get('category') || 'all',
+        sortField: urlParams.get('sortField') || 'orderDate',
+        sortOrder: urlParams.get('sortOrder') || 'desc',
+        startDate: urlParams.get('startDate') || '',
+        endDate: urlParams.get('endDate') || ''
+      };
+
+      Object.assign(STATE, params);
+
+      document.getElementById('date-range-filter').value = params.dateRange;
+      document.getElementById('status-filter').value = params.status;
+      document.getElementById('payment-filter').value = params.paymentMethod;
+      document.getElementById('start-date').value = params.startDate;
+      document.getElementById('end-date').value = params.endDate;
+
+      if (params.dateRange === 'custom') {
         document.getElementById('custom-date-section').classList.add('show');
+      } else {
+        document.getElementById('custom-date-section').classList.remove('show');
       }
 
-      // Filter buttons
-      document.getElementById('apply-filters').addEventListener('click', applyFilters);
-      document.getElementById('reset-filters').addEventListener('click', resetFilters);
-      document.getElementById('apply-custom-date').addEventListener('click', applyFilters);
-
-      // Auto-apply filters on change (except custom date)
-      ['status-filter', 'payment-filter'].forEach(id => {
-        document.getElementById(id).addEventListener('change', applyFilters);
-      });
-
-      document.getElementById('date-range-filter').addEventListener('change', function(e) {
-        if (e.target.value !== 'custom') {
-          applyFilters();
-        }
-      });
-    });
-
-    // Page load
-    window.addEventListener('load', function() {
-      hideLoading();
-    });
-
-    // Prevent navigation during loading
-    window.addEventListener('popstate', function() {
-      if (!STATE.isLoading) {
-        window.location.reload();
+      const data = await fetchSalesData(params);
+      if (data) {
+        updateStatsCards(data);
+        updateCharts(data);
+        updateTable(data);
+        updatePagination(data);
       }
-    });
+    }
+  });
+});
+
   </script>
 </body>
 </html>

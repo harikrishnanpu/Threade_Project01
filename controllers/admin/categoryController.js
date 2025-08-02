@@ -33,11 +33,49 @@ const listCategories = async (req, res) => {
       sortOrder,
       showInactive: filters.showInactive
     });
-  } catch (error) {
-    console.error('Error listing categories:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+  } catch (err) {
+    next(err)
   }
 };
+
+
+const getlistCategories = async (req, res) => {
+  try {
+    const {
+      data,
+      total,
+      currentPage,
+      totalPages,
+      limit,
+      filters,
+      sortField,
+      sortOrder
+    } = await getAllCategories(req.query);
+
+    res.status(200).json({
+      success: true,
+      categories: data,
+      totalCategories: total,
+      totalPages,
+      currentPage,
+      limit,
+      search: filters.search,
+      status: filters.status,
+      showFeatured: filters.isFeatured,
+      parentFilter: filters.parentFilter,
+      sortField,
+      sortOrder,
+      showInactive: filters.showInactive
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
+
 
 const ApilistCategories = async (req, res) => {
   try {
@@ -87,10 +125,21 @@ const getCategoryById = async (req, res) => {
 const createNewCategory = async (req, res) => {
   try {
 
-    console.log(req.body);
+    // console.log(req.body);
+
+    const errors = validateCategoryInput(req.body);
+    
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'validation failed', 
+        errors 
+      });
+    }
     
 
     const createCategory = await insertOneCategory(req.body);
+    
     res.status(201).json({message: 'created successfully', 
       success: true, 
       data: createCategory
@@ -112,6 +161,8 @@ const updateCategoryById = async (req, res) => {
         errors 
       });
     }
+
+    
 
     const updatedCategory = await editCategoryById(id, req.body);
     res.status(200).json({message: 'updated successfully', success: true, data: updatedCategory
@@ -143,7 +194,7 @@ const toggleCategoryStatus = async (req, res) => {
 const validateCategoryInput = (data) => {
   const errors = {};
   
-  if (!data.name || data.name.trim().length === 0) {
+  if (!data.name || data.name.trim().length == 0) {
     errors.name = 'Category name is required';
   } else if (data.name.trim().length > 100) {
     errors.name = 'Category name cannot exceed 100 characters';
@@ -163,4 +214,5 @@ module.exports = {
   updateCategoryById,
   getCategoryById,
   toggleCategoryStatus,
+  getlistCategories
 };

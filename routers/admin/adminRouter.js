@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount, logoutAdmin, renderAdminChatPage } = require('../../controllers/admin/adminController');
+const { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount, logoutAdmin, renderAdminChatPage, getAdminAllUsersList } = require('../../controllers/admin/adminController');
 const { checkIsAdminExists, checkIsAdminAuthenticated } = require('../../middlewares/adminMiddleWare');
 const { handleValidationErrors } = require('../../validators/validator');
 const { createAdmin } = require('../../services/adminServices');
@@ -44,6 +44,7 @@ adminRouter.use('/reports', checkIsAdminAuthenticated, adminReportRouter);
 adminRouter.get('/login',checkIsAdminExists, getAdminLoginPage);
 adminRouter.get('/dashboard', checkIsAdminAuthenticated, getAdminDashboardPage);
 adminRouter.get('/users/all', validateUserListQuery, handleValidationErrors, checkIsAdminAuthenticated, getAdminAllUsersPage );
+adminRouter.get('/api/users/all', checkIsAdminAuthenticated, getAdminAllUsersList)
 adminRouter.get('/users/edit/:id', validateUserIdParam, handleValidationErrors, checkIsAdminAuthenticated , getEditUserPage);
 adminRouter.get('/users/create',checkIsAdminAuthenticated, handleValidationErrors, getCreateUserPage);
 adminRouter.get('/logout', checkIsAdminAuthenticated, logoutAdmin);

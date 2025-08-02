@@ -289,7 +289,7 @@
                     </a>
                   </div>
 
-                  <div class="whishlist-page-icon <%= wishlistItemIds.includes(item.product._id.toString()) ? 'active pulse-continuous' : '' %>" data-product-id="<%= item.product._id %>">
+                  <div class="whishlist-page-icon wishlist-icon <%= wishlistItemIds.includes(item.product._id.toString()) ? 'active pulse-continuous' : '' %>" data-product-id="<%= item.product._id %>">
                     <svg width="24" height="24" viewBox="0 0 24 24">
                       <path d="M11.823 4.771L12 4.949l.177-.178c2.247-2.247 5.89-2.247 8.137 0 2.247 2.247 2.247 5.89 0 8.137l-6.724 6.724a1.5 1.5 0 0 1-2.122 0L3.445 12.908c-2.247-2.247-2.247-5.89 0-8.137 2.247-2.247 5.89-2.247 8.137 0Z"
                         stroke-width="1.8"
@@ -359,78 +359,121 @@
 
 <!-- your wishlist JS: unchanged business logic, only moved beneath -->
 <script>
-  /* --- global toast helper --- */
-  function showGlobalToast(msg, type='success'){
-    const toast=document.getElementById('toast-global');
-    const span=document.getElementById('toastMessage-global');
-    span.textContent=msg;
-    toast.className = 'toast-global show '+type;
-    setTimeout(()=>toast.classList.remove('show'),3000);
-  }
+/* ----------------------------- helpers ----------------------------- */
+const toastEl = document.getElementById('toast-global');
+const toastMsg = document.getElementById('toastMessage-global');
 
-  /* --- clear-all logic --- */
-  async function clearAllWishlist(){
-    const modal=document.getElementById('wishlistClearAllConfirmModal');
-    modal.classList.remove('hidden');
-    document.getElementById('wishlistClearAllConfirmYes').onclick = async ()=>{
-      modal.classList.add('hidden');
-      try{
-        const res=await fetch('/user/wishlist/clear',{method:'DELETE'});
-        if(!res.ok) throw new Error((await res.json()).message||'Failed');
-        showGlobalToast('Wishlist cleared','success');
-        setTimeout(()=>location.reload(),600);
-      }catch(err){ showGlobalToast(err.message,'error'); }
-    };
-    document.getElementById('wishlistClearAllConfirmNo').onclick = ()=>modal.classList.add('hidden');
-  }
+function showToast(message, type = 'success'){
+  toastMsg.textContent = message;
+  toastEl.className = `toast-global show ${type}`;
+  setTimeout(() => toastEl.classList.remove('show'), 3000);
+}
 
-  /* --- per-item wishlist toggle (existing logic preserved) --- */
-  document.querySelectorAll('.whishlist-page-icon').forEach(btn=>{
-    btn.addEventListener('click',async function(){
-      const productId=this.dataset.productId;
-      const allBtns=document.querySelectorAll(`.whishlist-page-icon[data-product-id="${productId}"]`);
-      const isActive=this.classList.contains('active');
+function updateWishlistCount(delta = 0){
+  const counter = document.querySelector('[data-wishlist-count]');
+  if(!counter) return;
+  let count = +counter.textContent + delta;
+  count = Math.max(count, 0);
+  counter.textContent = count;
+}
 
-      const updateUI=(active)=>{
-        allBtns.forEach(el=>{
-          const path=el.querySelector('svg path');
-          if(active){
-            el.classList.add('active','pulse-continuous');
-            path.setAttribute('fill','#e63946'); path.setAttribute('stroke','#e63946');
-          }else{
-          const card = el.closest('.showcase') || el.parentElement;
-      if (card) card.remove(); 
-          }
-        });
-      };
+/* ---------------------- event delegation --------------------------- */
+document.addEventListener('click', async (e) => {
+  const heart = e.target.closest('.wishlist-icon');
+  if(heart) handleHeartToggle(heart);
+  if(e.target.closest('#clearAllBtn')) showClearAllModal();
+});
 
-      if(!isActive){
-        try{
-          const res=await fetch('/user/wishlist/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productId,variant:null})});
-          if(!res.ok) throw new Error((await res.json()).message||'Failed');
-          updateUI(true); showGlobalToast('Added to wishlist');
-        }catch(err){ location.href='/user/login'; }
+
+
+async function handleHeartToggle(el){
+  const productId = el.dataset.productId;
+  const isActive  = el.classList.contains('active');
+  const allIcons  = document.querySelectorAll(`.wishlist-icon[data-product-id="${productId}"]`);
+
+  const setActive = (state) => {
+    allIcons.forEach(icon => {
+      const path = icon.querySelector('svg path');
+      if(state){
+        icon.classList.add('active','pulse-continuous');
+        path.setAttribute('fill','#e63946'); path.setAttribute('stroke','#e63946');
       }else{
-        const modal=document.getElementById('wishlistConfirmModal');
-        modal.classList.remove('hidden');
-        document.getElementById('wishlistConfirmYes').onclick = async ()=>{
-          modal.classList.add('hidden');
-          try{
-            const res=await fetch(`/user/wishlist/remove/${productId}`,{method:'DELETE'});
-            if(!res.ok) throw new Error((await res.json()).message||'Failed');
-            updateWishlistCount();
-            updateUI(false); showGlobalToast('Removed from wishlist');
-          }catch(err){ showGlobalToast(err.message,'error'); }
-        };
-        document.getElementById('wishlistConfirmNo').onclick = ()=>modal.classList.add('hidden');
+        icon.classList.remove('active','pulse-continuous');
+        path.setAttribute('fill','none'); path.setAttribute('stroke','#000');
+        /* remove card on wishlist page */
+        const card = icon.closest('.showcase');
+        if(card){ card.remove(); checkEmptyState(); }
       }
     });
+    updateWishlistCount(state ? +1 : -1);
+  };
 
-  });
+  if(!isActive){
+    try{
+      const res = await fetch('/user/wishlist/add',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({productId,variant:null})
+      });
+      if(!res.ok) throw new Error((await res.json()).message || 'Failed');
+      setActive(true);
+      showToast('Added to wishlist');
+    }catch(err){
+      location.href = '/user/login';
+    }
+  }else{
+    const modal = document.getElementById('wishlistConfirmModal');
+    modal.classList.remove('hidden');
 
+    document.getElementById('wishlistConfirmYes').onclick = async () => {
+      modal.classList.add('hidden');
+      try{
+        const res = await fetch(`/user/wishlist/remove/${productId}`,{method:'DELETE'});
+        if(!res.ok) throw new Error((await res.json()).message || 'Failed');
+        setActive(false);
+        showToast('Removed from wishlist');
+      }catch(err){ showToast(err.message,'error'); }
+    };
+    document.getElementById('wishlistConfirmNo').onclick = () => modal.classList.add('hidden');
+  }
+}
 
+function showClearAllModal() {
+  const modal = document.getElementById('wishlistClearAllConfirmModal');
+  modal.classList.remove('hidden');
 
-  
+  document.getElementById('wishlistClearAllConfirmYes').onclick = async () => {
+    modal.classList.add('hidden');
+    try{
+      const res = await fetch('/user/wishlist/clear',{method:'DELETE'});
+      if(!res.ok) throw new Error((await res.json()).message || 'Failed');
+
+      /* instant UI update */
+      document.querySelectorAll('.showcase').forEach(c => c.remove());
+      updateWishlistCount(-Infinity);
+      checkEmptyState();
+      showToast('Wishlist cleared');
+    }catch(err){ showToast(err.message,'error'); }
+  };
+  document.getElementById('wishlistClearAllConfirmNo').onclick = () => modal.classList.add('hidden');
+}
+
+function checkEmptyState(){
+  const gridEmpty = !document.querySelector('.showcase');
+  if(gridEmpty){
+    const container = document.getElementById('wishlistContainer');
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i class="far fa-heart"></i></div>
+        <h2 class="empty-title">Your wishlist is empty</h2>
+        <p class="empty-subtitle">Save items you love to your wishlist and never lose track of them.</p>
+        <a href="/user/products/shop" class="btn-custom btn-primary-custom mt-4" style="color:#fff">
+          <i class="fas fa-shopping-bag"></i> Start Shopping
+        </a>
+      </div>`;
+  }
+}
+
 </script>
 </body>
 </html>

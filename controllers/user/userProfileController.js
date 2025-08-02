@@ -1,6 +1,5 @@
 const userProfileService = require("../../services/userProfileServices")
 const { findOneUserById, findOneUserByEmail } = require("../../services/userServices")
-const bcrypt = require("bcrypt")
 const { generateOtp } = require("../../utils/otp")
 const otpModel = require("../../models/otpModel")
 const { sendOtpToEmail, verifyEmailOtp } = require("../../services/emailVerificationService")
@@ -8,9 +7,11 @@ const Users = require("../../models/userModel")
 const { hashPassword, comparePassword } = require("../../utils/bcrypt")
 const { getUserOrders, getUserOrderById } = require("../../services/userOrderServices")
 const walletService = require('../../services/userWalletServices');
+const Wallet = require('../../models/userWalletModel');
 const paymentService = require('../../services/userPaymentServices');
 const crypto = require('crypto');
-const Orders = require("../../models/orderModel")
+const Orders = require("../../models/orderModel");
+const Coupon = require('../../models/coupounModel');
 
 
 
@@ -132,48 +133,162 @@ const renderOrdersPage = async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
 
     res.status(500).json({ message: err.message });
   }
 };
 
+
+const getOrderPageContent = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const {
+      status = '',
+      dateRange = '',
+      paymentMethod = '',
+      sortBy = 'createdAt_desc',
+      search = '',
+      page = 1
+    } = req.query;
+
+    const limit = 2;
+    const filters = { status, dateRange, paymentMethod, search, sortBy };
+    const currentPage = parseInt(page) || 1;
+
+    const {
+      orders,
+      totalOrders,
+      pendingOrders,
+      deliveredOrders
+    } = await getUserOrders(userId, filters, currentPage, limit);
+
+    const totalPages = Math.ceil(totalOrders / limit);
+    const startIndex = (currentPage - 1) * limit + 1;
+    const endIndex = Math.min(currentPage * limit, totalOrders);
+
+    res.status(200).json({
+      success: true,
+      orders,
+      totalOrders,
+      pendingOrders,
+      deliveredOrders,
+      currentPage,
+      totalPages,
+      startIndex,
+      endIndex,
+      filters,
+      cancelledOrders: []
+    });
+
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({ message: err.message, success: false });
+  }
+};
+
 const renderOrderDetailsPage = async (req, res) => {
   try {
+
     const userId = req.user._id;
     const orderId = req.params.id;
 
     const order = await getUserOrderById(userId, orderId);
+    const coupon = await Coupon.findOne({ code: order?.coupon?.code });
 
+    
     if (!order) {
-      return res.status(404).render('error', {
-        message: 'Order not found or access denied'
-      });
+      throw new Error('order not found');
     }
 
-    res.render('user/order-details', {
-      order
-    });
+    // console.log(coupon);
+    
+
+
+    res.render('user/order-details', { order, coupon: coupon ? coupon : null });
+
   } catch (err) {
-    console.error('Error loading order details:', err);
-    res.status(500).render('error', { message: 'Failed to load order details' });
+
+    // console.log(err);
+    next(err)
+
   }
 };
 
 
 const renderWalletPage = async (req, res) => {
   try {
-    const wallet = await walletService.getWallet(req.user._id)
+    const limit = 5; 
+
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+
+    let wallet = await Wallet.findOne({ user: req.user._id }).lean();
+
+    if (!wallet) {
+      wallet = await Wallet.create({ user: req.user._id });
+    }
+
+    const totalTxns   = wallet.transactions.length;
+
+    const totalPages  = Math.max(Math.ceil(totalTxns / limit), 1);
+
+    const startIndex  = (page - 1) * limit;
+    const endIndex    = startIndex + limit;
+
+    wallet.transactions = wallet.transactions.slice().reverse().slice(startIndex, endIndex);
+    
+
     res.render('user/wallet', {
-      wallet,
-      transactions: wallet.transactions
-    })
+      wallet,                
+      pageNo: page,
+      totalPagesBck: totalPages,
+    });
 
   } catch (err) {
-    console.log(err.message)
-    res.status(500).render('error', { message: err.message })
+    console.log("KJRNFBHJBFJBJBCVJHBFJHHBV",err);
+    res.status(500).json({message: err.message})
   }
-}
+};
+
+
+const getWalletPageContent = async (req, res) => {
+  try {
+    const limit = 5; 
+
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+
+    let wallet = await Wallet.findOne({ user: req.user._id }).lean();
+
+    if (!wallet) {
+      wallet = await Wallet.create({ user: req.user._id });
+    }
+
+    const totalTxns   = wallet.transactions.length;
+
+    const totalPages  = Math.max(Math.ceil(totalTxns / limit), 1);
+
+    const startIndex  = (page - 1) * limit;
+    const endIndex    = startIndex + limit;
+
+    wallet.transactions = wallet.transactions.slice().reverse().slice(startIndex, endIndex);
+    
+
+    res.status(200).json({
+      success: true,
+      wallet,                
+      pageNo: page,
+      totalPagesBck: totalPages,
+    });
+
+  } catch (err) {
+    console.log("KJRNFBHJBFJBJBCVJHBFJHHBV",err);
+
+    res.status(500).json({message: err.message, success: false})
+  }
+};
+
 
 
 
@@ -187,16 +302,21 @@ const addMoneyToWallet = async (req,res) => {
       throw new Error('enter valid amount');
     }
 
-    const razorpayOrder = await paymentService.addToWallet(amount,req.user?._id);
+    const razorpayOrder = await paymentService.addToWallet(amount, req.user?._id);
+
+    console.log(razorpayOrder);
+    
 
   return res.status(200).json({
     success: true,
     razorpay: razorpayOrder,
-    customer: razorpayOrder.customer
+    customer: razorpayOrder.customer,
+    message: 'success'
   });
 
-
   }catch(err){
+    console.log(err);
+    
     res.status(500).json({ message: err.message })
   }
 
@@ -207,14 +327,23 @@ const addMoneyToWallet = async (req,res) => {
 const verifyWalletPayment = async (req,res) => {
 
   try{
-    const {    razorpay_order_id,
+
+    const {   razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
-        orderId   } = req.body;
+        walletId   } = req.body;
 
-    const result = await paymentService.verifyWalletPayment(req.body)
+    const result = await paymentService.verifyWalletPayment({...req.body, userId: req.user._id});
+
+    if(result.success){
+      res.status(200).json({message: 'successfully submitted', success: true})
+    }else{
+      res.status(500).json({message: 'error occured in adding payment to wallet', success:false})
+    }
 
   }catch(err){
+    console.log(err);
+    
     res.status(500).json({ message: err.message})
   }
 
@@ -225,9 +354,9 @@ const updateProfile = async (req, res) => {
   const userId = req.user._id;
   const { name, email, phone, dateOfBirth } = req.body;
 
-  console.log(req.body);
+  // console.log(req.body);
 
-  console.log(req.file);
+  // console.log(req.file);
   
 
 const nameRE   = /^[A-Za-z\s]{2,}$/;                      
@@ -236,8 +365,8 @@ const phoneRE  = /^[6-9]\d{9}$/;
 const dobRE    = /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
   
 
-if (!name.trim() || !email.trim() || !phone.trim()) {
-  return res.status(400).json({ message: 'name, email, phone are required' });
+if (!name.trim() || !email.trim()) {
+  return res.status(400).json({ message: 'name, email are required' });
 }
 
   try {
@@ -250,7 +379,7 @@ if (!emailRE.test(email.trim())) {
   return res.status(400).json({ message: 'invalid email address.' });
 }
 
-if (!phoneRE.test(phone.trim())) {
+if (phone && !phoneRE.test(phone.trim())) {
   return res.status(400).json({ message: 'phone must be a 10-digit' });
 }
 
@@ -286,7 +415,7 @@ if (existingUser) {
     await Users.findByIdAndUpdate(userId, updatedData);
 
         const otp = generateOtp();
-        console.log(otp);
+        // console.log(otp);
 
         await otpModel.deleteOne({ email });
 
@@ -308,7 +437,7 @@ if (existingUser) {
     };
 
     if(req.file){ 
-      console.log(req.file);
+      // console.log(req.file);
       
        updatedData.profileImage = `/uploads/profiles/${req.file.filename}`
     }
@@ -326,9 +455,9 @@ if (existingUser) {
     return res.status(200).json({ success: true, message: "Profile updated successfully." , verifyEmail: false});
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
-    return res.status(500).json({ message: err.message});
+    return res.status(500).json({success: true, message: err.message});
   }
 
 };
@@ -342,12 +471,12 @@ const verifyUserProfileEmail = async (req,res) => {
 
     if(isOtpValid){
 
-      console.log(req.body);
+      // console.log(req.body);
       
 
       const user = await findOneUserByEmail(oldEmail);
 
-      console.log(user);
+      // console.log(user);
       
 
       const existingUser = await Users.findOne({ email });
@@ -450,8 +579,22 @@ const renderAddressBookPage = async (req, res) => {
     const addresses = (await userProfileService.getUserAddressById(userId)) || []
     res.render("user/address-book", { addresses })
   } catch (err) {
-    console.error("Address book page error:", err)
-    res.status(500).render("error", { message: "Unable to load address book" })
+
+    res.status(500).render("error", { message: err.message })
+  }
+}
+
+
+const getAdddressPageContent = async (req, res) => {
+  const userId = req.user._id
+  try {
+
+    const addresses = (await userProfileService.getUserAddressById(userId)) || []
+    res.status(200).json({ success: true, addresses })
+
+  } catch (err) {
+
+    res.status(500).json({ success: false, message: err.messge })
   }
 }
 
@@ -470,14 +613,14 @@ const addAddress = async (req, res) => {
   } catch (err) {
     // console.log(err)
 
-    console.log(err.message);
+    // console.log(err.message);
     
 
     res.status(400).json({ message: err.message })
   }
 }
 
-const editAddress = async (req, res) => {
+const  editAddress = async (req, res) => {
 
   const userId = req.user._id
   const addressId = req.params.id
@@ -496,7 +639,7 @@ const editAddress = async (req, res) => {
 
   } catch (err) {
 
-    console.log(err)
+    // console.log(err)
     res.status(400).json({ message: err.message })
 
   }
@@ -534,5 +677,8 @@ module.exports = {
   renderOrdersPage,
   renderOrderDetailsPage,
   addMoneyToWallet,
-  verifyWalletPayment
+  verifyWalletPayment,
+  getAdddressPageContent,
+  getOrderPageContent,
+  getWalletPageContent
 }

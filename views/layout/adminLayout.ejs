@@ -18,6 +18,93 @@
 
     <script src="/js/form-input-helper.js" async></script>
     <script src="/js/form-helper.js" async></script>
+
+
+    <style>
+:root{
+        --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+}
+
+
+.toast-global{
+    position:fixed;
+    top:20px;
+    right:20px;
+    background: #fff;
+    border:1px solid #e5e7eb;
+    border-radius:8px;
+    padding:1rem 1.5rem;
+    box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);
+    z-index:99999999;
+    transform:translateX(400px);
+    transition:transform 0.3s ease;
+    min-width:300px;
+  }
+  
+  .toast-global.show{
+    transform:translateX(0);
+  }
+  
+  .toast-global.success{
+    border-left:4px solid var(--success);
+  }
+  
+  .toast-global.error{
+    border-left:4px solid var(--danger);
+  }
+  
+  .toast-global.warning{
+    border-left:4px solid var(--warning);
+  }
+
+      @media (max-width: 768px){
+            
+    .toast-global{
+      right:10px;
+      left:10px;
+      transform:translateY(-100px);
+    }
+    
+    .toast-global.show{
+      transform:translateY(0);
+    }
+      }
+
+
+		.swiper{
+			padding-bottom: 60px !important;
+		}
+
+.swiper-button-next:after{
+	font-size: 30px;
+	color: black;
+}
+
+.swiper-button-prev:after{
+	font-size: 30px;
+	color: black;
+}
+
+.section-title{
+	text-align: left;
+}
+
+.section-title::before{
+	text-align: left;
+}
+
+
+.swiper-button-next, .swiper-button-prev{
+  top: 30%;
+}
+
+p{
+  margin-bottom: 0 !important;
+}
+
+    </style>
   </head>
   <body>
     <!-- ======== Preloader =========== -->
@@ -25,6 +112,12 @@
       <div class="spinner"></div>
     </div> -->
     <!-- ======== Preloader =========== -->
+
+      <div class="toast-global" id="toast-global">
+  <div class="toast-content-global">
+    <span id="toastMessage-global"></span>
+  </div>
+</div>
 
     <!-- ======== sidebar-nav start =========== -->
 
@@ -51,7 +144,6 @@
     <script src="/assets/js/Chart.min.js"></script>
     <script src="/assets/js/dynamic-pie-chart.js"></script>
     <script src="/assets/js/moment.min.js"></script>
-    <script src="/assets/js/fullcalendar.js"></script>
     <script src="/assets/js/jvectormap.min.js"></script>
     <script src="/assets/js/world-merc.js"></script>
     <script src="/assets/js/polyfill.js"></script>
@@ -118,6 +210,21 @@
       // =========== chart one start
       
         // =========== chart four end
+    </script>
+
+    <script>
+        window.showGlobalToast = function (msg, type = "success") {
+    var t = document.getElementById("toast-global");
+    var m = document.getElementById("toastMessage-global");
+    if (!t || !m) return;
+    t.classList.remove("success", "error", "warning");
+    t.classList.add(type);
+    m.textContent = msg;
+    t.classList.add("show");
+    setTimeout(function () {
+      t.classList.remove("show");
+    }, 3000);
+  };
     </script>
 
 

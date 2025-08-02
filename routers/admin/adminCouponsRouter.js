@@ -1,14 +1,16 @@
 const express = require('express');
-const router = express.Router();
+const couponRouter = express.Router();
 const couponController = require('../../controllers/admin/adminCopounController');
 
 
-router.get('/', couponController.renderAllCoupons);
-router.get('/api/coupon/:id', couponController.getCouponById);
+couponRouter.get('/', couponController.renderAllCoupons);
+couponRouter.get('/api/coupon/:id', couponController.getCouponById);
+
+couponRouter.get('/api/filtered/all', couponController.getAllCouponsList)
+
+couponRouter.post('/create', couponController.createCoupon);
+couponRouter.put('/update/:id', couponController.updateCoupon);
+couponRouter.patch('/toggle-status/:id', couponController.toggleCouponStatus);
 
 
-
-router.post('/create', couponController.createCoupon);
-router.put('/update/:id', couponController.updateCoupon);
-
-module.exports = router;
+module.exports = couponRouter;

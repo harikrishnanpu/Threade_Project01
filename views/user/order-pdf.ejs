@@ -51,11 +51,11 @@
 
   <div class="invoice-header">
     <div>
+      <h2>THREADE FASHIONS</h2>
       <h2>Order Invoice</h2>
       <p><strong>Invoice Date:</strong> <%= generatedDate %></p>
       <p><strong>Order Number:</strong> <%= order.orderNumber %></p>
       <p><strong>Payment Method:</strong> <%= order.paymentMethod.toUpperCase() %></p>
-      <p><strong>Payment Status:</strong> <%= order.paymentStatus %></p>
     </div>
 
     <div>
@@ -84,7 +84,6 @@
           <tr>
             <td>
               <%= item.productName %><br>
-              <small><%= item.brand %></small>
             </td>
             <td><%= item.variant.size %>, <%= item.variant.color %></td>
             <td><%= item.quantity %></td>

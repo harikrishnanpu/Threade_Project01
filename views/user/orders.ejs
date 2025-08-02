@@ -389,7 +389,7 @@ nav.profile-nav ul {
       >
         <i class="fas fa-bars"></i>
       </button>
-      <span>My address book</span>
+      <span>My Orders</span>
       <span></span>
     </header>
 
@@ -610,14 +610,7 @@ nav.profile-nav ul {
                   </div>
                 </div>
               </div>
-              <div class="order-status status-<%= order.orderStatus %>">
-                <i class="fas fa-<%= 
-                  order.orderStatus === 'pending' ? 'clock' :
-                  order.orderStatus === 'confirmed' ? 'check' :
-                  order.orderStatus === 'shipped' ? 'truck' :
-                  order.orderStatus === 'delivered' ? 'check-circle' :
-                  order.orderStatus === 'cancelled' ? 'times' : 'undo'
-                %>"></i>
+              <div class="order-status font-bold status-<%= order.orderStatus %>">
                 <%= order.orderStatus %>
               </div>
             </div>
@@ -687,102 +680,285 @@ nav.profile-nav ul {
     </div>
 
     <!-- pagination -->
-    <% if (totalPages > 1) { %>
-      <div class="pagination-container">
-        <div class="pagination-info">
-          <div>
-            Page <%= currentPage %> of <%= totalPages %> 
-            (<%= totalOrders %> total orders)
-          </div>
-        </div>
+<% if (totalPages > 1) { %>
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Page <%= currentPage %> of <%= totalPages %> (<%= totalOrders %> total orders)
+    </div>
+    <div class="pagination">
+      <% if (currentPage > 1) { %>
+        <a href="<%= buildUrl({page: 1}) %>" class="page-btn">
+          <i class="fas fa-angle-double-left"></i> First
+        </a>
+        <a href="<%= buildUrl({page: currentPage - 1}) %>" class="page-btn">
+          <i class="fas fa-chevron-left"></i> Previous
+        </a>
+      <% } else { %>
+        <span class="page-btn disabled"><i class="fas fa-chevron-left"></i> Previous</span>
+      <% } %>
+      
+      <% 
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage   = Math.min(totalPages, currentPage + 2);
 
-        <div class="pagination">
-          <!-- First page -->
-          <% if (currentPage > 1) { %>
-            <a href="<%= buildUrl({page: 1}) %>" class="page-btn">
-              <i class="fas fa-angle-double-left"></i> First
-            </a>
-          <% } %>
+        // keep 5 numbers visible
+        if (endPage - startPage < 4) {
+          if (startPage === 1) endPage = Math.min(totalPages, startPage + 4);
+          else if (endPage === totalPages) startPage = Math.max(1, endPage - 4);
+        }
+      %>
+      <% if (startPage > 1) { %>
+        <a href="<%= buildUrl({page: 1}) %>" class="page-btn">1</a>
+        <% if (startPage > 2) { %>
+          <span class="page-dots">...</span>
+        <% } %>
+      <% } %>
 
-          <!-- Previous page -->
-          <% if (currentPage > 1) { %>
-            <a href="<%= buildUrl({page: currentPage - 1}) %>" class="page-btn">
-              <i class="fas fa-chevron-left"></i> Previous
-            </a>
-          <% } else { %>
-            <span class="page-btn disabled">
-              <i class="fas fa-chevron-left"></i> Previous
-            </span>
-          <% } %>
+      <% for(let i = startPage; i <= endPage; i++) { %>
+        <a href="<%= buildUrl({page: i}) %>" class="page-btn <%= i === currentPage ? 'active' : '' %>">
+          <%= i %>
+        </a>
+      <% } %>
 
-          <!-- Page numbers -->
-          <% 
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, currentPage + 2);
-            
-            // Adjust range to always show 5 pages when possible
-            if (endPage - startPage < 4) {
-              if (startPage === 1) {
-                endPage = Math.min(totalPages, startPage + 4);
-              } else if (endPage === totalPages) {
-                startPage = Math.max(1, endPage - 4);
-              }
-            }
-          %>
+      <% if (endPage < totalPages) { %>
+        <% if (endPage < totalPages - 1) { %>
+          <span class="page-dots">...</span>
+        <% } %>
+        <a href="<%= buildUrl({page: totalPages}) %>" class="page-btn"><%= totalPages %></a>
+      <% } %>
 
-          <% if (startPage > 1) { %>
-            <a href="<%= buildUrl({page: 1}) %>" class="page-btn">1</a>
-            <% if (startPage > 2) { %>
-              <span class="page-dots">...</span>
-            <% } %>
-          <% } %>
+      <% if (currentPage < totalPages) { %>
+        <a href="<%= buildUrl({page: currentPage + 1}) %>" class="page-btn">Next <i class="fas fa-chevron-right"></i></a>
+        <a href="<%= buildUrl({page: totalPages}) %>" class="page-btn">Last <i class="fas fa-angle-double-right"></i></a>
+      <% } else { %>
+        <span class="page-btn disabled">Next <i class="fas fa-chevron-right"></i></span>
+      <% } %>
+    </div>
+  </div>
+<% } %>
 
-          <% for (let i = startPage; i <= endPage; i++) { %>
-            <a href="<%= buildUrl({page: i}) %>" 
-               class="page-btn <%= i === currentPage ? 'active' : '' %>">
-              <%= i %>
-            </a>
-          <% } %>
-
-          <% if (endPage < totalPages) { %>
-            <% if (endPage < totalPages - 1) { %>
-              <span class="page-dots">...</span>
-            <% } %>
-            <a href="<%= buildUrl({page: totalPages}) %>" class="page-btn"><%= totalPages %></a>
-          <% } %>
-
-          <!-- Next page -->
-          <% if (currentPage < totalPages) { %>
-            <a href="<%= buildUrl({page: currentPage + 1}) %>" class="page-btn">
-              Next <i class="fas fa-chevron-right"></i>
-            </a>
-          <% } else { %>
-            <span class="page-btn disabled">
-              Next <i class="fas fa-chevron-right"></i>
-            </span>
-          <% } %>
-
-          <!-- Last page -->
-          <% if (currentPage < totalPages) { %>
-            <a href="<%= buildUrl({page: totalPages}) %>" class="page-btn">
-              Last <i class="fas fa-angle-double-right"></i>
-            </a>
-          <% } %>
-        </div>
-      </div>
-    <% } %>
   </main>
 </div>
 
 <script>
-// Global state
-const currentFilters = {
-  status: '<%= filters.status || "" %>',
-  dateRange: '<%= filters.dateRange || "" %>',
-  paymentMethod: '<%= filters.paymentMethod || "" %>',
-  sortBy: '<%= filters.sortBy || "" %>',
-  search: '<%= filters.search || "" %>',
-  page:'<%= currentPage %>'
+const filters = {
+  status: '',
+  dateRange: '',
+  paymentMethod: '',
+  sortBy: 'createdAt_desc',
+  search: '',
+  page: 1
+};
+
+function serializeFilters(custom = {}) {
+  const merged = {...filters, ...custom};
+  const params = new URLSearchParams();
+  Object.keys(merged).forEach(key => {
+    if (merged[key]) params.set(key, merged[key]);
+  });
+  return params.toString();
+}
+
+// --- Fetch and Render Orders ---
+async function fetchAndRenderOrders(custom = {}) {
+  // Update global filters object
+  Object.assign(filters, custom);
+
+  // Update UI
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('orders-container').style.opacity = '0.5';
+
+  try {
+    const url = '/user/profile/orders/api/filtered/all?' + serializeFilters();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch orders');
+    const data = await res.json();
+
+    // Build and update orders/pagination/template
+    document.getElementById('orders-container').innerHTML = renderOrders(data.orders);
+    document.querySelector('.results-info').innerHTML = renderResultsInfo(data);
+    if (document.querySelector('.pagination-container')) {
+      document.querySelector('.pagination-container').innerHTML = renderPagination(data);
+    }
+
+    // Optionally update stats, filters, etc.
+    if (document.querySelector('.page-stats')) {
+      document.querySelector('.page-stats').innerHTML = renderStats(data);
+    }
+  } catch (err) {
+    document.getElementById('orders-container').innerHTML =
+      `<div class="empty-state"><i class="fas fa-box-open"></i><h3>Error</h3><p>${err.message}</p></div>`;
+  } finally {
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('orders-container').style.opacity = '1';
+  }
+}
+
+function renderOrders(orders) {
+  if (!orders || !orders.length) return `
+    <div class="empty-state"><i class="fas fa-box-open"></i>
+      <h3>No orders found</h3><p>No orders match your current filters.</p>
+    </div>`;
+  return orders.map(order => /*html*/`
+    <div class="order-card mt-3">
+      <div class="order-header">
+        <div class="order-info">
+          <h3>
+            Order <span class="order-id">#${order.orderNumber || order._id.slice(-8)}</span>
+          </h3>
+          <div class="order-meta">
+            <div class="meta-item">
+              <i class="fas fa-calendar"></i>
+              <span>${new Date(order.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+              })}</span>
+            </div>
+            <div class="meta-item"><i class="fas fa-box"></i>
+              <span>${order.items.length} item${order.items.length > 1 ? 's' : ''}</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-${order.paymentMethod === 'cod' ? 'money-bill-wave' : 'credit-card'}"></i>
+              <span>${order.paymentMethod.toUpperCase()}</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-status status-${order.orderStatus}">
+
+          ${order.orderStatus}
+        </div>
+      </div>
+      <div class="order-items">
+        ${order.items.slice(0, 3).map(item => `
+          <div class="item-row">
+            <img src="${item.productImage || '/placeholder.svg?height=50&width=50'}"
+            class="item-image" alt="${item.productName}">
+            <div class="item-details"><div class="item-name">${item.productName}</div>
+            <div class="item-variant">
+              ${item.variant.color} • ${item.variant.size.toUpperCase()} • Qty: ${item.quantity}
+            </div></div>
+            <div class="item-price">₹${(item.price * item.quantity).toFixed(2)}</div>
+          </div>
+        `).join('')}
+        ${order.items.length > 3
+          ? `<div class="item-row"><div style="color:var(--muted);font-size:.9rem;text-align:center;width:100%;padding:.5rem">
+              <i class="fas fa-plus"></i> ${order.items.length - 3} more item${order.items.length - 3 > 1 ? 's' : ''}
+            </div></div>`
+          : ''}
+      </div>
+      <div class="order-footer">
+        <div class="order-total">
+          <div class="total-amount">Total: ₹${order.totalAmount.toFixed(2)}</div>
+          ${order.coupon && order.coupon.discountAmount > 0
+            ? `<div class="savings"><i class="fas fa-tag"></i> You saved ₹${order.coupon.discountAmount.toFixed(2)}</div>` : ''}
+        </div>
+        <div class="order-actions">
+          <a href="/user/profile/orders/${order._id}" class="action-btn px-2 py-2" style="font-size:14px">View Details</a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+
+function renderResultsInfo(data) {
+  return `
+    <div class="results-text">
+      Showing <span class="results-count">${data.startIndex}-${data.endIndex}</span> 
+      of <span class="results-count">${data.totalOrders}</span> orders
+    </div>
+    <div class="sort-info">
+      Sorted by: ${(function(sort) {
+        return ({
+          "createdAt_desc":"Newest first",
+          "createdAt_asc":"Oldest first",
+          "totalAmount_desc":"Highest amount",
+          "totalAmount_asc":"Lowest amount"
+        })[sort] || "Newest first";
+      })(filters.sortBy)}
+    </div>
+  `;
+}
+
+function renderPagination(data) {
+  let html = `<div class="pagination-info">
+      <div>Page ${data.currentPage} of ${data.totalPages} (${data.totalOrders} total orders)</div>
+    </div>
+    <div class="pagination">`;
+  if (data.currentPage > 1) {
+    html += `<a href="#" class="page-btn" onclick="fetchAndRenderOrders({page:1});return false;">
+                <i class="fas fa-angle-double-left"></i>First</a>`;
+    html += `<a href="#" class="page-btn" onclick="fetchAndRenderOrders({page:${data.currentPage-1}});return false;">
+                <i class="fas fa-chevron-left"></i> Previous</a>`;
+  } else {
+    html += `<span class="page-btn disabled"><i class="fas fa-chevron-left"></i> Previous</span>`;
+  }
+
+  const startPage = Math.max(1, data.currentPage - 2);
+  const endPage = Math.min(data.totalPages, data.currentPage + 2);
+
+  if (startPage > 1) html += `<a href="#" class="page-btn" onclick="fetchAndRenderOrders({page:1});return false;">1</a>`;
+  if (startPage > 2) html += `<span class="page-dots">...</span>`;
+
+  for(let i=startPage; i<=endPage; i++) {
+    html += `<a href="#" class="page-btn${i===data.currentPage?' active':''}" onclick="fetchAndRenderOrders({page:${i}});return false;">${i}</a>`;
+  }
+
+  if (endPage < data.totalPages - 1) html += `<span class="page-dots">...</span>`;
+  if (endPage < data.totalPages) html += `<a href="#" class="page-btn" onclick="fetchAndRenderOrders({page:${data.totalPages}});return false;">${data.totalPages}</a>`;
+  
+  if (data.currentPage < data.totalPages) {
+    html += `<a href="#" class="page-btn" onclick="fetchAndRenderOrders({page:${data.currentPage+1}});return false;">
+                Next <i class="fas fa-chevron-right"></i></a>`;
+    html += `<a href="#" class="page-btn" onclick="fetchAndRenderOrders({page:${data.totalPages}});return false;">
+                Last <i class="fas fa-angle-double-right"></i></a>`;
+  } else {
+    html += `<span class="page-btn disabled">Next <i class="fas fa-chevron-right"></i></span>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderStats(data) {
+  return `
+    <div class="stat-item">
+      <i class="fas fa-box"></i>
+      <span>${data.totalOrders} Total Orders</span>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-clock"></i>
+      <span>${data.pendingOrders || 0} Pending</span>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-check-circle"></i>
+      <span>${data.deliveredOrders || 0} Delivered</span>
+    </div>
+  `;
+}
+
+
+document.getElementById('status-filter').onchange = function() {
+  fetchAndRenderOrders({status: this.value, page: 1});
+};
+document.getElementById('date-filter').onchange = function() {
+  fetchAndRenderOrders({dateRange: this.value, page: 1});
+};
+document.getElementById('payment-filter').onchange = function() {
+  fetchAndRenderOrders({paymentMethod: this.value, page: 1});
+};
+document.getElementById('sort-filter').onchange = function() {
+  fetchAndRenderOrders({sortBy:this.value});
+};
+document.getElementById('search-input').oninput = function() {
+  clearTimeout(window._osrch);
+  window._osrch = setTimeout(() => {
+    fetchAndRenderOrders({search: this.value, page: 1});
+  }, 700);
+};
+document.querySelector('.apply-btn').onclick = function() {
+  fetchAndRenderOrders();
+};
+document.querySelector('.reset-btn').onclick = function() {
+  fetchAndRenderOrders({status:'',dateRange:'',paymentMethod:'',sortBy:'createdAt_desc',search:'',page:1});
 };
 
       function toggleMenu() {
@@ -790,129 +966,9 @@ const currentFilters = {
         document.querySelector(".profile-overlay").classList.toggle("show");
       }
 
-// Build URL with current filters
-function buildUrl(overrides = {}) {
-  const params = new URLSearchParams();
-  
-  const filters = { ...currentFilters, ...overrides };
-  
-  Object.keys(filters).forEach(key => {
-    if (filters[key] && filters[key] !== '') {
-      params.set(key, filters[key]);
-    }
-  });
-  
-  return `${window.location.pathname}?${params.toString()}`;
-}
 
-// Apply filters
-function applyFilters() {
-  showLoading();
-  
-  const newFilters = {
-    status: document.getElementById('status-filter').value,
-    dateRange: document.getElementById('date-filter').value,
-    paymentMethod: document.getElementById('payment-filter').value,
-    sortBy: document.getElementById('sort-filter').value,
-    search: document.getElementById('search-input').value.trim(),
-    page: 1 // Reset to first page when applying filters
-  };
-  
-  window.location.href = buildUrl(newFilters);
-}
-
-// Reset all filters
-function resetFilters() {
-  showLoading();
-  window.location.href = window.location.pathname;
-}
-
-// Remove specific filter
-function removeFilter(filterName) {
-  showLoading();
-  const newFilters = { ...currentFilters };
-  delete newFilters[filterName];
-  newFilters.page = 1; // Reset to first page
-  
-  window.location.href = buildUrl(newFilters);
-}
-
-// Go to specific page
-function goToPage(page) {
-  const pageNum = parseInt(page);
-  const maxPages = '<%= totalPages %>';
-  
-  if (pageNum < 1 || pageNum > maxPages || isNaN(pageNum)) {
-    document.getElementById('page-input').value = '<%= currentPage %>';
-    return;
-  }
-  
-  if (pageNum !== '<%= currentPage %>') {
-    showLoading();
-    window.location.href = buildUrl({ page: pageNum });
-  }
-}
-
-// Show loading state
-function showLoading() {
-  document.getElementById('loading').classList.add('show');
-  document.getElementById('orders-container').style.opacity = '0.5';
-}
-
-// Hide loading state
-function hideLoading() {
-  document.getElementById('loading').classList.remove('show');
-  document.getElementById('orders-container').style.opacity = '1';
-}
-
-// Search with debounce
-let searchTimeout;
-document.getElementById('search-input').addEventListener('input', function() {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    // Auto-apply search after 1 second of no typing
-    if (this.value.trim() !== currentFilters.search) {
-      applyFilters();
-    }
-  }, 1000);
-});
-
-// Enter key to apply filters
-document.getElementById('search-input').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    clearTimeout(searchTimeout);
-    applyFilters();
-  }
-});
-
-// Auto-apply filters on select change
-document.getElementById('status-filter').addEventListener('change', applyFilters);
-document.getElementById('date-filter').addEventListener('change', applyFilters);
-document.getElementById('payment-filter').addEventListener('change', applyFilters);
-document.getElementById('sort-filter').addEventListener('change', applyFilters);
-
-// Handle browser back/forward
-window.addEventListener('popstate', function() {
-  window.location.reload();
-});
-
-// Auto-hide loading on page load
-window.addEventListener('load', hideLoading);
-
-// Page input validation
-document.getElementById('page-input')?.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    goToPage(this.value);
-  }
-});
-
-// Prevent form submission on enter in search
-document.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter' && e.target.classList.contains('search-input')) {
-    e.preventDefault();
-  }
-});
 </script>
+
 
 <%
 
@@ -928,6 +984,11 @@ function buildUrl(params) {
   return url.pathname + url.search;
 }
 %>
+
+
+
+
+
 
 </body>
 </html>

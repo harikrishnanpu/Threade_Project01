@@ -35,14 +35,7 @@
                 </select>
               </div>
 
-              <div class="filter-group">
-                <label class="filter-label">Listing:</label>
-                <select class="filter form-select" id="listed-filter">
-                  <option value="all" <%= listedFilter === 'all' ? 'selected' : '' %>>All</option>
-                  <option value="listed" <%= listedFilter === 'listed' ? 'selected' : '' %>>Listed</option>
-                  <option value="unlisted" <%= listedFilter === 'unlisted' ? 'selected' : '' %>>Unlisted</option>
-                </select>
-              </div>
+
 
               <div class="filter-group">
                 <label class="filter-label">Category:</label>
@@ -97,11 +90,12 @@
             </div>
 
             <div class="actions-section">
-              <button class="btn btn-secondary reset-btn" id="reset-filters" type="button">
+              <button class="btn btn-secondary reset-btn"  onclick="resetFilters()" type="button">
                 <i class="lni lni-reload"></i>
                 <span class="btn-text">Reset</span>
               </button>
             </div>
+
           </div>
         </div>
 
@@ -182,11 +176,8 @@
                 <tr class="brand-row <%= brand.isListed != 'true' ? 'unlisted' : '' %>" data-brand-id="<%= brand._id %>">
                   <td class="brand-name">
                     <div class="brand-info">
-                      <span class="name <%= brand.isListed ? 'listed-brand' : '' %>">
+                      <span class="name">
                         <%= brand.name %>
-                        <% if (brand.isListed) { %>
-                          <i class="lni lni-checkmark-circle listed-icon" title="Listed"></i>
-                        <% } %>
                       </span>
                     </div>
                   </td>
@@ -231,7 +222,7 @@
                         <i class="lni lni-pencil"></i>
                         <span class="btn-text">Edit</span>
                       </button>
-                      <button class="btn btn-sm <%= brand.isActive ? 'btn-outline-danger' : 'btn-outline-success' %> toggle-status-btn" 
+                      <button class="btn btn-sm btn-outline-primary edit-btn <%= brand.isActive ? 'btn-outline-danger' : 'btn-outline-success' %> toggle-status-btn" 
                               onclick="toggleStatus('<%= brand._id %>', '<%= brand.name %>', `<%= !brand.isActive %>`)"
                               title="<%= brand.isActive ? 'Deactivate' : 'Activate' %> Brand">
                         <i class="lni lni-<%= brand.isActive ? 'lock' : 'unlock' %>"></i>
@@ -310,7 +301,7 @@
                    name="name" 
                    class="form-control" 
                    placeholder="Enter brand name"
-                   required>
+                   >
             <div class="form-error" id="name-error"></div>
           </div>
         </div>
@@ -352,7 +343,7 @@
         <div class="form-row mt-2">
           <div class="form-group">
             <label for="brand-category" class="form-label">Category <span class="required">*</span></label>
-            <select id="brand-category" name="category" class="form-control" required>
+            <select id="brand-category" name="category" class="form-control" >
               <option value="">Select category</option>
               <% if (categories && categories.length > 0) { %>
                 <% categories.forEach(category => { %>
@@ -715,11 +706,7 @@
   margin-bottom: 20px;
 }
 
-.page-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-}
+
 
 .header-stats {
   display: flex;
@@ -727,10 +714,6 @@
   align-items: center;
 }
 
-.stat-item {
-  font-size: 14px;
-  color: #6c757d;
-}
 
 .stat-item span {
   font-weight: 600;
@@ -1010,120 +993,10 @@
   margin: 0;
 }
 
-/* Button Styles (Matched to Category Page) */
-.btn {
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-weight: 500;
-}
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 
-.btn-primary {
-  background: #0b0d10;
-  color: white;
-}
 
-.btn-primary:hover:not(:disabled) {
-  background: #000000;
-}
 
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #545b62;
-}
-
-.btn-outline-primary {
-  background: transparent;
-  color: #0d0e0e;
-  border: 2px solid #000000;
-}
-
-.btn-outline-primary:hover:not(:disabled) {
-  background: #000000;
-  outline: none;
-  color: white;
-}
-
-.btn-outline-secondary {
-  background: transparent;
-  color: #6c757d;
-  border: 2px solid #6c757d;
-}
-
-.btn-outline-secondary:hover:not(:disabled) {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-outline-warning {
-  background: transparent;
-  color: #ffc107;
-  border: 2px solid #ffc107;
-}
-
-.btn-outline-warning:hover:not(:disabled) {
-  background: #ffc107;
-  color: #212529;
-}
-
-.btn-outline-danger {
-  background: transparent;
-  color: #dc3545;
-  border: 2px solid #dc3545;
-}
-
-.btn-outline-danger:hover:not(:disabled) {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-outline-success {
-  background: transparent;
-  color: #28a745;
-  border: 2px solid #28a745;
-}
-
-.btn-outline-success:hover:not(:disabled) {
-  background: #28a745;
-  color: white;
-}
-
-.btn-sm {
-  padding: 4px 8px;
-  font-size: 12px;
-}
-
-.btn-link {
-  background: transparent;
-  color: #007bff;
-  border: none;
-  text-decoration: underline;
-}
-
-.btn-link:hover {
-  color: #0056b3;
-}
-
-.btn-spinner {
-  animation: spin 1s linear infinite;
-}
 
 /* Responsive Styles */
 @media (max-width: 992px) {
@@ -1173,7 +1046,6 @@
 <script>
   const BASE_URL = window.location.origin;
   
-  // Global STATE
   const STATE = {
     page: parseInt('<%= currentPage %>') || 1,
     status: '<%= status %>' || 'all',
@@ -1199,23 +1071,7 @@
     document.getElementById('loading-overlay').classList.remove('active');
   }
 
-  function showError(message) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = message;
-    errorMsg.classList.add('show');
-    setTimeout(() => {
-      errorMsg.classList.remove('show');
-    }, 5000);
-  }
 
-  function showSuccess(message) {
-    const successMsg = document.getElementById('success-msg');
-    successMsg.textContent = message;
-    successMsg.classList.add('show');
-    setTimeout(() => {
-      successMsg.classList.remove('show');
-    }, 5000);
-  }
 
   function buildUrl(overrides = {}) {
     const params = {
@@ -1246,8 +1102,8 @@
   }
 
   function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
+    refetchAndUpdateBrands()
+    // showLoading();
   }
 
   function goToPage(page) {
@@ -1272,20 +1128,20 @@
     STATE.status = 'all';
     STATE.listedFilter = 'all';
     STATE.categoryFilter = 'all';
-    STATE.sortField = 'name';
-    STATE.sortOrder = 'asc';
+    STATE.sortField = 'createdAt';
+    STATE.sortOrder = 'desc';
     STATE.search = '';
-    STATE.showInactive = false;
+    STATE.showInactive = true;
     
     navigateToUrl(buildUrl({
       page: 1,
       status: 'all',
       listedFilter: 'all',
       categoryFilter: 'all',
-      sortField: 'name',
-      sortOrder: 'asc',
+      sortField: 'createdAt',
+      sortOrder: 'desc',
       search: '',
-      showInactive: false
+      showInactive: true
     }));
   }
 
@@ -1354,12 +1210,11 @@
           document.getElementById('image-preview').style.display = 'block';
         }
       } else {
-        showError('Failed to load brand data');
+        showGlobalToast('Failed to load brand data','error');
         closeBrandModal();
       }
     } catch (error) {
-      console.error('Error loading brand:', error);
-      showError('Error loading brand data');
+      showGlobalToast('Error loading brand data','error');
       closeBrandModal();
     } finally {
       showFormLoading(false);
@@ -1593,10 +1448,10 @@
         const result = await response.json();
         
         if (result.success) {
-          showSuccess(isEdit ? 'Brand updated successfully' : 'Brand created successfully');
+          showGlobalToast(isEdit ? 'Brand updated successfully' : 'Brand created successfully','success');
           closeBrandModal();
           setTimeout(() => {
-            window.location.reload();
+          refetchAndUpdateBrands()
           }, 1000);
         } else {
           if (result.errors) {
@@ -1604,12 +1459,11 @@
               showFormError(field, result.errors[field]);
             });
           } else {
-            showError(result.message || 'Failed to save brand');
+            showGlobalToast(result.message || 'Failed to save brand','error');
           }
         }
       } catch (error) {
-        console.error('Error saving brand:', error);
-        showError('An error occurred while saving the brand');
+        showGlobalToast('An error occurred while saving the brand','error');
       } finally {
         showFormLoading(false);
       }
@@ -1620,13 +1474,6 @@
       STATE.status = e.target.value;
       STATE.page = 1;
       navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
-    });
-
-    // Listed filter
-    document.getElementById('listed-filter').addEventListener('change', function(e) {
-      STATE.listedFilter = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ listedFilter: e.target.value, page: 1 }));
     });
 
     // Category filter
@@ -1666,9 +1513,6 @@
       STATE.page = 1;
       navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
     });
-
-    // Reset button
-    document.getElementById('reset-filters').addEventListener('click', resetFilters);
 
     // Page input validation
     document.getElementById('page-number').addEventListener('input', function(e) {
@@ -1740,43 +1584,62 @@
       const data = await response.json();
       
       if (data.success) {
-        window.location.reload();
+      refetchAndUpdateBrands()
       } else {
-        showError(data.message || 'Failed to update brand');
+        showGlobalToast(data.message || 'Failed to update brand','error');
       }
     } catch (error) {
-      showError('An error occurred while updating the brand');
-      console.error('Error:', error);
+      showGlobalToast('An error occurred while updating the brand','error');
     } finally {
       hideLoading();
     }
   }
 
-  async function performToggleStatus(brandId, active) {
-    if (STATE.isLoading) return;
-    showLoading();
-    
-    try {
-      const response = await fetch(`${BASE_URL}/admin/brands/toggle-status/${brandId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        window.location.reload();
-      } else {
-        showError(data.message || 'Failed to update brand');
-      }
-    } catch (error) {
-      showError('An error occurred while updating the brand');
-      console.error('Error:', error);
-    } finally {
-      hideLoading();
-    }
+// Replace the existing toggleStatus and performToggleStatus functions
+
+function toggleStatus(brandId, brandName, activate) {
+  // Convert activate string to boolean
+  const isActive = activate === 'true';
+  const action = isActive ? 'activate' : 'deactivate';
+  showConfirmModal(
+    `${action.charAt(0).toUpperCase() + action.slice(1)} Brand`,
+    `Are you sure you want to ${action} "${brandName}"?`,
+    action.charAt(0).toUpperCase() + action.slice(1),
+    () => performToggleStatus(brandId, isActive)
+  );
+}
+
+async function performToggleStatus(brandId, active) {
+  if (STATE.isLoading) {
+    console.warn('Toggle status skipped: Loading in progress');
+    return;
   }
+  
+  showLoading();
+  
+  try {
+    console.debug('Toggling status for brand:', { brandId, active });
+    const response = await fetch(`${BASE_URL}/admin/brands/toggle-status/${brandId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active })
+    });
+    
+    const data = await response.json();
+    console.debug('Toggle status response:', data);
+    
+    if (data.success) {
+      showGlobalToast(`Brand ${active ? 'activated' : 'deactivated'} successfully`,'success');
+      refetchAndUpdateBrands();
+    } else {
+      showGlobalToast(data.message || 'Failed to update brand status','error');
+    }
+  } catch (error) {
+    showGlobalToast('An error occurred while updating the brand status','error');
+  } finally {
+    hideLoading();
+  }
+}
 
 
   function showConfirmModal(title, message, confirmText, confirmCallback) {
@@ -1788,7 +1651,7 @@
     document.body.style.overflow = 'hidden';
   }
 
-  function closeConfirmModal() {
+  async function closeConfirmModal() {
     document.getElementById('confirm-modal-overlay').classList.remove('active');
     document.body.style.overflow = '';
     STATE.pendingAction = null;
@@ -1810,4 +1673,218 @@
   window.addEventListener('load', function() {
     hideLoading();
   });
+
+
+   async function refetchAndUpdateBrands() {
+    // if (STATE.isLoading) return;
+    showLoading();
+    
+    try {
+      const params = new URLSearchParams();
+      params.set('page', STATE.page);
+      
+      if (STATE.status !== 'all') params.set('status', STATE.status);
+      if (STATE.listedFilter !== 'all') params.set('listedFilter', STATE.listedFilter);
+      if (STATE.categoryFilter !== 'all') params.set('categoryFilter', STATE.categoryFilter);
+      
+      params.set('sortField', STATE.sortField);
+      params.set('sortOrder', STATE.sortOrder);
+      
+      if (STATE.search) params.set('search', STATE.search);
+      if (STATE.showInactive) params.set('showInactive', STATE.showInactive);
+      
+      const response = await fetch(`${BASE_URL}/admin/brands/api/filtered/all?${params.toString()}`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        updateTable(data.brands, data.totalBrands, data.totalPages);
+        updatePagination(data.currentPage, data.totalPages);
+        updateStats(data.brands.length, data.totalBrands);
+        updateSortIndicators();
+      } else {
+        showGlobalToast(data.message || 'Failed to fetch brands','error');
+      }
+    } catch (error) {
+      showGlobalToast('Error loading brands','error');
+    } finally {
+      hideLoading();
+    }
+  }
+
+
+
+  function updateTable(brands, totalBrands, totalPages) {
+
+  const tableBody = document.querySelector('#brands-table tbody');
+  const noDataRow = document.querySelector('.no-data-row');
+  tableBody.innerHTML = '';
+
+  if (brands && brands.length > 0) {
+    brands.forEach(brand => {
+      const row = document.createElement('tr');
+      row.className = `brand-row ${brand.isListed ? '' : 'unlisted'}`;
+      row.dataset.brandId = brand._id;
+
+      row.innerHTML = `
+        <td class="brand-name">
+          <div class="brand-info">
+            <span class="name">
+              ${brand.name || 'N/A'}
+            </span>
+          </div>
+        </td>
+        <td class="brand-image">
+          ${brand.image 
+            ? `<img src="${brand.image}" alt="${brand.name || 'Brand'}" class="brand-img" style="max-width: 50px; max-height: 50px; object-fit: contain;">`
+            : '<span class="text-muted">No image</span>'
+          }
+        </td>
+        <td class="brand-description">
+          ${brand.description 
+            ? `${brand.description.substring(0, 100)}${brand.description.length > 100 ? '...' : ''}`
+            : '<span class="text-muted">No description</span>'
+          }
+        </td>
+        <td class="brand-category">
+          ${brand.category && brand.category.name 
+            ? `<span class="category-name">${brand.category.name}</span>`
+            : '<span class="text-muted">No category</span>'
+          }
+        </td>
+        <td class="brand-status">
+          <div class="status-badges">
+            <span class="status-badge ${brand.isActive ? 'active' : 'blocked'}">
+              ${brand.isActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+        </td>
+        <td class="brand-created">
+          <span class="date-text">
+            ${brand.createdAt ? new Date(brand.createdAt).toLocaleDateString() : 'N/A'}
+          </span>
+        </td>
+        <td class="brand-actions">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary edit-btn" 
+                    onclick="openBrandModal('edit', '${brand._id}')"
+                    title="Edit Brand">
+              <i class="lni lni-pencil"></i>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button class="btn btn-sm ${brand.isActive ? 'btn-outline-danger' : 'btn-outline-success'} toggle-status-btn" 
+                    onclick="toggleStatus('${brand._id}', '${brand.name || 'Brand'}', '${!brand.isActive}')"
+                    title="${brand.isActive ? 'Deactivate' : 'Activate'} Brand">
+              <i class="lni lni-${brand.isActive ? 'lock' : 'unlock'}"></i>
+              <span class="btn-text">${brand.isActive ? 'Deactivate' : 'Activate'}</span>
+            </button>
+          </div>
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+    });
+
+    if (noDataRow) {
+      noDataRow.style.display = 'none';
+    }
+  } else {
+    tableBody.innerHTML = `
+      <tr class="no-data-row">
+        <td colspan="7" class="no-data-cell">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="lni lni-layers"></i>
+            </div>
+            <p>No brands found</p>
+            ${STATE.search || STATE.status !== 'all' || STATE.listedFilter !== 'all' || STATE.categoryFilter !== 'all' || STATE.showInactive
+              ? '<button class="btn btn-link" onclick="resetFilters()">Clear filters</button>'
+              : '<button class="btn btn-primary" onclick="openBrandModal(\'create\')"><i class="lni lni-plus"></i> Create First Brand</button>'
+            }
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function updatePagination(currentPage, totalPages) {
+  STATE.page = currentPage;
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const pageInput = document.getElementById('page-number');
+  const pageTotal = document.querySelector('.page-total');
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInput.value = currentPage;
+  pageInput.max = totalPages;
+  pageTotal.textContent = `of ${totalPages}`;
+
+  prevBtn.setAttribute('onclick', `goToPage(${currentPage - 1})`);
+  nextBtn.setAttribute('onclick', `goToPage(${currentPage + 1})`);
+}
+
+function updateStats(resultCount, totalBrands) {
+  const resultCountEl = document.getElementById('result-count');
+  const totalCountEl = document.getElementById('total-count');
+
+  resultCountEl.textContent = resultCount;
+  totalCountEl.textContent = totalBrands;
+}
+
+function updateSortIndicators() {
+  const headers = document.querySelectorAll('.sortable-header');
+  headers.forEach(header => {
+    const content = header.querySelector('.header-content');
+    const field = header.getAttribute('onclick').match(/'([^']+)'/)[1];
+    const indicator = content.querySelector('.sort-indicator');
+    const sortField = document.getElementById('sort-field');
+    const searchField = document.getElementById('search-input');
+
+
+      const categoryFilter = document.getElementById('category-filter')
+      const StatusFilter = document.getElementById('status-filter')
+
+
+      if(categoryFilter){
+        categoryFilter.value = STATE.categoryFilter
+      }
+
+      if(StatusFilter){
+        StatusFilter.value = STATE.status
+      }
+
+      if(searchField){
+        searchField.value = STATE.search
+      }
+
+    if (field === STATE.sortField) {
+      if (!indicator) {
+        const span = document.createElement('span');
+        span.className = 'sort-indicator';
+        span.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+        sortField.value = STATE.sortField ;
+        content.appendChild(span);
+      } else {
+        indicator.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+        sortField.value = STATE.sortField ;
+      }
+    } else if (indicator) {
+      indicator.remove();
+    }
+  });
+
+  const sortOrderBtn = document.getElementById('sort-order');
+  sortOrderBtn.querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+}
+
+function updateHistory() {
+  const url = buildUrl();
+  if (window.location.href !== url) {
+    window.history.pushState({}, '', url);
+  }
+}
 </script>

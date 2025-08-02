@@ -3968,7 +3968,7 @@ font-size: 10px;
 
 .navbar-main-content{
 	display: flex;
-	justify-content: center;
+	justify-content: space-around;
 	align-items: center;
 	gap: 20px;
 	margin-inline: 10px;

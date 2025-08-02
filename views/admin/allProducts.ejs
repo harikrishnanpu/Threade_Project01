@@ -10,8 +10,8 @@
 
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
+      --primary: #000;
+      --primary-hover: #000;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
@@ -93,7 +93,7 @@
     .products-table { width:100%; border-collapse:collapse; }
     .products-table th, .products-table td { padding:1rem; border-bottom:1px solid var(--gray-100); vertical-align:top; }
     .products-table th { background:var(--gray-50); font-size:.8125rem; font-weight:600; color:var(--gray-700); }
-    .sortable { cursor:pointer; user-select:none; transition:background .2s; }
+    .sortable { cursor:pointer; user-select:none; transition: background .2s; }
     .sortable:hover { background:var(--gray-100); }
     .sort-icon { font-size:.75rem; color:var(--primary); }
 
@@ -243,12 +243,12 @@
               <h1 class="page-title">Products</h1>
               <div class="stats-row">
                 <span class="stat-badge">
-                  <span class="stat-number"><%= products.length %></span>
+                  <span class="stat-number" id="showing-count"><%= products.length %></span>
                   <span class="stat-label">Showing</span>
                 </span>
                 <span class="stat-divider">/</span>
                 <span class="stat-badge">
-                  <span class="stat-number"><%= totalProducts %></span>
+                  <span class="stat-number" id="total-count"><%= totalProducts %></span>
                   <span class="stat-label">Total</span>
                 </span>
               </div>
@@ -278,7 +278,16 @@
                 <form id="search-form">
                   <div class="search-wrapper">
                     <input type="text" id="search-input" class="search-input" name="search" placeholder="Search products…" value="<%= search||'' %>">
-                    <button type="submit" class="search-btn"><i class="icon-plus"></i></button>
+                    <button type="submit" class="search-btn">
+
+<svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 11.998C2 6.89029 6.14154 2.75 11.25 2.75C16.3585 2.75 20.5 6.89029 20.5 11.998C20.5 14.2826 19.6714 16.3737 18.2983 17.9873L21.7791 21.4685C22.072 21.7614 22.072 22.2363 21.7791 22.5292C21.4862 22.822 21.0113 22.822 20.7184 22.5291L17.2372 19.0476C15.6237 20.4187 13.5334 21.2459 11.25 21.2459C6.14154 21.2459 2 17.1056 2 11.998ZM11.25 4.25C6.96962 4.25 3.5 7.71905 3.5 11.998C3.5 16.2769 6.96962 19.7459 11.25 19.7459C15.5304 19.7459 19 16.2769 19 11.998C19 7.71905 15.5304 4.25 11.25 4.25Z" fill="#fff"/>
+<path opacity="0.4" d="M11.25 5.74902C10.8358 5.74902 10.5 6.08481 10.5 6.49902C10.5 6.91324 10.8358 7.24902 11.25 7.24902C13.8742 7.24902 16.0013 9.37584 16.0013 11.999C16.0013 12.4132 16.3371 12.749 16.7513 12.749C17.1655 12.749 17.5013 12.4132 17.5013 11.999C17.5013 8.54707 14.7023 5.74902 11.25 5.74902Z" fill="#fff"/>
+</svg>
+
+
+
+                    </button>
                   </div>
                 </form>
               </div>
@@ -330,7 +339,7 @@
               </div>
 
               <!-- Reset -->
-              <div class="filter-item">
+              <div class="filter-item ">
                 <button id="reset-filters" class="btn btn-ghost btn-reset"><i class="icon-refresh"></i><span>Reset</span></button>
               </div>
             </div>
@@ -340,246 +349,45 @@
             <div class="pagination-info">
               <span>Page</span>
               <input type="number" id="page-input" class="page-input" min="1" max="<%=totalPages%>" value="<%=currentPage%>">
-              <span>of <%=totalPages%></span>
+              <span>of <span id="total-pages"><%=totalPages%></span></span>
             </div>
             <div class="pagination-controls">
-              <button class="btn btn-ghost btn-sm" id="prev-btn" onclick="goToPage(STATE.page-1)" <%=currentPage<=1?'disabled':''%>><i class="icon-chevron-left"></i></button>
-              <button class="btn btn-ghost btn-sm" id="next-btn" onclick="goToPage(STATE.page+1)" <%=currentPage>=totalPages?'disabled':''%>><i class="icon-chevron-right"></i></button>
+              <button class="btn btn-ghost btn-sm" id="prev-btn" <%=currentPage<=1?'disabled':''%>><i class="icon-chevron-left"></i></button>
+              <button class="btn btn-ghost btn-sm" id="next-btn" <%=currentPage>=totalPages?'disabled':''%>><i class="icon-chevron-right"></i></button>
             </div>
           </div>
+<div class="products-container">
+  <div class="table-view" id="table-view">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th class="sortable" onclick="setSortField('name')">Product <i class="sort-icon"></i></th>
+          <th class="sortable" onclick="setSortField('regularPrice')">Price <i class="sort-icon"></i></th>
+          <th class="sortable" onclick="setSortField('stock')">Stock <i class="sort-icon"></i></th>
+          <th>Category</th>
+          <th>Variants</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr class="empty-state">
+          <td colspan="7" class="empty-state">
+            <div class="empty-icon">📦</div>
+            <h3>No products found</h3>
+            <p>Get started by adding your first product</p>
+            <a href="/admin/products/create" class="btn btn-primary"><i class="icon-plus"></i><span>Add Product</span></a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-view" id="card-view">
+    <!-- Card view will be populated dynamically -->
+  </div>
+</div>
 
-          <div class="products-container">
-            <% if (products.length>0) { %>
-              <!-- Table view -->
-              <div class="table-view">
-                <table class="products-table">
-                  <thead>
-                    <tr>
-                      <th class="sortable" onclick="setSortField('name')">Product <i class="sort-icon icon-<%=sortField==='name'?(sortOrder==='asc'?'arrow-up':'arrow-down'):''%>"></i></th>
-                      <th class="sortable" onclick="setSortField('regularPrice')">Price <i class="sort-icon icon-<%=sortField==='regularPrice'?(sortOrder==='asc'?'arrow-up':'arrow-down'):''%>"></i></th>
-                      <th class="sortable" onclick="setSortField('stock')">Stock <i class="sort-icon icon-<%=sortField==='stock'?(sortOrder==='asc'?'arrow-up':'arrow-down'):''%>"></i></th>
-                      <th>Category</th>
-                      <th>Variants</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% products.forEach(product => { %>
-                      <tr>
-                        <td class="product-cell">
-                          <div class="product-info">
-                            <div class="product-image">
-                              <% if(product.images && product.images.length > 0){ %>
-                                <img src="<%=product.images[0]%>" alt="<%=product.name%>" loading="lazy">
-                              <% } else { %>
-                                <div class="image-placeholder"><i class="icon-image"></i></div>
-                              <% } %>
-                              <% if(product.isFeatured){ %>
-                                <span class="featured-badge"><i class="icon-star-filled"></i></span>
-                              <% } %>
-                            </div>
-                            <div class="product-details">
-                              <h3 class="product-name"><%=product.name%></h3>
-                              <% if(product.brand){ %><span class="product-brand"><%=product.brand.name%></span><% } %>
-                            </div>
-                          </div>
-                        </td>
-
-                        <!-- Price cell -->
-                        <td class="price-cell">
-                          <div class="price-info">
-                            <% if(product.salePrice > 0 && product.salePrice < product.regularPrice){ %>
-                              <span class="regular-price">₹<%=product.salePrice.toFixed(2)%></span>
-                              <span class="sale-price">₹<%=product.regularPrice.toFixed(2)%></span>
-                              <span class="discount-badge">
-                                <%= Math.round(((product.regularPrice-product.salePrice)/product.regularPrice)*100) %>% OFF
-                              </span>
-                            <% } else { %>
-                              <span class="regular-price">₹<%=product.regularPrice.toFixed(2)%></span>
-                            <% } %>
-                          </div>
-                        </td>
-
-                        <!-- Stock -->
-                        <td class="stock-cell">
-                          <span class="stock-badge <%= product.stock<=0?'out-of-stock':product.stock<=10?'low-stock':'in-stock' %>">
-                            <%= product.stock %>
-                          </span>
-                        </td>
-
-                        <!-- Category -->
-                        <td>
-                          <% if(product.category){ %>
-                            <span class="category-tag"><%=product.category.name%></span>
-                          <% } %>
-                        </td>
-
-                        <!-- Variants -->
-                        <td class="variants-cell">
-                          <div class="variants-info">
-                            <div class="variants-count"><%=product.variants ? product.variants.length : 0%> variants</div>
-                            <% if(product.variants && product.variants.length > 0){ %>
-                              <div class="variants-status">
-                                <% 
-                                  const activeVariants = product.variants.filter(v => v.isActive).length;
-                                  const inactiveVariants = product.variants.length - activeVariants;
-                                %>
-                                <% if(activeVariants > 0){ %>
-                                  <span class="variant-badge variant-active"><%=activeVariants%> active</span>
-                                <% } %>
-                                <% if(inactiveVariants > 0){ %>
-                                  <span class="variant-badge variant-inactive"><%=inactiveVariants%> inactive</span>
-                                <% } %>
-                              </div>
-                            <% } %>
-                          </div>
-                        </td>
-
-                        <!-- Status -->
-                        <td>
-                          <span class="status-badge <%=product.isActive?'active':'inactive'%>">
-                            <%=product.isActive?'Active':'Inactive'%>
-                          </span>
-                        </td>
-
-                        <!-- Actions -->
-                        <td class="actions-cell">
-                          <div class="action-buttons">
-                            <!-- Edit -->
-                            <a href="/admin/products/edit/<%=product._id%>" class="btn btn-ghost btn-sm" title="Edit">
-                              <i class="icon-edit"></i>
-                            </a>
-                            <!-- View Variants -->
-                            <button class="btn btn-ghost btn-sm"
-                              onclick="showVariantDetails('<%=product._id%>','<%=product.name%>')"
-                              title="View Variants">
-                              <i class="icon-variants"></i>
-                            </button>
-                            <!-- Toggle Featured -->
-                            <button class="btn btn-ghost btn-sm"
-                              onclick="toggleFeatured('<%=product._id%>','<%=product.name%>','<%=product.isFeatured%>')"
-                              title="<%=product.isFeatured?'Unfeature':'Feature'%>">
-                              <i class="icon-<%=product.isFeatured?'star-filled':'star'%>"></i>
-                            </button>
-                            <!-- Toggle Status -->
-                            <button class="btn btn-ghost btn-sm"
-                              onclick="toggleStatus('<%=product._id%>','<%=product.name%>','<%=product.isActive%>')"
-                              title="<%=product.isActive?'Deactivate':'Activate'%>">
-                              <i class="icon-<%=product.isActive?'eye-off':'eye'%>"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    <% }) %>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Card view for mobile -->
-              <div class="card-view">
-                <% products.forEach(product => { %>
-                  <div class="product-card">
-                    <div class="card-header">
-                      <div class="product-image">
-                        <% if(product.images && product.images.length > 0){ %>
-                          <img src="<%=product.images[0]%>" alt="<%=product.name%>" loading="lazy">
-                        <% } else { %>
-                          <div class="image-placeholder"><i class="icon-image"></i></div>
-                        <% } %>
-                        <% if(product.isFeatured){ %>
-                          <span class="featured-badge"><i class="icon-star-filled"></i></span>
-                        <% } %>
-                      </div>
-                      <div class="card-info">
-                        <h3 class="card-title"><%=product.name%></h3>
-                        <% if(product.brand){ %><div class="card-brand"><%=product.brand.name%></div><% } %>
-                        <div class="card-badges">
-                          <span class="status-badge <%=product.isActive?'active':'inactive'%>">
-                            <%=product.isActive?'Active':'Inactive'%>
-                          </span>
-                          <% if(product.category){ %>
-                            <span class="category-tag"><%=product.category.name%></span>
-                          <% } %>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="card-body">
-                      <div class="card-stats">
-                        <div class="card-stat">
-                          <div class="card-stat-value">
-                            <% if(product.salePrice > 0 && product.salePrice < product.regularPrice){ %>
-                              ₹<%=product.salePrice.toFixed(2)%>
-                            <% } else { %>
-                              ₹<%=product.regularPrice.toFixed(2)%>
-                            <% } %>
-                          </div>
-                          <div class="card-stat-label">Price</div>
-                        </div>
-                        <div class="card-stat">
-                          <div class="card-stat-value <%=product.stock<=0?'text-red-600':product.stock<=10?'text-yellow-600':''%>">
-                            <%=product.stock%>
-                          </div>
-                          <div class="card-stat-label">Stock</div>
-                        </div>
-                        <div class="card-stat">
-                          <div class="card-stat-value"><%=product.variants ? product.variants.length : 0%></div>
-                          <div class="card-stat-label">Variants</div>
-                        </div>
-                      </div>
-                      <% if(product.variants && product.variants.length > 0){ %>
-                        <div class="card-variants">
-                          <div class="card-variants-title">Variant Status</div>
-                          <div class="card-variants-list">
-                            <% 
-                              const activeVariants = product.variants.filter(v => v.isActive).length;
-                              const inactiveVariants = product.variants.length - activeVariants;
-                            %>
-                            <% if(activeVariants > 0){ %>
-                              <span class="variant-badge variant-active"><%=activeVariants%> active</span>
-                            <% } %>
-                            <% if(inactiveVariants > 0){ %>
-                              <span class="variant-badge variant-inactive"><%=inactiveVariants%> inactive</span>
-                            <% } %>
-                          </div>
-                        </div>
-                      <% } %>
-                    </div>
-                    <div class="card-actions">
-                      <a href="/admin/products/edit/<%=product._id%>" class="btn btn-ghost btn-sm">
-                        <i class="icon-edit"></i> Edit
-                      </a>
-                      <button class="btn btn-ghost btn-sm"
-                        onclick="showVariantDetails('<%=product._id%>','<%=product.name%>')">
-                        <i class="icon-variants"></i> Variants
-                      </button>
-                      <button class="btn btn-ghost btn-sm"
-                        onclick="toggleFeatured('<%=product._id%>','<%=product.name%>','<%=product.isFeatured%>')">
-                        <i class="icon-<%=product.isFeatured?'star-filled':'star'%>"></i>
-                      </button>
-                      <button class="btn btn-ghost btn-sm"
-                        onclick="toggleStatus('<%=product._id%>','<%=product.name%>','<%=product.isActive%>')">
-                        <i class="icon-<%=product.isActive?'eye-off':'eye'%>"></i>
-                      </button>
-                    </div>
-                  </div>
-                <% }) %>
-              </div>
-            <% } else { %>
-              <!-- Empty state -->
-              <div class="empty-state">
-                <div class="empty-icon">📦</div>
-                <h3>No products found</h3>
-                <p>Get started by adding your first product</p>
-                <% if(search||status!=='all'||categoryFilter!=='all'||brandFilter!=='all'){ %>
-                  <button class="btn btn-ghost" onclick="resetFilters()">Clear filters</button>
-                <% } else { %>
-                  <a href="/admin/products/create" class="btn btn-primary"><i class="icon-plus"></i><span>Add Product</span></a>
-                <% } %>
-              </div>
-            <% } %>
-          </div>
-        </div>
+</div>
       </div>
     </div>
   </section>
@@ -617,277 +425,745 @@
     </div>
   </div>
 
-  <script>
-    const BASE_URL = window.location.origin;
-    const STATE = {
-      page:        parseInt('<%= currentPage %>') || 1,
-      status:      '<%= status %>'      || 'all',
-      categoryFilter: '<%= categoryFilter %>' || 'all',
-      brandFilter: '<%= brandFilter %>' || 'all',
-      sortField:   '<%= sortField %>'   || 'createdAt',
-      sortOrder:   '<%= sortOrder %>'   || 'desc',
-      search:      '<%= search %>'      || '',
-      pendingAction: null,
-      isLoading:   false
-    };
+<script>
+  const BASE_URL = window.location.origin;
 
-    function showLoading(){
-      STATE.isLoading=true;
-      document.getElementById('loading-overlay').classList.add('active');
-    }
-    function hideLoading(){
-      STATE.isLoading=false;
-      document.getElementById('loading-overlay').classList.remove('active');
-    }
-    function showError(msg){
-      const e=document.getElementById('dynamic-error-msg');
-      if(e){ e.textContent=msg; e.classList.add('show'); setTimeout(()=>e.classList.remove('show'),5000); }
-    }
-    function showSuccess(msg){
-      const e=document.getElementById('dynamic-success-msg');
-      if(e){ e.textContent=msg; e.classList.add('show'); setTimeout(()=>e.classList.remove('show'),5000); }
-    }
+const STATE = {
+  page: parseInt(new URLSearchParams(window.location.search).get('page')) || 1,
+  status: new URLSearchParams(window.location.search).get('status') || 'all',
+  categoryFilter: new URLSearchParams(window.location.search).get('categoryFilter') || 'all',
+  brandFilter: new URLSearchParams(window.location.search).get('brandFilter') || 'all',
+  sortField: new URLSearchParams(window.location.search).get('sortField') || 'createdAt',
+  sortOrder: new URLSearchParams(window.location.search).get('sortOrder') || 'desc',
+  search: new URLSearchParams(window.location.search).get('search') || '',
+  pendingAction: null,
+  isLoading: false
+};
 
-    function buildUrl(overrides={}){
-      const p={ page: STATE.page, status: STATE.status, categoryFilter:STATE.categoryFilter,
-                brandFilter:STATE.brandFilter, sortField:STATE.sortField, sortOrder:STATE.sortOrder,
-                search: STATE.search, ...overrides };
-      const url=new URL(window.location.pathname, window.location.origin);
-      Object.entries(p).forEach(([k,v])=>{
-        if(v&&v!=='all') url.searchParams.set(k,v);
-      });
-      return url.toString();
-    }
-    function navigateToUrl(u){ showLoading(); window.location=u; }
+// Utility functions
+function showLoading() {
+  if (!STATE.isLoading) {
+    STATE.isLoading = true;
+    const overlay = document.getElementById('loading-overlay');
+    overlay.style.display = 'flex';
+    setTimeout(() => {
+      overlay.classList.add('active');
+    }, 10);
+  }
+}
 
-    function goToPage(n){
-      const max=`<%= totalPages %>`;
-      if(n<1||n>max) return;
-      STATE.page=n;
-      navigateToUrl(buildUrl({ page:n }));
-    }
-    function setSortField(f){
-      const o = (STATE.sortField===f && STATE.sortOrder==='asc')?'desc':'asc';
-      STATE.sortField=f; STATE.sortOrder=o; STATE.page=1;
-      navigateToUrl(buildUrl({ sortField:f, sortOrder:o, page:1 }));
-    }
-    function resetFilters(){
-      STATE.page=1; STATE.status='all'; STATE.categoryFilter='all'; STATE.brandFilter='all';
-      STATE.sortField='createdAt'; STATE.sortOrder='desc'; STATE.search='';
-      navigateToUrl(buildUrl());
-    }
+function hideLoading() {
+  if (STATE.isLoading) {
+    const overlay = document.getElementById('loading-overlay');
+    overlay.classList.remove('active');
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      STATE.isLoading = false;
+    }, 300); // Match CSS transition duration
+  }
+}
 
-    function showConfirmModal(title,msg,btnText,cb){
-      document.getElementById('confirm-title').textContent=title;
-      document.getElementById('confirm-message').textContent=msg;
-      document.getElementById('confirm-button').textContent=btnText;
-      STATE.pendingAction=cb;
-      document.getElementById('confirm-modal').classList.add('active');
-      document.body.style.overflow='hidden';
-    }
-    function closeConfirmModal(){
-      document.getElementById('confirm-modal').classList.remove('active');
-      document.body.style.overflow='';
-      STATE.pendingAction=null;
-    }
-    function confirmAction(){
-      if(STATE.pendingAction) STATE.pendingAction();
-      closeConfirmModal();
+function showError(msg) {
+  const e = document.getElementById('dynamic-error-msg');
+  if (e) {
+    e.textContent = msg;
+    e.classList.add('show');
+    setTimeout(() => e.classList.remove('show'), 5000);
+  }
+}
+
+function showSuccess(msg) {
+  const e = document.getElementById('dynamic-success-msg');
+  if (e) {
+    e.textContent = msg;
+    e.classList.add('show');
+    setTimeout(() => e.classList.remove('show'), 5000);
+  }
+}
+
+// Fetch products
+async function fetchProducts(overrides = {}) {
+  showLoading();
+  try {
+    const url = buildUrl(overrides);
+    console.log('Fetching products with URL:', url); // Debug log
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! Status: ${res.status}`);
     }
 
-    function toggleFeatured(id,name,isFeat){
-      const action = isFeat==='true'?'Unfeature':'Feature';
-      showConfirmModal(`${action} "${name}"`,`Are you sure?`,action,()=>performToggleFeatured(id,isFeat));
+    const json = await res.json();
+    console.log('API response:', json); // Debug log
+
+    if (json.success) {
+      updateUI(json);
+    } else {
+      showError(json.message || 'Error loading products');
     }
-    function toggleStatus(id,name,isActive){
-      const action = isActive==='true'?'Deactivate':'Activate';
-      showConfirmModal(`${action} "${name}"`,`Are you sure?`,action,()=>performToggleStatus(id,isActive));
-    }
+  } catch (e) {
+    showError('Error loading products. Please try again.');
+    console.error('Fetch error:', e);
+  } finally {
+    hideLoading();
+  }
+}
 
-    async function performToggleFeatured(id,feat){
-      if(STATE.isLoading) return;
-      showLoading();
-      try {
-        const res=await fetch(`${BASE_URL}/admin/products/toggle-featured/${id}`,{
-          method:'PATCH', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ featured: feat })
-        });
-        const json=await res.json();
-        if(json.success) window.location.reload();
-        else{ hideLoading(); showError(json.message||'Error'); }
-      } catch(e){ hideLoading(); showError('Error'); console.error(e); }
-    }
+// Build URL
+function buildUrl(overrides = {}) {
+  const p = {
+    page: overrides.page || STATE.page,
+    status: overrides.status || STATE.status,
+    categoryFilter: overrides.categoryFilter || STATE.categoryFilter,
+    brandFilter: overrides.brandFilter || STATE.brandFilter,
+    sortField: overrides.sortField || STATE.sortField,
+    sortOrder: overrides.sortOrder || STATE.sortOrder,
+    search: overrides.search !== undefined ? overrides.search : STATE.search
+  };
 
-    async function performToggleStatus(id,act){
-      if(STATE.isLoading) return;
-      showLoading();
-      try {
-        const res=await fetch(`${BASE_URL}/admin/products/toggle-status/${id}`,{
-          method:'PATCH', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ active: act })
-        });
-        const json=await res.json();
-        if(json.success) window.location.reload();
-        else{ hideLoading(); showError(json.message||'Error'); }
-      } catch(e){ hideLoading(); showError('Error'); console.error(e); }
-    }
+  const url = new URL('/admin/products/api/all', BASE_URL);
+  Object.entries(p).forEach(([k, v]) => {
+    if (v && v !== 'all') url.searchParams.set(k, v);
+  });
 
-    // New function to show variant details
-    async function showVariantDetails(productId, productName) {
-      document.getElementById('variant-modal-title').textContent = `${productName} - Variants`;
-      document.getElementById('variant-modal-body').innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading variants...</p></div>';
-      document.getElementById('variant-modal').classList.add('active');
-      document.body.style.overflow = 'hidden';
+  return url.toString();
+}
 
-      try {
-        const res = await fetch(`${BASE_URL}/admin/products/variants/${productId}`);
-        const json = await res.json();
-        
-        if (json.success && json.variants) {
-          renderVariants(json.variants, productId);
-        } else {
-          document.getElementById('variant-modal-body').innerHTML = '<p>No variants found for this product.</p>';
-        }
-      } catch (e) {
-        document.getElementById('variant-modal-body').innerHTML = '<p>Error loading variants.</p>';
-        console.error(e);
-      }
-    }
+// Update UI
+function updateUI(data) {
+  // Update header stats
+  document.getElementById('showing-count').textContent = data.data?.length || 0;
+  document.getElementById('total-count').textContent = data.totalProducts || 0;
 
-    function renderVariants(variants, productId) {
-      const container = document.getElementById('variant-modal-body');
-      if (!variants.length) {
-        container.innerHTML = '<p>No variants found for this product.</p>';
-        return;
-      }
+  // Update pagination
+  document.getElementById('page-input').value = data.currentPage || 1;
+  document.getElementById('page-input').max = data.totalPages || 1;
+  document.getElementById('total-pages').textContent = data.totalPages || 1;
+  document.getElementById('prev-btn').disabled = (data.currentPage || 1) <= 1;
+  document.getElementById('next-btn').disabled = (data.currentPage || 1) >= (data.totalPages || 1);
 
-      const html = variants.map((variant, index) => `
-        <div class="variant-item">
-          <div class="variant-info">
-            <div class="variant-name">${variant.size.toUpperCase()} - ${variant.color}</div>
-            <div class="variant-meta">
-              Price: $${variant.price.toFixed(2)} | 
-              Stock: ${variant.stock} | 
-              Status: <span class="status-badge ${variant.isActive ? 'active' : 'inactive'}">${variant.isActive ? 'Active' : 'Inactive'}</span>
-            </div>
+  // Update category filter
+  const categoryFilter = document.getElementById('category-filter');
+  categoryFilter.innerHTML = `<option value="all" ${STATE.categoryFilter === 'all' ? 'selected' : ''}>All Categories</option>`;
+  if (data.categories) {
+    data.categories.forEach(cat => {
+      categoryFilter.innerHTML += `<option value="${cat._id}" ${STATE.categoryFilter === cat._id ? 'selected' : ''}>${cat.name}</option>`;
+    });
+  }
+
+  // Update brand filter
+  const brandFilter = document.getElementById('brand-filter');
+  brandFilter.innerHTML = `<option value="all" ${STATE.brandFilter === 'all' ? 'selected' : ''}>All Brands</option>`;
+  if (data.brands) {
+    data.brands.forEach(br => {
+      brandFilter.innerHTML += `<option value="${br._id}" ${STATE.brandFilter === br._id ? 'selected' : ''}>${br.name}</option>`;
+    });
+  }
+
+  // Update table and card views
+  const tableBody = document.getElementById('table-body');
+  const cardView = document.getElementById('card-view');
+
+  if (!tableBody || !cardView) {
+    console.error('Table body or card view not found in DOM');
+    showError('Error rendering products. Please refresh the page.');
+    return;
+  }
+
+  // Handle empty state
+  if (!data.data || data.data.length === 0) {
+    tableBody.innerHTML = `
+      <tr class="empty-state">
+        <td colspan="7" class="empty-state">
+          <div class="empty-icon">📦</div>
+          <h3>No products found</h3>
+          <p>Get started by adding your first product</p>
+          ${STATE.search || STATE.status !== 'all' || STATE.categoryFilter !== 'all' || STATE.brandFilter !== 'all' ?
+            '<button class="btn btn-ghost" onclick="resetFilters()">Clear filters</button>' :
+            '<a href="/admin/products/create" class="btn btn-primary"><i class="icon-plus"></i><span>Add Product</span></a>'
+          }
+        </td>
+      </tr>`;
+    cardView.innerHTML = '';
+    return;
+  }
+
+  // Render products
+  tableBody.innerHTML = data.data.map(product => `
+    <tr data-product-id="${product._id}">
+      <td class="product-cell">
+        <div class="product-info">
+          <div class="product-image">
+            ${product.images && product.images.length > 0 ?
+              `<img src="${product.images[0]}" alt="${product.name}" loading="lazy">` :
+              `<div class="image-placeholder"><i class="icon-image"></i></div>`}
+            ${product.isFeatured ? `<span class="featured-badge"><i class="icon-star-filled"></i></span>` : ''}
           </div>
-          <div class="variant-actions">
-            <button class="btn btn-ghost btn-sm" 
-              onclick="toggleVariantStatus('${productId}', ${index}, '${variant.size} - ${variant.color}', ${variant.isActive})"
-              title="${variant.isActive ? 'Deactivate' : 'Activate'} Variant">
-              <i class="icon-${variant.isActive ? 'eye-off' : 'eye'}"></i>
-            </button>
+          <div class="product-details">
+            <h3 class="product-name">${product.name}</h3>
+            ${product.brand ? `<span class="product-brand">${product.brand.name}</span>` : ''}
           </div>
         </div>
-      `).join('');
+      </td>
+      <td class="price-cell">
+        <div class="price-info">
+          ${product.salePrice > 0 && product.salePrice < product.regularPrice ?
+            `<span class="regular-price">₹${product.salePrice.toFixed(2)}</span>
+             <span class="sale-price">₹${product.regularPrice.toFixed(2)}</span>
+             <span class="discount-badge">${Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100)}% OFF</span>` :
+            `<span class="regular-price">₹${product.regularPrice.toFixed(2)}</span>`}
+        </div>
+      </td>
+      <td class="stock-cell">
+        <span class="stock-badge ${product.stock <= 0 ? 'out-of-stock' : product.stock <= 10 ? 'low-stock' : 'in-stock'}">
+          ${product.stock}
+        </span>
+      </td>
+      <td>
+        ${product.category ? `<span style="" class="category-tag">${product.category.name}</span>` : ''}
+      </td>
+      <td class="variants-cell">
+        <div class="variants-info">
+          <div class="variants-count">${product.variants ? product.variants.length : 0} variants</div>
+          ${product.variants && product.variants.length > 0 ? `
+            <div class="variants-status">
+              ${product.variants.filter(v => v.isActive).length > 0 ?
+                `<span class="variant-badge variant-active">${product.variants.filter(v => v.isActive).length} active</span>` : ''}
+              ${product.variants.length - product.variants.filter(v => v.isActive).length > 0 ?
+                `<span class="variant-badge variant-inactive">${product.variants.length - product.variants.filter(v => v.isActive).length} inactive</span>` : ''}
+            </div>` : ''}
+        </div>
+      </td>
+      <td>
+        <span class="status-badge ${product.isActive ? 'active' : 'inactive'}">
+          ${product.isActive ? 'Active' : 'Inactive'}
+        </span>
+      </td>
+      <td class="actions-cell">
+        <div class="action-buttons">
+          <a href="/admin/products/edit/${product._id}" class="btn btn-ghost btn-sm" title="Edit">
+            <i class="icon-edit"></i>
+          </a>
+          <button class="btn btn-ghost btn-sm feature-btn" onclick="toggleFeatured('${product._id}', '${product.name}', '${product.isFeatured}')" title="${product.isFeatured ? 'Unfeature' : 'Feature'}">
+            <i class="icon-${product.isFeatured ? 'star-filled' : 'star'}"></i>
+          </button>
+          <button class="btn btn-ghost btn-sm status-btn" onclick="toggleStatus('${product._id}', '${product.name}', '${product.isActive}')" title="${product.isActive ? 'Deactivate' : 'Activate'}">
+            <i class="icon-${product.isActive ? 'eye-off' : 'eye'}"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
 
-      container.innerHTML = html;
-    }
+  cardView.innerHTML = data.data.map(product => `
+    <div class="product-card" data-product-id="${product._id}">
+      <div class="card-header">
+        <div class="product-image">
+          ${product.images && product.images.length > 0 ?
+            `<img src="${product.images[0]}" alt="${product.name}" loading="lazy">` :
+            `<div class="image-placeholder"><i class="icon-image"></i></div>`}
+          ${product.isFeatured ? `<span class="featured-badge"><i class="icon-star-filled"></i></span>` : ''}
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">${product.name}</h3>
+          ${product.brand ? `<div class="card-brand">${product.brand.name}</div>` : ''}
+          <div class="card-badges">
+            <span class="status-badge ${product.isActive ? 'active' : 'inactive'}">
+              ${product.isActive ? 'Active' : 'Inactive'}
+            </span>
+            ${product.category ? `<span class="category-tag">${product.category.name}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-stats">
+          <div class="card-stat">
+            <div class="card-stat-value">
+              ${product.salePrice > 0 && product.salePrice < product.regularPrice ?
+                `₹${product.salePrice.toFixed(2)}` :
+                `₹${product.regularPrice.toFixed(2)}`}
+            </div>
+            <div class="card-stat-label">Price</div>
+          </div>
+          <div class="card-stat">
+            <div class="card-stat-value ${product.stock <= 0 ? 'text-red-600' : product.stock <= 10 ? 'text-yellow-600' : ''}">
+              ${product.stock}
+            </div>
+            <div class="card-stat-label">Stock</div>
+          </div>
+          <div class="card-stat">
+            <div class="card-stat-value">${product.variants ? product.variants.length : 0}</div>
+            <div class="card-stat-label">Variants</div>
+          </div>
+        </div>
+        ${product.variants && product.variants.length > 0 ? `
+          <div class="card-variants">
+            <div class="card-variants-title">Variant Status</div>
+            <div class="card-variants-list">
+              ${product.variants.filter(v => v.isActive).length > 0 ?
+                `<span class="variant-badge variant-active">${product.variants.filter(v => v.isActive).length} active</span>` : ''}
+              ${product.variants.length - product.variants.filter(v => v.isActive).length > 0 ?
+                `<span class="variant-badge variant-inactive">${product.variants.length - product.variants.filter(v => v.isActive).length} inactive</span>` : ''}
+            </div>
+          </div>` : ''}
+      </div>
+      <div class="card-actions">
+        <a href="/admin/products/edit/${product._id}" class="btn btn-ghost btn-sm">
+          <i class="icon-edit"></i> Edit
+        </a>
+        <button class="btn btn-ghost btn-sm feature-btn" onclick="toggleFeatured('${product._id}', '${product.name}', '${product.isFeatured}')">
+          <i class="icon-${product.isFeatured ? 'star-filled' : 'star'}"></i>
+        </button>
+        <button class="btn btn-ghost btn-sm status-btn" onclick="toggleStatus('${product._id}', '${product.name}', '${product.isActive}')">
+          <i class="icon-${product.isActive ? 'eye-off' : 'eye'}"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
 
-    function closeVariantModal() {
-      document.getElementById('variant-modal').classList.remove('active');
-      document.body.style.overflow = '';
-    }
+  // Update sort indicators
+  document.querySelectorAll('.sortable .sort-icon').forEach(icon => {
+    icon.className = 'sort-icon';
+  });
+  const activeSort = document.querySelector(`.sortable[onclick="setSortField('${STATE.sortField}')"] .sort-icon`);
+  if (activeSort) {
+    activeSort.className = `sort-icon icon-${STATE.sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'}`;
+  }
+  document.getElementById('sort-order').innerHTML = `<i class="icon-${STATE.sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'}"></i>`;
+}
 
-    async function toggleVariantStatus(productId, variantIndex, variantName, isActive) {
-      const action = isActive ? 'Deactivate' : 'Activate';
-      showConfirmModal(
-        `${action} Variant "${variantName}"`,
-        `Are you sure you want to ${action.toLowerCase()} this variant?`,
-        action,
-        () => performToggleVariantStatus(productId, variantIndex, isActive)
-      );
-    }
+// Go to page
+async function goToPage(n) {
+  const max = parseInt(document.getElementById('total-pages').textContent) || 1;
+  if (n < 1 || n > max) return;
+  STATE.page = n;
+  await fetchProducts({ page: n });
+  // window.history.pushState({}, '', buildUrl({ page: n }));
+}
 
-    async function performToggleVariantStatus(productId, variantIndex, isActive) {
-      if (STATE.isLoading) return;
-      showLoading();
-      
-      try {
-        const res = await fetch(`${BASE_URL}/admin/products/toggle-variant-status/${productId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            variantIndex: variantIndex,
-            isActive: !isActive 
-          })
-        });
-        
-        const json = await res.json();
-        hideLoading();
-        
-        if (json.success) {
-          showSuccess('Variant status updated successfully');
-          // Refresh the variant modal
-          showVariantDetails(productId, 'Product');
-          // Optionally refresh the main page after a delay
-          setTimeout(() => window.location.reload(), 1500);
-        } else {
-          showError(json.message || 'Error updating variant status');
+// Set sort field
+async function setSortField(f) {
+  const o = (STATE.sortField === f && STATE.sortOrder === 'asc') ? 'desc' : 'asc';
+  STATE.sortField = f;
+  STATE.sortOrder = o;
+  STATE.page = 1;
+  await fetchProducts({ sortField: f, sortOrder: o, page: 1 });
+  // window.history.pushState({}, '', buildUrl({ sortField: f, sortOrder: o, page: 1 }));
+}
+
+// Reset filters
+async function resetFilters() {
+  STATE.page = 1;
+  STATE.status = 'all';
+  STATE.categoryFilter = 'all';
+  STATE.brandFilter = 'all';
+  STATE.sortField = 'createdAt';
+  STATE.sortOrder = 'desc';
+  STATE.search = '';
+
+  document.getElementById('search-input').value = '';
+  document.getElementById('status-filter').value = 'all';
+  document.getElementById('category-filter').value = 'all';
+  document.getElementById('brand-filter').value = 'all';
+  document.getElementById('sort-field').value = 'createdAt';
+  document.getElementById('sort-order').innerHTML = `<i class="icon-arrow-down"></i>`;
+
+  await fetchProducts();
+  // window.history.pushState({}, '', buildUrl());
+}
+
+// Show confirmation modal
+function showConfirmModal(title, msg, btnText, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = msg;
+  document.getElementById('confirm-button').textContent = btnText;
+  STATE.pendingAction = cb;
+  document.getElementById('confirm-modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// Close confirmation modal
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').classList.remove('active');
+  document.body.style.overflow = '';
+  STATE.pendingAction = null;
+}
+
+// Confirm action
+function confirmAction() {
+  if (STATE.pendingAction) STATE.pendingAction();
+  closeConfirmModal();
+}
+
+// Toggle featured status
+function toggleFeatured(id, name, isFeat) {
+  const action = isFeat === 'true' ? 'Unfeature' : 'Feature';
+  showConfirmModal(`${action} "${name}"`, `Are you sure?`, action, () => performToggleFeatured(id, isFeat));
+}
+
+// Perform toggle featured
+async function performToggleFeatured(id, feat) {
+  if (STATE.isLoading) return;
+  showLoading();
+  try {
+    const res = await fetch(`${BASE_URL}/admin/products/toggle-featured/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ featured: feat === 'true' ? false : true })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showSuccess(`Product ${feat === 'true' ? 'unfeatured' : 'featured'} successfully`);
+      const productRow = document.querySelector(`tr[data-product-id="${id}"]`);
+      const productCard = document.querySelector(`.product-card[data-product-id="${id}"]`);
+      const newState = feat === 'true' ? 'false' : 'true';
+
+      if (productRow) {
+        const featureBtn = productRow.querySelector('.feature-btn');
+        featureBtn.innerHTML = `<i class="icon-${newState === 'true' ? 'star-filled' : 'star'}"></i>`;
+        featureBtn.setAttribute('onclick', `toggleFeatured('${id}', '${productRow.querySelector('.product-name').textContent}', '${newState}')`);
+        featureBtn.title = newState === 'true' ? 'Unfeature' : 'Feature';
+        const badge = productRow.querySelector('.featured-badge');
+        if (newState === 'true' && !badge) {
+          const imageDiv = productRow.querySelector('.product-image');
+          imageDiv.insertAdjacentHTML('beforeend', `<span class="featured-badge"><i class="icon-star-filled"></i></span>`);
+        } else if (newState === 'false' && badge) {
+          badge.remove();
         }
-      } catch (e) {
-        hideLoading();
-        showError('Error updating variant status');
-        console.error(e);
+      }
+
+      if (productCard) {
+        const featureBtn = productCard.querySelector('.feature-btn');
+        featureBtn.innerHTML = `<i class="icon-${newState === 'true' ? 'star-filled' : 'star'}"></i>`;
+        featureBtn.setAttribute('onclick', `toggleFeatured('${id}', '${productCard.querySelector('.card-title').textContent}', '${newState}')`);
+        featureBtn.title = newState === 'true' ? 'Unfeature' : 'Feature';
+        const badge = productCard.querySelector('.featured-badge');
+        if (newState === 'true' && !badge) {
+          const imageDiv = productCard.querySelector('.product-image');
+          imageDiv.insertAdjacentHTML('beforeend', `<span class="featured-badge"><i class="icon-star-filled"></i></span>`);
+        } else if (newState === 'false' && badge) {
+          badge.remove();
+        }
+      }
+    } else {
+      showError(json.message || 'Error updating featured status');
+    }
+  } catch (e) {
+    showError('Error updating featured status');
+    console.error(e);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Toggle status
+function toggleStatus(id, name, isActive) {
+  const action = isActive === 'true' ? 'Deactivate' : 'Activate';
+  showConfirmModal(`${action} "${name}"`, `Are you sure?`, action, () => performToggleStatus(id, isActive));
+}
+
+// Perform toggle status
+async function performToggleStatus(id, act) {
+  if (STATE.isLoading) return;
+  showLoading();
+  try {
+    const res = await fetch(`${BASE_URL}/admin/products/toggle-status/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: act === 'true' ? false : true })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showSuccess(`Product ${act === 'true' ? 'deactivated' : 'activated'} successfully`);
+      const productRow = document.querySelector(`tr[data-product-id="${id}"]`);
+      const productCard = document.querySelector(`.product-card[data-product-id="${id}"]`);
+      const newState = act === 'true' ? 'false' : 'true';
+
+      if (productRow) {
+        const statusBadge = productRow.querySelector('.status-badge');
+        statusBadge.className = `status-badge ${newState === 'true' ? 'active' : 'inactive'}`;
+        statusBadge.textContent = newState === 'true' ? 'Active' : 'Inactive';
+        const statusBtn = productRow.querySelector('.status-btn');
+        statusBtn.innerHTML = `<i class="icon-${newState === 'true' ? 'eye-off' : 'eye'}"></i>`;
+        statusBtn.setAttribute('onclick', `toggleStatus('${id}', '${productRow.querySelector('.product-name').textContent}', '${newState}')`);
+        statusBtn.title = newState === 'true' ? 'Deactivate' : 'Activate';
+      }
+
+      if (productCard) {
+        const statusBadge = productCard.querySelector('.status-badge');
+        statusBadge.className = `status-badge ${newState === 'true' ? 'active' : 'inactive'}`;
+        statusBadge.textContent = newState === 'true' ? 'Active' : 'Inactive';
+        const statusBtn = productCard.querySelector('.status-btn');
+        statusBtn.innerHTML = `<i class="icon-${newState === 'true' ? 'eye-off' : 'eye'}"></i>`;
+        statusBtn.setAttribute('onclick', `toggleStatus('${id}', '${productCard.querySelector('.card-title').textContent}', '${newState}')`);
+        statusBtn.title = newState === 'true' ? 'Deactivate' : 'Activate';
+      }
+    } else {
+      showError(json.message || 'Error updating status');
+    }
+  } catch (e) {
+    showError('Error updating status');
+    console.error(e);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Show variant details
+async function showVariantDetails(productId, productName) {
+  document.getElementById('variant-modal-title').textContent = `${productName} - Variants`;
+  document.getElementById('variant-modal-body').innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading variants...</p></div>';
+  document.getElementById('variant-modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const res = await fetch(`${BASE_URL}/admin/products/variants/${productId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    const json = await res.json();
+
+    if (json.success && json.variants) {
+      renderVariants(json.variants, productId);
+    } else {
+      document.getElementById('variant-modal-body').innerHTML = '<p>No variants found for this product.</p>';
+    }
+  } catch (e) {
+    document.getElementById('variant-modal-body').innerHTML = '<p>Error loading variants.</p>';
+    console.error('Error fetching variants:', e);
+  }
+}
+
+// Render variants
+function renderVariants(variants, productId) {
+  const container = document.getElementById('variant-modal-body');
+  if (!variants.length) {
+    container.innerHTML = '<p>No variants found for this product.</p>';
+    return;
+  }
+
+  const html = variants.map((variant, index) => `
+    <div class="variant-item">
+      <div class="variant-info">
+        <div class="variant-name">${variant.size.toUpperCase()} - ${variant.color}</div>
+        <div class="variant-meta">
+          Price: ₹${variant.price.toFixed(2)} | 
+          Stock: ${variant.stock} | 
+          Status: <span class="status-badge ${variant.isActive ? 'active' : 'inactive'}">${variant.isActive ? 'Active' : 'Inactive'}</span>
+        </div>
+      </div>
+      <div class="variant-actions">
+        <button class="btn btn-ghost btn-sm" 
+          onclick="toggleVariantStatus('${productId}', ${index}, '${variant.size} - ${variant.color}', ${variant.isActive})"
+          title="${variant.isActive ? 'Deactivate' : 'Activate'} Variant">
+          <i class="icon-${variant.isActive ? 'eye-off' : 'eye'}"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  container.innerHTML = html;
+}
+
+// Toggle variant status
+async function toggleVariantStatus(productId, variantIndex, variantName, isActive) {
+  const action = isActive ? 'Deactivate' : 'Activate';
+  showConfirmModal(
+    `${action} Variant "${variantName}"`,
+    `Are you sure you want to ${action.toLowerCase()} this variant?`,
+    action,
+    () => performToggleVariantStatus(productId, variantIndex, isActive)
+  );
+}
+
+// Perform toggle variant status
+async function performToggleVariantStatus(productId, variantIndex, isActive) {
+  if (STATE.isLoading) return;
+  showLoading();
+  try {
+    const res = await fetch(`${BASE_URL}/admin/products/toggle-variant-status/${productId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        variantIndex: variantIndex,
+        isActive: !isActive 
+      })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showSuccess('Variant status updated successfully');
+      showVariantDetails(productId, document.querySelector(`[data-product-id="${productId}"] .product-name, [data-product-id="${productId}"] .card-title`).textContent);
+      if (json.variants) {
+        const activeVariants = json.variants.filter(v => v.isActive).length;
+        const inactiveVariants = json.variants.length - activeVariants;
+
+        const productRow = document.querySelector(`tr[data-product-id="${productId}"]`);
+        const productCard = document.querySelector(`.product-card[data-product-id="${productId}"]`);
+
+        if (productRow) {
+          const variantsStatus = productRow.querySelector('.variants-status');
+          variantsStatus.innerHTML = `
+            ${activeVariants > 0 ? `<span class="variant-badge variant-active">${activeVariants} active</span>` : ''}
+            ${inactiveVariants > 0 ? `<span class="variant-badge variant-inactive">${inactiveVariants} inactive</span>` : ''}
+          `;
+        }
+
+        if (productCard) {
+          const variantsList = productCard.querySelector('.card-variants-list');
+          if (variantsList) {
+            variantsList.innerHTML = `
+              ${activeVariants > 0 ? `<span class="variant-badge variant-active">${activeVariants} active</span>` : ''}
+              ${inactiveVariants > 0 ? `<span class="variant-badge variant-inactive">${inactiveVariants} inactive</span>` : ''}
+            `;
+          }
+        }
+      }
+    } else {
+      showError(json.message || 'Error updating variant status');
+    }
+  } catch (e) {
+    showError('Error updating variant status');
+    console.error(e);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Initialize page
+async function initializePage() {
+  showLoading();
+  const params = new URLSearchParams(window.location.search);
+  STATE.page = parseInt(params.get('page')) || 1;
+  STATE.status = params.get('status') || 'all';
+  STATE.categoryFilter = params.get('categoryFilter') || 'all';
+  STATE.brandFilter = params.get('brandFilter') || 'all';
+  STATE.sortField = params.get('sortField') || 'createdAt';
+  STATE.sortOrder = params.get('sortOrder') || 'desc';
+  STATE.search = params.get('search') || '';
+
+  document.getElementById('search-input').value = STATE.search;
+  document.getElementById('status-filter').value = STATE.status;
+  document.getElementById('category-filter').value = STATE.categoryFilter;
+  document.getElementById('brand-filter').value = STATE.brandFilter;
+  document.getElementById('sort-field').value = STATE.sortField;
+  document.getElementById('sort-order').innerHTML = `<i class="icon-${STATE.sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'}"></i>`;
+
+  await fetchProducts();
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  initializePage();
+
+  document.getElementById('status-filter').addEventListener('change', async e => {
+    STATE.status = e.target.value;
+    STATE.page = 1;
+    console.log('Status filter changed:', e.target.value); // Debug log
+    await fetchProducts({ status: e.target.value, page: 1 });
+    // window.history.pushState({}, '', buildUrl({ status: e.target.value, page: 1 }));
+  });
+
+  document.getElementById('category-filter').addEventListener('change', async e => {
+    STATE.categoryFilter = e.target.value;
+    STATE.page = 1;
+    console.log('Category filter changed:', e.target.value); // Debug log
+    await fetchProducts({ categoryFilter: e.target.value, page: 1 });
+    // window.history.pushState({}, '', buildUrl({ categoryFilter: e.target.value, page: 1 }));
+  });
+
+  document.getElementById('brand-filter').addEventListener('change', async e => {
+    STATE.brandFilter = e.target.value;
+    STATE.page = 1;
+    console.log('Brand filter changed:', e.target.value); // Debug log
+    await fetchProducts({ brandFilter: e.target.value, page: 1 });
+    // window.history.pushState({}, '', buildUrl({ brandFilter: e.target.value, page: 1 }));
+  });
+
+  document.getElementById('sort-field').addEventListener('change', async e => {
+    STATE.sortField = e.target.value;
+    STATE.page = 1;
+    console.log('Sort field changed:', e.target.value); // Debug log
+    await fetchProducts({ sortField: e.target.value, page: 1 });
+    // window.history.pushState({}, '', buildUrl({ sortField: e.target.value, page: 1 }));
+  });
+
+  document.getElementById('sort-order').addEventListener('click', async () => {
+    STATE.sortOrder = STATE.sortOrder === 'asc' ? 'desc' : 'asc';
+    STATE.page = 1;
+    console.log('Sort order changed:', STATE.sortOrder); // Debug log
+    await fetchProducts({ sortOrder: STATE.sortOrder, page: 1 });
+    // window.history.pushState({}, '', buildUrl({ sortOrder: STATE.sortOrder, page: 1 }));
+  });
+
+  document.getElementById('search-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    STATE.search = document.getElementById('search-input').value.trim();
+    STATE.page = 1;
+    console.log('Search submitted:', STATE.search); // Debug log
+    await fetchProducts({ search: STATE.search, page: 1 });
+    // window.history.pushState({}, '', buildUrl({ search: STATE.search, page: 1 }));
+  });
+
+  document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+  document.getElementById('page-input').addEventListener('change', e => {
+    goToPage(parseInt(e.target.value));
+  });
+
+  document.getElementById('prev-btn').addEventListener('click', () => goToPage(STATE.page - 1));
+  document.getElementById('next-btn').addEventListener('click', () => goToPage(STATE.page + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('confirm-modal').classList.contains('active')) {
+        closeConfirmModal();
+      }
+      if (document.getElementById('variant-modal').classList.contains('active')) {
+        closeVariantModal();
       }
     }
+  });
 
-    document.addEventListener('DOMContentLoaded',()=>{
-      document.getElementById('status-filter').addEventListener('change',e=>{
-        STATE.status=e.target.value; STATE.page=1;
-        navigateToUrl(buildUrl());
-      });
-      document.getElementById('category-filter').addEventListener('change',e=>{
-        STATE.categoryFilter=e.target.value; STATE.page=1;
-        navigateToUrl(buildUrl());
-      });
-      document.getElementById('brand-filter').addEventListener('change',e=>{
-        STATE.brandFilter=e.target.value; STATE.page=1;
-        navigateToUrl(buildUrl());
-      });
-      document.getElementById('sort-field').addEventListener('change',e=>{
-        STATE.sortField=e.target.value; STATE.page=1;
-        navigateToUrl(buildUrl());
-      });
-      document.getElementById('sort-order').addEventListener('click',()=>{
-        STATE.sortOrder=STATE.sortOrder==='asc'?'desc':'asc'; STATE.page=1;
-        navigateToUrl(buildUrl());
-      });
-      document.getElementById('search-form').addEventListener('submit',e=>{
-        e.preventDefault();
-        STATE.search=document.getElementById('search-input').value.trim();
-        STATE.page=1;
-        navigateToUrl(buildUrl());
-      });
-      document.getElementById('reset-filters').addEventListener('click',resetFilters);
-      document.getElementById('page-input').addEventListener('change',e=>{
-        goToPage(parseInt(e.target.value));
-      });
+  document.getElementById('confirm-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('confirm-modal')) closeConfirmModal();
+  });
 
-      document.addEventListener('keydown',e=>{
-        if(e.key==='Escape') {
-          if(document.getElementById('confirm-modal').classList.contains('active')){
-            closeConfirmModal();
-          }
-          if(document.getElementById('variant-modal').classList.contains('active')){
-            closeVariantModal();
-          }
-        }
-      });
-      
-      document.getElementById('confirm-modal').addEventListener('click',e=>{
-        if(e.target===document.getElementById('confirm-modal')) closeConfirmModal();
-      });
-      
-      document.getElementById('variant-modal').addEventListener('click',e=>{
-        if(e.target===document.getElementById('variant-modal')) closeVariantModal();
-      });
-    });
+  document.getElementById('variant-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('variant-modal')) closeVariantModal();
+  });
 
-    window.addEventListener('popstate',()=>{
-      if(!STATE.isLoading) window.location.reload();
-    });
-    window.addEventListener('load',hideLoading);
-  </script>
+  window.addEventListener('popstate', async () => {
+    if (!STATE.isLoading) {
+      const params = new URLSearchParams(window.location.search);
+      STATE.page = parseInt(params.get('page')) || 1;
+      STATE.status = params.get('status') || 'all';
+      STATE.categoryFilter = params.get('categoryFilter') || 'all';
+      STATE.brandFilter = params.get('brandFilter') || 'all';
+      STATE.sortField = params.get('sortField') || 'createdAt';
+      STATE.sortOrder = params.get('sortOrder') || 'desc';
+      STATE.search = params.get('search') || '';
+
+      document.getElementById('search-input').value = STATE.search;
+      document.getElementById('status-filter').value = STATE.status;
+      document.getElementById('category-filter').value = STATE.categoryFilter;
+      document.getElementById('brand-filter').value = STATE.brandFilter;
+      document.getElementById('sort-field').value = STATE.sortField;
+      document.getElementById('sort-order').innerHTML = `<i class="icon-${STATE.sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'}"></i>`;
+
+      console.log('Popstate event:', { ...STATE }); // Debug log
+      await fetchProducts();
+    }
+  });
+});
+
+// Close variant modal
+function closeVariantModal() {
+  document.getElementById('variant-modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+</script>
 </body>
 </html>

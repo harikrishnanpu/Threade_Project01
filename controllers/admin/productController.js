@@ -50,10 +50,75 @@ const listProducts = async (req, res) => {
       messages: []
     });
   } catch (error) {
-    console.error('Error listing products:', error);
-    res.redirect('/admin/dashboard');
+    next(error)
   }
 };
+
+
+
+const getProductsFilteredList = async (req, res) => {
+  try {
+    const [categoriesResult, brandsResult] = await Promise.all([
+      getAllCategories({ status: 'active', limit: 1000 }),
+      getAllBrands({ status: 'active', limit: 1000 })
+    ]);
+
+    const result = await getAllProducts(req.query);
+    if (!result) throw new Error('Failed to fetch products');
+
+    const {
+      data,
+      total,
+      currentPage,
+      totalPages,
+      limit,
+      filters,
+      sortField,
+      sortOrder
+    } = result;
+
+    const sortOrderForFrontend = sortOrder === -1 ? 'desc' : 'asc';
+
+    res.status(200).json({
+      success: true,
+      products: data || [],
+      totalProducts: total || 0,
+      totalPages: totalPages || 0,
+      currentPage: currentPage || 1,
+      limit: limit || 10,
+      search: filters?.search || '',
+      status: filters?.status || 'all',
+      categoryFilter: filters?.categoryFilter || 'all',
+      brandFilter: filters?.brandFilter || 'all',
+      categories: categoriesResult.data || [],
+      brands: brandsResult.data || [],
+      sortField: sortField || 'createdAt',
+      sortOrder: sortOrderForFrontend,
+      message: null // Optional message for success
+    });
+  } catch (error) {
+    console.error('Error in getProductsFilteredList:', error);
+
+    res.status(500).json({
+      success: false,
+      products: [],
+      totalProducts: 0,
+      totalPages: 0,
+      currentPage: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      search: req.query.search || '',
+      status: req.query.status || 'all',
+      categoryFilter: req.query.categoryFilter || 'all',
+      brandFilter: req.query.brandFilter || 'all',
+      categories: [],
+      brands: [],
+      sortField: req.query.sortField || 'createdAt',
+      sortOrder: 'desc',
+      message: error.message || 'Failed to load products. Please try again.'
+    });
+  }
+};
+
 
 const showCreateProductPage = async (req, res) => {
   try {
@@ -80,8 +145,8 @@ const showEditProductPage = async (req, res) => {
     
     const [product, categoriesResult, brandsResult] = await Promise.all([
       findOneProductById(id),
-      getAllCategories({ status: 'active', limit: 1000 }),
-      getAllBrands({ status: 'active', limit: 1000 })
+      getAllCategories({ status: 'active', limit: 100}),
+      getAllBrands({ status: 'active', limit: 100 })
     ]);
 
     res.render('admin/editProduct', {
@@ -90,6 +155,8 @@ const showEditProductPage = async (req, res) => {
       brands: brandsResult,
       messages: []
     });
+
+
   } catch (error) {
     console.error('Error loading edit product page:', error);
     res.redirect('/admin/products/all');
@@ -109,6 +176,11 @@ const ApilistProducts = async (req, res) => {
       sortOrder
     } = await getAllProducts(req.query);
 
+        const [ categoriesResult, brandsResult] = await Promise.all([
+      getAllCategories({ status: 'active', limit: 100}),
+      getAllBrands({ status: 'active', limit: 100 })
+    ]);
+
     res.status(200).json({
       success: true,
       data: data,
@@ -121,11 +193,15 @@ const ApilistProducts = async (req, res) => {
       categoryFilter: filters.category,
       brandFilter: filters.brand,
       sortField,
+            categories: categoriesResult.data,
+      brands: brandsResult,
       sortOrder
     });
   } catch (error) {
-    console.error('Error listing products:', error);
-    res.status(500).json({ message: 'Internal Server Error', success: false });
+
+    console.log(error);
+
+    res.status(500).json({ message: error.message, success: false });
   }
 };
 
@@ -141,7 +217,9 @@ const getProductById = async (req, res) => {
 
 const updateProductById = async (req, res) => {
   const { id } = req.params;
+
   try {
+
     const updateData = {
       ...req.body,
       createdBy: req.admin._id
@@ -155,12 +233,14 @@ const updateProductById = async (req, res) => {
       success: true, 
       data: updatedProduct,
     });
+
   } catch (err) {
     res.status(500).json({ message: err.message, success: false });
   }
 };
 
 const createNewProduct = async (req, res) => {
+
   try {
 
     const productData = {
@@ -168,7 +248,7 @@ const createNewProduct = async (req, res) => {
       createdBy: req.admin._id,
     };
 
-    console.log(req.body);
+    // console.log(req.body);
     
 
     const newProduct = await insertOneProduct(productData);
@@ -177,24 +257,32 @@ const createNewProduct = async (req, res) => {
       success: true, 
       data: newProduct
     });
+
   } catch (err) {
+
     res.status(500).json({ message: err.message, success: false });
+
   }
 };
 
 const toggleProductStatus = async (req, res) => {
+
   const { id } = req.params;
   const { active } = req.body;
   
   try {
+
     const updatedProduct = await toggleProductStatusById(id, active);
     res.status(200).json({
       message: `Product ${active ? 'activated' : 'deactivated'} successfully`,
       success: true,
       data: updatedProduct
     });
+
   } catch (err) {
+
     res.status(500).json({ message: err.message, success: false });
+    
   }
 };
 
@@ -224,12 +312,12 @@ const uploadProductImage = async (req, res) => {
       return res.status(400).json({success: false,message: 'no image file provided' });
     }
     
-    const imageUrl = `/uploads/products/${req.file.filename}`;
+    const imageUrl = req.file.path;
     
     res.status(200).json({success: true,message:'sucess',imageUrl: imageUrl});
 
   } catch (err) {
-    console.log(err);
+    // console.log(err);
 
     res.status(500).json({success: false, message: err.message});
   }
@@ -248,5 +336,6 @@ module.exports = {
   toggleProductFeatured,
   uploadProductImage,
   showCreateProductPage,
-  showEditProductPage
+  showEditProductPage,
+  getProductsFilteredList
 };

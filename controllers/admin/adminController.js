@@ -29,6 +29,34 @@ const getAdminDashboardPage = async(req,res) => {
   }
 }
 
+
+
+const getListAdminDashboardContents = async(req,res) => {
+
+  try{ 
+
+    
+    const {totals, dateRange, startDate, endDate, paymentMethod, status, chartData, topSellingProducts, topSellingBrands, topSellingCategories, recentOrders} = await getDashboardData(req.query);
+    res.status(200).json({
+      success: true,
+       totals, 
+       dateRange,
+       startDate, 
+       endDate,
+       paymentMethod,
+       status  ,
+       chartData,
+       topSellingProducts,
+       topSellingCategories,
+       topSellingBrands,
+       recentOrders
+      });
+
+  }catch(err){
+    res.status(500).json({message: err.message, success:false})
+  }
+}
+
 const getAdminLoginPage = async (req,res) =>{
     res.render('admin/login', {noSidebar: true, noFooter: false})
 }
@@ -60,6 +88,48 @@ const getAdminAllUsersPage = async (req, res) => {
       showUnlisted: false,
       error: 'Failed to load users. Please try again.',
       success: null
+    });
+  }
+};
+
+const getAdminAllUsersList = async (req, res) => {
+  try {
+    const result = await getAllUsers(req.query);
+
+    // Convert sortOrder to frontend-compatible format
+    const sortOrderForFrontend = result.sortOrder === -1 ? 'desc' : 'asc';
+
+    // Ensure all required fields are included in the response
+    res.status(200).json({
+      success: true,
+      users: result.users || [],
+      totalUsers: result.totalUsers || 0,
+      totalPages: result.totalPages || 0,
+      currentPage: result.currentPage || 1,
+      limit: result.limit || 10,
+      search: req.query.search || '',
+      status: req.query.status || 'all',
+      sortField: req.query.sortField || 'createdAt',
+      sortOrder: sortOrderForFrontend,
+      showUnlisted: req.query.showUnlisted === 'true',
+      message: result.message || null // Optional message for success
+    });
+  } catch (error) {
+    console.error('Error in getAdminAllUsersList:', error);
+
+    res.status(500).json({
+      success: false,
+      users: [],
+      totalUsers: 0,
+      totalPages: 0,
+      currentPage: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      search: req.query.search || '',
+      status: req.query.status || 'all',
+      sortField: req.query.sortField || 'createdAt',
+      sortOrder: 'desc',
+      showUnlisted: req.query.showUnlisted === 'true',
+      message: error.message || 'Failed to load users. Please try again.'
     });
   }
 };
@@ -180,4 +250,4 @@ const createNewUserAccount = async (req,res) =>{
 
 
 
-module.exports = { getAdminDashboardPage, getAdminLoginPage, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount, logoutAdmin, renderAdminChatPage };
+module.exports = { getAdminDashboardPage, getAdminLoginPage, getListAdminDashboardContents, getAdminAllUsersList, loginAdminAccount, getAdminAllUsersPage, toggleUserStatusById, toggleUserListedById, getEditUserPage, updateUserAccount, getCreateUserPage, createNewUserAccount, logoutAdmin, renderAdminChatPage };

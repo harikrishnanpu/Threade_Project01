@@ -13,17 +13,17 @@
         <div class="page-header">
           <h6 class="page-title">Order Management</h6>
           <div class="header-stats">
-            <span class="stat-item">
+            <span class="stat-item ml-4">
               <i class="lni lni-package"></i>
               Total: <span id="total-count"><%= totalOrders %></span>
             </span>
-            <span class="stat-item">
+            <span class="stat-item ml-4">
               <i class="lni lni-eye"></i>
               Showing: <span id="result-count"><%= orders.length %></span>
             </span>
-            <span class="stat-item">
+            <span class="stat-item ml-4">
               <i class="lni lni-revenue"></i>
-              Revenue: ₹<span id="revenue-count"><%= totalRevenue.toFixed(2) %></span>
+              Total Order Amount: ₹<span id="revenue-count"><%= totalRevenue.toFixed(2) %></span>
             </span>
           </div>
         </div>
@@ -124,22 +124,8 @@
 
         <!-- Pagination Navigator -->
         <div class="table-navigator">
-          <div class="bulk-actions">
-            <label class="bulk-checkbox">
-              <input type="checkbox" id="select-all">
-              <span class="checkmark"></span>
-            </label>
-            <select class="bulk-action-select" id="bulk-action" disabled>
-              <option value="">Bulk Actions</option>
-              <option value="confirm">Confirm Selected</option>
-              <option value="ship">Mark as Shipped</option>
-              <option value="deliver">Mark as Delivered</option>
-              <option value="cancel">Cancel Selected</option>
-            </select>
-            <button class="btn btn-outline-primary apply-bulk-btn" id="apply-bulk" disabled>
-              Apply
-            </button>
-          </div>
+
+          <div class=""></div>
           
           <div class="pagination-controls">
             <button class="btn btn-outline-primary nav-btn" 
@@ -358,24 +344,12 @@
                           <i class="lni lni-checkmark"></i>
                           <span class="btn-text">Confirm</span>
                         </button>
-                        <button class="btn btn-sm btn-danger cancel-btn" 
-                                onclick="cancelOrder('<%= order._id %>')"
-                                title="Cancel Order">
-                          <i class="lni lni-close"></i>
-                          <span class="btn-text">Cancel</span>
-                        </button>
                       <% } else if (order.orderStatus === 'confirmed') { %>
                         <button class="btn btn-sm btn-info ship-btn" 
                                 onclick="shipOrder('<%= order._id %>')"
                                 title="Mark as Shipped">
                           <i class="lni lni-delivery"></i>
                           <span class="btn-text">Ship</span>
-                        </button>
-                        <button class="btn btn-sm btn-danger cancel-btn" 
-                                onclick="cancelOrder('<%= order._id %>')"
-                                title="Cancel Order">
-                          <i class="lni lni-close"></i>
-                          <span class="btn-text">Cancel</span>
                         </button>
                       <% } else if (order.orderStatus === 'shipped') { %>
                         <button class="btn btn-sm btn-success deliver-btn" 
@@ -1109,14 +1083,7 @@
     document.getElementById('loading-overlay').classList.remove('active');
   }
 
-  function showError(message) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = message;
-    errorMsg.classList.add('show');
-    setTimeout(() => {
-      errorMsg.classList.remove('show');
-    }, 5000);
-  }
+
 
   function showSuccess(message) {
     const successMsg = document.getElementById('success-msg');
@@ -1154,8 +1121,8 @@
   }
 
   function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
+    // showLoading();
+ refetchAndUpdateOrders()
   }
 
   function goToPage(page) {
@@ -1236,9 +1203,7 @@
   }
 
   function deliverOrder(orderId) {
-    if (confirm('Mark this order as delivered?')) {
       updateOrderStatus(orderId, 'delivered');
-    }
   }
 
   function updateOrderStatus(orderId, newStatus, additionalData = {}) {
@@ -1261,14 +1226,13 @@
     .then(result => {
       if (result.success) {
         showSuccess(`Order ${newStatus} successfully`);
-        setTimeout(() => window.location.reload(), 1000);
+         refetchAndUpdateOrders()
       } else {
-        showError(result.message || `Failed to ${newStatus} order`);
+        showGlobalToast(result.message || `Failed to ${newStatus} order`,'error');
       }
     })
     .catch(error => {
-      showError(`Error updating order status`);
-      console.log('Error:', error);
+      showGlobalToast(`Error updating order status`,'error');
     })
     .finally(() => {
       hideLoading();
@@ -1301,21 +1265,7 @@
     }
   }
 
-  function updateBulkActions() {
-    const checkboxes = document.querySelectorAll('.order-checkbox:checked');
-    const bulkAction = document.getElementById('bulk-action');
-    const applyBulk = document.getElementById('apply-bulk');
-    
-    if (checkboxes.length > 0) {
-      bulkAction.disabled = false;
-      applyBulk.disabled = false;
-      STATE.selectedOrders = new Set(Array.from(checkboxes).map(cb => cb.value));
-    } else {
-      bulkAction.disabled = true;
-      applyBulk.disabled = true;
-      STATE.selectedOrders.clear();
-    }
-  }
+
 
   function exportOrders() {
     const params = new URLSearchParams(window.location.search);
@@ -1324,6 +1274,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+
+    try{
 
       const confirmForm = document.getElementById('confirm-form');
 
@@ -1378,47 +1330,8 @@
     document.getElementById('reset-filters').addEventListener('click', resetFilters);
     // document.getElementById('export-orders').addEventListener('click', exportOrders);
 
-    document.getElementById('select-all').addEventListener('change', function(e) {
-      const checkboxes = document.querySelectorAll('.order-checkbox');
-      checkboxes.forEach(cb => cb.checked = e.target.checked);
-      updateBulkActions();
-    });
-
-    document.querySelectorAll('.order-checkbox').forEach(cb => {
-      cb.addEventListener('change', updateBulkActions);
-    });
     
 
-  document.getElementById('apply-bulk').addEventListener('click', async function () {
-  const action = document.getElementById('bulk-action').value;
-  const orderIds = Array.from(STATE.selectedOrders);
-
-  if (action && orderIds.length > 0) {
-    if (confirm(`Apply "${action}" to ${orderIds.length} orders?`)) {
-      try {
-        showLoading();
-
-        const res = await fetch(`${BASE_URL}/admin/orders/bulk-update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderIds, action })
-        });
-
-        const result = await res.json();
-        if (result.success) {
-          showSuccess(result.message);
-          setTimeout(() => window.location.reload(), 1000);
-        } else {
-          showError(result.message || 'Bulk update failed');
-        }
-      } catch (error) {
-        showError('Error processing bulk update');
-      } finally {
-        hideLoading();
-      }
-    }
-  }
-});
 
     document.getElementById('confirm-form').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -1477,6 +1390,12 @@
         }
       });
     });
+
+
+  }catch(err){
+    console.error(err);
+    
+  }
   });
 
 
@@ -1494,4 +1413,320 @@
   window.addEventListener('load', function() {
     hideLoading();
   });
+
+
+  async function refetchAndUpdateOrders() {
+  showLoading();
+
+  try {
+    const params = new URLSearchParams();
+    params.set('page', STATE.page);
+    if (STATE.status !== 'all') params.set('status', STATE.status);
+    if (STATE.paymentFilter !== 'all') params.set('paymentFilter', STATE.paymentFilter);
+    if (STATE.dateRange !== 'all') params.set('dateRange', STATE.dateRange);
+    if (STATE.amountRange !== 'all') params.set('amountRange', STATE.amountRange);
+    params.set('sortField', STATE.sortField);
+    params.set('sortOrder', STATE.sortOrder);
+    if (STATE.search) params.set('search', STATE.search);
+
+    console.debug('Fetching orders with params:', params.toString());
+    const response = await fetch(`${BASE_URL}/admin/orders/api/filtered/all?${params.toString()}`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.debug('Fetch response:', data);
+
+    if (data.success) {
+      if (!data.orders || !Array.isArray(data.orders)) {
+        throw new Error('Invalid orders data: Expected an array');
+      }
+      updateTable(data.orders, data.totalOrders, data.totalPages);
+      updatePagination(data.currentPage, data.totalPages);
+      updateStats(data.orders.length, data.totalOrders, data.totalRevenue);
+      updateSortIndicators();
+      updateHistory();
+    } else {
+      console.error('Fetch failed:', data.message);
+      showGlobalToast(data.message || 'Failed to fetch orders','error');
+    }
+  } catch (error) {
+    showGlobalToast('Error loading orders: ' + error.message,'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function updateTable(orders, totalOrders, totalPages) {
+  const tableBody = document.querySelector('#orders-table tbody');
+  tableBody.innerHTML = '';
+
+  if (orders && orders.length > 0) {
+    orders.forEach(order => {
+      const row = document.createElement('tr');
+      row.className = 'order-row';
+      row.dataset.orderId = order._id;
+
+      row.innerHTML = `
+        <td class="checkbox-column">
+          <label class="bulk-checkbox">
+            <input type="checkbox" class="order-checkbox" value="${order._id}">
+            <span class="checkmark"></span>
+          </label>
+        </td>
+        <td class="order-id">
+          <div class="id-info">
+            <span class="order-number">#${order.orderNumber}</span>
+            ${order.isUrgent ? '<span class="urgent-badge">URGENT</span>' : ''}
+          </div>
+        </td>
+        <td class="customer-info">
+          <div class="customer-details">
+            <span class="customer-name">${order.user.name}</span>
+            <span class="customer-email">${order.user.email}</span>
+            ${order.shippingAddress ? `
+              <span class="customer-location">
+                <i class="lni lni-map-marker"></i>
+                ${order.shippingAddress.city}, ${order.shippingAddress.state}
+              </span>
+            ` : ''}
+          </div>
+        </td>
+        <td class="order-items">
+          <div class="items-info">
+            <span class="items-count">${order.items.length} item${order.items.length > 1 ? 's' : ''}</span>
+            <div class="items-preview">
+              ${order.items.slice(0, 2).map(item => `
+                <div class="item-preview">
+                  <img src="${item.productImage}" alt="${item.productName}" class="item-thumb">
+                  <span class="item-name">${item.productName.substring(0, 20)}...</span>
+                </div>
+              `).join('')}
+              ${order.items.length > 2 ? `<span class="more-items">+${order.items.length - 2} more</span>` : ''}
+            </div>
+          </div>
+        </td>
+        <td class="order-amount">
+          <div class="amount-info">
+            <span class="total-amount">₹${order.totalAmount.toFixed(2)}</span>
+            ${order.coupon && order.coupon.discountAmount > 0 ? `
+              <span class="discount-info">
+                <i class="lni lni-tag"></i>
+                -₹${order.coupon.discountAmount.toFixed(2)}
+              </span>
+            ` : ''}
+          </div>
+        </td>
+        <td class="payment-info">
+          <div class="payment-details">
+            <span class="payment-method ${order.paymentMethod}">
+              <i class="lni lni-${order.paymentMethod === 'cod' ? 'money-protection' : 'credit-cards'}"></i>
+              ${order.paymentMethod.toUpperCase()}
+            </span>
+            <span class="payment-status payment-${order.paymentStatus}">
+              ${order.paymentStatus}
+            </span>
+          </div>
+        </td>
+        <td class="order-status">
+          <div class="status-container">
+            <span class="status-badge status-${order.orderStatus}">
+              <i class="lni lni-${
+                order.orderStatus === 'pending' ? 'timer' :
+                order.orderStatus === 'confirmed' ? 'checkmark' :
+                order.orderStatus === 'shipped' ? 'delivery' :
+                order.orderStatus === 'delivered' ? 'package' :
+                order.orderStatus === 'cancelled' ? 'close' : 'reload'
+              }"></i>
+              ${order.orderStatus}
+            </span>
+            ${order.orderStatus === 'shipped' && order.trackingNumber ? `
+              <span class="tracking-info">Track: ${order.trackingNumber}</span>
+            ` : ''}
+          </div>
+        </td>
+        <td class="order-date">
+          <div class="date-info">
+            <span class="date-text">${new Date(order.createdAt).toLocaleDateString()}</span>
+            <span class="time-text">${new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            ${order.updatedAt && order.updatedAt !== order.createdAt ? `
+              <span class="updated-text">Updated: ${new Date(order.updatedAt).toLocaleDateString()}</span>
+            ` : ''}
+          </div>
+        </td>
+        <td class="order-actions">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary view-btn" 
+                    onclick="viewOrderDetails('${order._id}')"
+                    title="View Order Details">
+              <i class="lni lni-eye"></i>
+              <span class="btn-text">View</span>
+            </button>
+            ${order.orderStatus === 'pending' ? `
+              <button class="btn btn-sm btn-success confirm-btn" 
+                      onclick="confirmOrder('${order._id}')"
+                      title="Confirm Order">
+                <i class="lni lni-checkmark"></i>
+                <span class="btn-text">Confirm</span>
+              </button>
+            ` : order.orderStatus === 'confirmed' ? `
+              <button class="btn btn-sm btn-info ship-btn" 
+                      onclick="shipOrder('${order._id}')"
+                      title="Mark as Shipped">
+                <i class="lni lni-delivery"></i>
+                <span class="btn-text">Ship</span>
+              </button>
+            ` : order.orderStatus === 'shipped' ? `
+              <button class="btn btn-sm btn-success deliver-btn" 
+                      onclick="deliverOrder('${order._id}')"
+                      title="Mark as Delivered">
+                <i class="lni lni-package"></i>
+                <span class="btn-text">Deliver</span>
+              </button>
+            ` : !['shipped', 'cancelled' ,'return','return-complete','return-pending','delivered'].includes(order.orderStatus) ?`
+            <button class="btn btn-sm btn-outline-danger cancel-btn" 
+                    onclick="cancelOrder('${order._id}')"
+                    title="Cancel Order">
+              <i class="lni lni-close"></i>
+              <span class="btn-text">Cancel</span>
+            </button> ` : '' }
+            <button class="btn btn-sm btn-outline-info print-btn" 
+                    onclick="printInvoice('${order._id}')"
+                    title="Print Invoice">
+              <i class="lni lni-printer"></i>
+              <span class="btn-text">Print</span>
+            </button>
+          </div>
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+    });
+
+    // Re-attach checkbox event listeners
+
+  } else {
+    tableBody.innerHTML = `
+      <tr class="no-data-row">
+        <td colspan="9" class="no-data-cell">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="lni lni-package"></i>
+            </div>
+            <p>No orders found</p>
+            ${STATE.search || STATE.status !== 'all' || STATE.paymentFilter !== 'all' || STATE.dateRange !== 'all' || STATE.amountRange !== 'all' ? `
+              <button class="btn btn-link" onclick="resetFilters()">Clear filters</button>
+            ` : `
+              <p class="text-muted">Orders will appear here when customers place them</p>
+            `}
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function updatePagination(currentPage, totalPages) {
+  STATE.page = currentPage;
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const pageInput = document.getElementById('page-number');
+  const pageTotal = document.querySelector('.page-total');
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInput.value = currentPage;
+  pageInput.max = totalPages;
+  pageTotal.textContent = `of ${totalPages}`;
+
+  prevBtn.setAttribute('onclick', `goToPage(${currentPage - 1})`);
+  nextBtn.setAttribute('onclick', `goToPage(${currentPage + 1})`);
+}
+
+function updateStats(resultCount, totalOrders, totalRevenue) {
+  const resultCountEl = document.getElementById('result-count');
+  const totalCountEl = document.getElementById('total-count');
+  const revenueCountEl = document.getElementById('revenue-count');
+
+  resultCountEl.textContent = resultCount;
+  totalCountEl.textContent = totalOrders;
+  revenueCountEl.textContent = totalRevenue.toFixed(2);
+}
+
+function updateSortIndicators() {
+  const headers = document.querySelectorAll('.sortable-header');
+  headers.forEach(header => {
+    const content = header.querySelector('.header-content');
+    const field = header.getAttribute('onclick').match(/'([^']+)'/)[1];
+    const indicator = content.querySelector('.sort-indicator');
+
+    const amountRange = document.getElementById('amount-filter');
+
+    const searchField = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter')
+    const StatusFilter = document.getElementById('status-filter');
+    const sortField = document.getElementById('sort-field');
+    const dateRange = document.getElementById('date-filter');
+    const paymentFilter = document.getElementById('payment-filter');
+
+
+
+      if(categoryFilter){
+        categoryFilter.value = STATE.categoryFilter
+      }
+
+      if(paymentFilter){
+        paymentFilter.value = STATE.paymentFilter
+      }
+
+      if(dateRange){
+        dateRange.value = STATE.dateRange
+      }
+
+
+      if(amountRange){
+        amountRange.value = STATE.amountRange
+      }
+
+      if(StatusFilter){
+        StatusFilter.value = STATE.status
+      }
+
+      if(searchField){
+        searchField.value = STATE.search
+      }
+
+      if(sortField){
+        sortField.value = STATE.sortField
+      }
+
+    if (field === STATE.sortField) {
+      if (!indicator) {
+        const span = document.createElement('span');
+        span.className = 'sort-indicator';
+        span.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+        content.appendChild(span);
+      } else {
+        indicator.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+      }
+    } else if (indicator) {
+      indicator.remove();
+    }
+
+  });
+
+  const sortOrderBtn = document.getElementById('sort-order');
+  sortOrderBtn.querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+}
+
+function updateHistory() {
+  // const url = buildUrl();
+}
+
+
+
 </script>

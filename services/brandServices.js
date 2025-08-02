@@ -1,33 +1,30 @@
 const Brand = require('../models/brandModel');
 const productModel = require('../models/productModel');
+const mongoose = require('mongoose');
 
 const getAllBrands = async () => {
   try {
-    return await Brand.find({})
-      .populate('category', 'name')
-      .populate('createdBy', 'name email');
-  } catch (error) {
-    throw new Error('Error fetching brands');
+    return await Brand.find({}).populate('category', 'name').populate('createdBy', 'name email').sort({createdAt: -1});
+  } catch (err) {
+     throw new Error(err.message);
   }
 };
 
 const getBrands = async (query, sort, skip, limit) => {
+  
   try {
-    return await Brand.find(query)
-      .populate('category', 'name')
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-  } catch (error) {
-    throw new Error('Error fetching brands');
+    return await Brand.find(query).populate('category', 'name').sort(sort).skip(skip).limit(limit);
+  } catch (err) {
+    throw new Error(err.message);
   }
+  
 };
 
 const countBrands = async (query) => {
   try {
     return await Brand.countDocuments(query);
-  } catch (error) {
-    throw new Error('Error counting brands');
+  } catch (err) {
+     throw new Error(err.message);
   }
 };
 
@@ -48,6 +45,7 @@ const getBrandById = async (id) => {
 const createBrand = async (reqBody) => {
 
     const { name, description, category, isActive, isListed, image } = reqBody;
+
     try {
     
         const brandData = {
@@ -59,9 +57,10 @@ const createBrand = async (reqBody) => {
           image: image?.trim() || '',
             };
         
-    const existingBrand = await Brand.findOne({ name: brandData.name });
+    const existingBrand = await Brand.findOne({ name: { $regex: new RegExp(brandData.name.trim(), 'i') } });
+
     if (existingBrand) {
-      throw new Error('Brand name already exists');
+      throw new Error('brand name already exists');
     }
 
     const brand = new Brand(brandData);
@@ -70,6 +69,9 @@ const createBrand = async (reqBody) => {
     throw new Error(error.message);
   }
 };
+
+
+
 
 const updateBrand = async (id, reqBody) => {
 
@@ -85,7 +87,8 @@ const updateBrand = async (id, reqBody) => {
       image: image?.trim() || ''
     };
 
-    const existingBrand = await Brand.findOne({ name: brandData.name, _id: { $ne: id } });
+    const existingBrand = await Brand.findOne({ name: { $regex: new RegExp(brandData.name.trim(), 'i') }, _id: { $ne: id } });
+
     if (existingBrand) {
       throw new Error('Brand name already exists');
     }
@@ -100,13 +103,13 @@ const updateBrand = async (id, reqBody) => {
     
     return brand;
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(err => err.message);
-      throw new Error('Validation failed');
-    }
-    throw new Error('Error updating brand');
+    throw new Error(error.message);
   }
 };
+
+
+
+
 
 const toggleStatus = async (id, isActive) => {
   try {

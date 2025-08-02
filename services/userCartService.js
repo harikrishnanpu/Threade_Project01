@@ -17,7 +17,7 @@ if (isNaN(quantity) || quantity <= 0) {
 }
 
 
-console.log("QUANTITY:   ",quantity);
+// console.log("QUANTITY:   ",quantity);
 
 
 
@@ -52,17 +52,17 @@ console.log("QUANTITY:   ",quantity);
 
 const existingCartItemQty = existingCartItem !== -1 ? cart.items[existingCartItem].quantity : 0;
 
-    console.log("EXISTING CART ITEM QTY:", existingCartItemQty);
+    // console.log("EXISTING CART ITEM QTY:", existingCartItemQty);
 
     
     if((existingCartItemQty + quantity) > variantMatch.stock){
       throw new Error('out of stock');
     }
 
-    console.log("MAXCARTQUANTITY",product.maxCartQuantity);
+    // console.log("MAXCARTQUANTITY",product.maxCartQuantity);
     
     if(existingCartItemQty + quantity > product.maxCartQuantity){
-      console.log("FHBJHDBJF HJV FJHHB VHJF HBXHJBCHJBHJCBHJSBCVHJBFSHJVBHJFHBVJH FHJVBHJFBVJHB FHJ");
+      // console.log("FHBJHDBJF HJV FJHHB VHJF HBXHJBCHJBHJCBHJSBCVHJBFSHJVBHJFHBVJH FHJVBHJFBVJHB FHJ");
       throw new Error('max cart count for the product exceeds')
     }
 
@@ -84,7 +84,7 @@ const existingCartItemQty = existingCartItem !== -1 ? cart.items[existingCartIte
 
 
     const wishlist = await Wishlist.findOne({ user: userId })
-    console.log("Wishlist Found",wishlist);
+    // console.log("Wishlist Found",wishlist);
 
  if (wishlist) {
   wishlist.items = wishlist.items.filter(
@@ -107,13 +107,13 @@ const existingCartItemQty = existingCartItem !== -1 ? cart.items[existingCartIte
 
 const getCartCount = async (userId) => {
 
-  console.log(userId);
+  // console.log(userId);
   
   
   try {
     const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
     if(cart){
-      console.log(cart);
+      // console.log(cart);
       return cart ? cart.items.length : 0; 
     }else{
       return 0;
@@ -154,7 +154,7 @@ const updateCart = async (userId, itemId, variant, quantity) => {
     }
 
 
-        console.log(quantity);
+        // console.log(quantity);
 
 
     const cartItemIndex = cart.items.findIndex(item =>
@@ -199,7 +199,7 @@ const updateCart = async (userId, itemId, variant, quantity) => {
       cart.items.splice(cartItemIndex, 1); 
     } else {
 
-    console.log("MAXCARTQUANTITY", item.maxCartQuantity);
+    // console.log("MAXCARTQUANTITY", item.maxCartQuantity);
     
     if(quantity > item.maxCartQuantity){
        return {maxCartCount: true, limit: item.maxCartQuantity }
@@ -214,14 +214,14 @@ const updateCart = async (userId, itemId, variant, quantity) => {
 
     await cart.save();
 
-    console.log(variantMatch);
+    // console.log(variantMatch);
     
 
     const result = { stock: variantMatch.stock, isNotActive:false }
 
     return result;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     
     throw new Error(err.message);
   }
@@ -246,9 +246,11 @@ const applyCoupon = async (code, userId, cartTotal, userType) => {
     if (coupon.usedCount >= coupon.maxUsage) {
       throw new Error('coupon usage limit reached');
     }
+
     if (coupon.minOrderAmount && cartTotal < coupon.minOrderAmount) {
       throw new Error(`minimum order amount is ₹${coupon.minOrderAmount}`);
     }
+    
     if (coupon.onlyFor !== 'all' && coupon.onlyFor !== userType) {
       throw new Error(`coupon is not valid for user`);
     
@@ -256,7 +258,7 @@ const applyCoupon = async (code, userId, cartTotal, userType) => {
     
 
     if(coupon.usedBy.includes(userId)){
-      throw new Error('coupon is already applied bby user')
+      throw new Error('coupon is already applied by user')
     }
 
     const discount = (coupon.discount / 100) * cartTotal;

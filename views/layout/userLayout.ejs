@@ -49,11 +49,11 @@
 
 
 body {
-  overflow-x: hidden;
+  overflow-x: hidden !important;
 }
 
 
-       .toast-global{
+.toast-global{
     position:fixed;
     top:20px;
     right:20px;
@@ -241,6 +241,7 @@ p{
     </style>
 </head>
 <body>
+
   <div class="overlay" data-overlay></div>
 
 
@@ -266,11 +267,19 @@ p{
         <% if(!noHeader) { %>
             <%- include('../partials/user/header') %> 
             <% } %>
+
             <main><%- body %></main>
+            
             <% if(!noFooter) { %>
                 <%- include('../partials/user/footer') %>
-                <% } %>
+            <% } %>
+
+            <% if( user ) {  %>
+                <%- include('../partials/user/chat') %>
+            <% } %>
+
             </div>
+
 
 
 <div id="sidebarOverlay" onclick="closeVariantSidebar()"></div>

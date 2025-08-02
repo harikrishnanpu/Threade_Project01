@@ -57,7 +57,7 @@ const getUserHomePage = async (req, res) => {
   getAllProductsByCategory(10),
   getAllNewArrivals(10),
   getAllCategoriesBySubCategories(10),
-  productSuggestions(req.user._id,10),
+  productSuggestions(req.user._id,5),
   getDealOfTheDayProducts(),
 ]);
 
@@ -67,7 +67,7 @@ const wishlistItemIds = userWishlist?.items.map(i => i.product.toString()) || []
 
 
 
-console.log(allMainCatsbySub);
+// console.log(allMainCatsbySub);
 
 console.log(userProductSuggestions);
 
@@ -87,11 +87,9 @@ console.log(userProductSuggestions);
       dealsOfTheDayProducts,
       wishlistItemIds,
         });
+
   } catch (err) {
-    res.status(500).json({
-      message: 'Failed to load home page',
-      err: err.message
-    });
+    res.status(500).json({ message: err.message});
   }
 };
 
@@ -123,6 +121,8 @@ const getGoogleAuthCallback = [
     failureRedirect: '/user/login?error=blocked'
   }),
   (req, res) => {
+    console.log(req);
+    
     const user = req.user;
     const token = generateToken(user._id);
 
@@ -158,14 +158,13 @@ const registerNewUser = async (req, res) => {
       if (!referrer) {
         return res.status(400).json({ success: false, message: 'invalid referral code' });
       }
-      
+
       referredBy = referrer._id;
-      
     }
     
     const newUser = await insertOneUser({ name, phone, email, password, referredBy });
 
-    console.log(newUser);
+    // console.log(newUser);
     
     const otp = generateOtp();
 
@@ -182,18 +181,18 @@ const registerNewUser = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'User created. Please verify your email using the OTP sent.',
+      message: 'User created. Please verify your email using the OTP.',
       userId: newUser._id
     });
 
   } catch (err) {
-    console.log('Registration Error:', err.message);
+    // console.log('Registration Error:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
 
-const loginUserAccount = async (req,res) =>{
+const loginUserAccount = async (req,res) => {
     const {email,password} = req.body;
 
     try{
@@ -236,7 +235,7 @@ res.cookie('token', token, {
     });
 
     }catch(err){
-    console.log('Login Error:', err.message);
+    // console.log('Login Error:', err.message);
     res.status(500).json({ success: false, redirected: false, message: err.message });
     }
 }
@@ -325,7 +324,7 @@ const resendUserEmailOtp = async (req,res) =>{
     if(deleted){
       const otp = generateOtp();
 
-      console.log("RESET",otp);
+      // console.log("RESET",otp);
       
       await otpModel.create({
       email,
@@ -356,6 +355,7 @@ const forgottenUserPassword = async (req,res)=>{
   const {email} = req.body;
 
   try{
+    
     const resetLink = await getUserResetPasswordLink(email);
 
     await sendResetPasswordLinkToEmail(email,resetLink);

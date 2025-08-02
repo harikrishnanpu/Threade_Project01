@@ -104,6 +104,16 @@
 }
 
 
+    .star {
+      color: #ffc107;
+      font-size: 14px;
+    }
+
+    .star.empty {
+      color: #e9ecef;
+    }
+
+
   </style>
 
 
@@ -262,7 +272,6 @@
                   <li class="sidebar-submenu-category">
                     <a href="#" class="sidebar-submenu-title">
                       <p class="product-name"><%= cat.name %></p>
-                      <data value="300" class="stock" title="Available Stock">300</data>
                     </a>
                   </li>
 
@@ -305,11 +314,9 @@
                     </a>
 
                     <div class="showcase-rating">
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
+            <% for(let i = 1; i <= 5; i++) { %>
+              <i class="fas fa-star star <%= i <= Math.round(product.rating) ? '' : 'empty' %>"></i>
+            <% } %>
                     </div>
 
                     <div class="price-box">
@@ -317,7 +324,7 @@
                       <del>₹<%= product.regularPrice %></del>
                     </div>
 
-                                          <div class="stock-details">
+                      <div class="stock-details">
                         <p style="<%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'color: #af0202;' :  'color:green;'  %>" ><%= product.variants?.every(v => !v.isActive || v.stock == 0) ? 'out of stock' : 'in stock'  %></p>
                       </div>
 
@@ -341,41 +348,7 @@
         <div class="product-box">
 
 
-          <section class="small-banner section container d-block">
 
-	<div class="d-flex justify-content-between align-items-center w-100">
-		<div>
-			<h4 class="mb-1 mt-3">Our Brands</h4>
-			<p class="">checkout our brands</p>
-		</div>
-    		<div class="d-inline">
-			<a class="btn btn-primary d-inline" href="">See All</a>
-		</div>
-	</div>
-
-  <div class="container-fluid mt-4">
-    <% if(brands && brands.length > 0) { %>
-
-      <div class="swiper myBrandSwiper">
-        <div class="swiper-wrapper">
-          <% brands.forEach((brand) => { %>
-            <div style="cursor: pointer;" class="swiper-slide">
-              <div class="col-lg-5 brand-card col-md-4 col-6">
-                <div class="single-banner">
-                  <img style="border-radius: 50%;" src="<%= brand.image %>" alt="" >
-                </div>
-              </div>
-            </div>
-          <% }) %>
-        </div>
-
-        <!-- Navigation buttons -->
-        <div class="swiper-button-next"></div>
-        <div class="swiper-button-prev"></div>
-      </div>
-    <% } %>
-  </div>
-</section>
           <!--
             - PRODUCT MINIMAL
           -->
@@ -638,11 +611,9 @@
                   <div class="showcase-content">
                     
                     <div class="showcase-rating">
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star"></ion-icon>
-                      <ion-icon name="star-outline"></ion-icon>
-                      <ion-icon name="star-outline"></ion-icon>
+            <% for(let i = 1; i <= 5; i++) { %>
+              <i class="fas fa-star star <%= i <= Math.round(product.rating) ? '' : 'empty' %>"></i>
+            <% } %>
                     </div>
 
                     <a href="<%= `/user/products/${product._id}` %>">
@@ -760,7 +731,9 @@
                   <img src="<%= product.images[0] %>" alt="Mens Winter Leathers Jackets" width="300" class="product-img default">
                   <img src="<%= product.images[1] %>" alt="Mens Winter Leathers Jackets" width="300" class="product-img hover">
 
-                  <p class="showcase-badge">15%</p>
+<p class="showcase-badge">
+  <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100).toFixed(1) %>%
+</p>
 
                   <div class="showcase-actions">
 
@@ -793,11 +766,9 @@
                   </a>
 
                   <div class="showcase-rating">
-                    <ion-icon name="star"></ion-icon>
-                    <ion-icon name="star"></ion-icon>
-                    <ion-icon name="star"></ion-icon>
-                    <ion-icon name="star-outline"></ion-icon>
-                    <ion-icon name="star-outline"></ion-icon>
+            <% for(let i = 1; i <= 5; i++) { %>
+              <i class="fas fa-star star <%= i <= Math.round(product.rating) ? '' : 'empty' %>"></i>
+            <% } %>
                   </div>
 
                   <div class="price-box">

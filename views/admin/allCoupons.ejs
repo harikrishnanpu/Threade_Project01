@@ -19,8 +19,8 @@
           </div>
         </div>
         
-        <p class="error-msg" id="error-msg"></p>
-        <p class="success-msg" id="success-msg"></p>
+        <p style="display: none;" class="error-msg" id="error-msg"></p>
+        <p style="display: none;" class="success-msg" id="success-msg"></p>
         
         <div class="table-controls">
           <div class="controls-row">
@@ -29,20 +29,10 @@
               <div class="filter-group">
                 <label class="filter-label">Status:</label>
                 <select class="filter form-select" id="status-filter">
-                  <option value="all" <%= status==='all' ? 'selected' : '' %>>All Coupons</option>
-                  <option value="active" <%= status==='active' ? 'selected' : '' %>>Active</option>
-                  <option value="inactive" <%= status==='inactive' ? 'selected' : '' %>>Inactive</option>
-                  <option value="expired" <%= status==='expired' ? 'selected' : '' %>>Expired</option>
-                </select>
-              </div>
-
-              <div class="filter-group">
-                <label class="filter-label">User Type:</label>
-                <select class="filter form-select" id="user-type-filter">
-                  <option value="all" <%= userTypeFilter==='all' ? 'selected' : '' %>>All Types</option>
-                  <option value="all" <%= userTypeFilter==='all' ? 'selected' : '' %>>All Users</option>
-                  <option value="newUsers" <%= userTypeFilter==='newUsers' ? 'selected' : '' %>>New Users</option>
-                  <option value="vipUsers" <%= userTypeFilter==='vipUsers' ? 'selected' : '' %>>VIP Users</option>
+                  <option value="all" <%= status === 'all' ? 'selected' : '' %>>All Coupons</option>
+                  <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
+                  <option value="inactive" <%= status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                  <option value="expired" <%= status === 'expired' ? 'selected' : '' %>>Expired</option>
                 </select>
               </div>
             </div>
@@ -72,16 +62,7 @@
             </div>
 
             <div class="sort-section">
-              <div class="sort-group">
-                <label class="sort-label">Sort by:</label>
-                <select class="sort-field form-select" id="sort-field">
-                  <option value="code" <%= sortField==='code' ? 'selected' : '' %>>Code</option>
-                  <option value="discount" <%= sortField==='discount' ? 'selected' : '' %>>Discount</option>
-                  <option value="expiresAt" <%= sortField==='expiresAt' ? 'selected' : '' %>>Expiry Date</option>
-                  <option value="createdAt" <%= sortField==='createdAt' ? 'selected' : '' %>>Created Date</option>
-                  <option value="usedCount" <%= sortField==='usedCount' ? 'selected' : '' %>>Usage Count</option>
-                </select>
-                
+              <div class="sort-group">                
                 <button class="btn btn-outline-secondary sort-order-btn" id="sort-order" type="button">
                   <span class="sort-icon"><%= sortOrder==='asc' ? '↑' : '↓' %></span>
                 </button>
@@ -90,7 +71,7 @@
 
             <!-- Actions -->
             <div class="actions-section">
-              <button class="btn btn-secondary reset-btn" id="reset-filters" type="button">
+              <button class="btn btn-secondary reset-btn" onclick="resetFilters()" id="reset-filters" type="button">
                 <i class="lni lni-reload"></i>
                 <span class="btn-text">Reset</span>
               </button>
@@ -191,16 +172,13 @@
               </thead>
               <tbody>
                 <% coupons.forEach((coupon) => { 
-                  const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+                  const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date() ;
                   const isMaxedOut = coupon.usedCount >= coupon.maxUsage;
                 %>
-                <tr class="coupon-row <%= (!coupon.isActive || isExpired) && 'inactive-coupon' %>" data-coupon-id="<%= coupon._id %>">
+                <tr class="coupon-row <%= (coupon.isActive || isExpired) && 'inactive-coupon' %>" data-coupon-id="<%= coupon._id %>">
                   <td class="coupon-code">
                     <div class="code-info">
                       <span class="code-text"><%= coupon.code %></span>
-                      <% if (isMaxedOut) { %>
-                        <span class="usage-badge maxed-out">MAXED OUT</span>
-                      <% } %>
                     </div>
                   </td>
                   <td class="coupon-discount">
@@ -343,7 +321,6 @@
                    style="text-transform: uppercase;"
                    >
             <div class="form-error" id="code-error"></div>
-            <small class="form-help">Code will be automatically converted to uppercase</small>
           </div>
         </div>
 
@@ -357,7 +334,6 @@
                      class="form-control" 
                      placeholder="Enter discount percentage"
                      min="1"
-                     max="100"
                      >
               <span class="input-group-text">%</span>
             </div>
@@ -659,7 +635,7 @@
 
 .inactive-coupon {
   opacity: 0.6;
-  background-color: #f8f9fa;
+  background-color: #f8f9fa9a;
 }
 
 .input-group {
@@ -863,23 +839,8 @@
     document.getElementById('loading-overlay').classList.remove('active');
   }
 
-  function showError(message) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.textContent = message;
-    errorMsg.classList.add('show');
-    setTimeout(() => {
-      errorMsg.classList.remove('show');
-    }, 5000);
-  }
 
-  function showSuccess(message) {
-    const successMsg = document.getElementById('success-msg');
-    successMsg.textContent = message;
-    successMsg.classList.add('show');
-    setTimeout(() => {
-      successMsg.classList.remove('show');
-    }, 5000);
-  }
+
 
   function showModalError(message) {
     const modalMessages = document.getElementById('modal-messages');
@@ -897,35 +858,25 @@
     }, 3000);
   }
 
-  function buildUrl(overrides = {}) {
-    const params = {
-      page: overrides.page || STATE.page,
-      status: overrides.status || STATE.status,
-      userTypeFilter: overrides.userTypeFilter || STATE.userTypeFilter,
-      sortField: overrides.sortField || STATE.sortField,
-      sortOrder: overrides.sortOrder || STATE.sortOrder,
-      search: overrides.search !== undefined ? overrides.search : STATE.search,
-      showExpired: overrides.showExpired !== undefined ? overrides.showExpired : STATE.showExpired
-    };
+function buildUrl(overrides = {}) {
+  const { page, status, userTypeFilter, sortField, sortOrder,
+          search, showExpired } = { ...STATE, ...overrides };
 
-    Object.keys(params).forEach(key => {
-      if (params[key] === '' || params[key] === null || params[key] === undefined || 
-          (key === 'showExpired' && !params[key])) {
-        delete params[key];
-      }
-    });
+  const u = new URL(window.location.pathname, window.location.origin);
+  if (page > 1) u.searchParams.set('page', page);
+  if (status !== 'all') u.searchParams.set('status', status);
+  if (userTypeFilter !== 'all') u.searchParams.set('userTypeFilter', userTypeFilter);
+  if (sortField !== 'createdAt') u.searchParams.set('sortField', sortField);
+  if (sortOrder !== 'desc') u.searchParams.set('sortOrder', sortOrder);
+  if (search) u.searchParams.set('search', search);
+  if (showExpired) u.searchParams.set('showExpired', showExpired);
+  return u.toString();
+}
 
-    const url = new URL(window.location.pathname, window.location.origin);
-    Object.keys(params).forEach(key => {
-      url.searchParams.set(key, params[key]);
-    });
-
-    return url.toString();
-  }
 
   function navigateToUrl(url) {
-    showLoading();
-    window.location.href = url;
+    // showLoading();
+    refetchAndUpdateCoupons()
   }
 
   function goToPage(page) {
@@ -952,7 +903,7 @@
     STATE.sortField = 'createdAt';
     STATE.sortOrder = 'desc';
     STATE.search = '';
-    STATE.showExpired = false;
+    STATE.showExpired = true;
     
     navigateToUrl(buildUrl({
       page: 1,
@@ -961,7 +912,7 @@
       sortField: 'createdAt',
       sortOrder: 'desc',
       search: '',
-      showExpired: false
+      showExpired: true,
     }));
   }
 
@@ -1102,21 +1053,21 @@
     } else if (code.length < 3) {
       showFormError('code', 'coupon code must be at least 3 characters');
       isValid = false;
-    } else if (code.length > 20) {
+    } else if (code.length > 30) {
       showFormError('code', 'coupon code cannot exceed 20 characters');
       isValid = false;
-    } else if (!/^[A-Z0-9]+$/.test(code.toUpperCase())) {
+    } else if (!/^[A-Z0-9-]+$/.test(code.toUpperCase())) {
       showFormError('code', 'coupon code can only contain letters and numbers');
       isValid = false;
     }
     
-    if (!discount || !maxDiscount) {
-      showFormError('discount', 'Discount percentage AND MAX Discount is required');
-      isValid = false;
-    } else if (discount < 1 || discount > 90) {
-      showFormError('discount', 'Discount must be between 1% and 90%');
-      isValid = false;
-    }
+if (!discount || !maxDiscount) {
+  showFormError('discount', 'Discount percentage and max discount are required');
+  isValid = false;
+} else if (discount < 1 || discount > 90) {
+  showFormError('discount', 'Discount must be between 1 and 90');
+  isValid = false;
+}
     
     if (!maxUsage) {
       showFormError('maxUsage', 'Maximum usage count is required');
@@ -1143,15 +1094,15 @@
     return isValid;
   }
 
-  function toggleStatus(couponId, couponCode, isActive) {
-    const action = isActive === 'true' ? 'deactivate' : 'activate';
-    showConfirmModal(
-      `${action.charAt(0).toUpperCase() + action.slice(1)} Coupon`,
-      `Are you sure you want to ${action} coupon "${couponCode}"?`,
-      action.charAt(0).toUpperCase() + action.slice(1),
-      () => performToggleStatus(couponId, isActive)
-    );
-  }
+function toggleStatus(id, code, isActive) {
+  const nextState =  !( isActive == true || isActive == 'true' );
+  showConfirmModal(
+    `${nextState ? 'Activate' : 'Deactivate'} Coupon`,
+    `Are you sure you want to ${nextState ? 'activate' : 'deactivate'} "${code}"?`,
+    nextState ? 'Activate' : 'Deactivate',
+    () => performToggleStatus(id, nextState)
+  );
+}
 
   function deleteCoupon(couponId, couponCode) {
     showConfirmModal(
@@ -1162,31 +1113,23 @@
     );
   }
 
-  function performToggleStatus(couponId, isActive) {
-    if (STATE.isLoading) return;
-    showLoading();
-    
-    fetch(`${BASE_URL}/admin/coupons/toggle-status/${couponId}`, {
+async function performToggleStatus(id, nextState) {
+  if (STATE.isLoading) return;
+  showLoading();
+  try {
+    const res = await fetch(`${BASE_URL}/admin/coupons/toggle-status/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isActive: isActive === 'false' })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        showSuccess(data.message || 'Coupon status updated successfully');
-        setTimeout(() => window.location.reload(), 1000);
-      } else {
-        hideLoading();
-        showError(data.message || 'Failed to update coupon status');
-      }
-    })
-    .catch(error => {
-      hideLoading();
-      showError('An error occurred while updating the coupon');
-      console.error('Error:', error);
+      body: JSON.stringify({ isActive: nextState })
     });
-  }
+    const data = await res.json();
+    if (data.success) showGlobalToast(data.message,'success');
+    else showGlobalToast(data.message || 'Failed...','error');
+    await refetchAndUpdateCoupons();
+  } catch (err) {
+    showGlobalToast('Error updating coupon','error');
+  } finally { hideLoading(); }
+}
 
   function performDeleteCoupon(couponId) {
     if (STATE.isLoading) return;
@@ -1198,16 +1141,16 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        showSuccess(data.message || 'Coupon deleted successfully');
-        setTimeout(() => window.location.reload(), 1000);
+        showGlobalToast(data.message || 'Coupon deleted successfully','success');
+        refetchAndUpdateCoupons()
       } else {
         hideLoading();
-        showError(data.message || 'Failed to delete coupon');
+        showGlobalToast(data.message || 'Failed to delete coupon','error');
       }
     })
     .catch(error => {
       hideLoading();
-      showError('An error occurred while deleting the coupon');
+      showGlobalToast('An error occurred while deleting the coupon','error');
       console.error('Error:', error);
     });
   }
@@ -1234,8 +1177,13 @@
     }
   }
 
+
+
   // Event listeners
   document.addEventListener('DOMContentLoaded', function() {
+
+
+    try{
     // Coupon form submission
     document.getElementById('coupon-form').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -1280,7 +1228,7 @@
           showModalSuccess(isEdit ? 'Coupon updated successfully' : 'Coupon created successfully');
           setTimeout(() => {
             closeCouponModal();
-            window.location.reload();
+             refetchAndUpdateCoupons()
           }, 1500);
         } else {
           if (result.errors) {
@@ -1301,26 +1249,17 @@
 
     document.getElementById('status-filter').addEventListener('change', function(e) {
       STATE.status = e.target.value;
+      if(e.target.value == 'active'){
+        STATE.showExpired = false;
+      }
       STATE.page = 1;
-      navigateToUrl(buildUrl({ status: e.target.value, page: 1 }));
-    });
-
-    document.getElementById('user-type-filter').addEventListener('change', function(e) {
-      STATE.userTypeFilter = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ userTypeFilter: e.target.value, page: 1 }));
+      navigateToUrl(buildUrl({ status: e.target.value, page: 1, showExpired: false }));
     });
 
     document.getElementById('show-expired').addEventListener('change', function(e) {
       STATE.showExpired = e.target.checked;
       STATE.page = 1;
       navigateToUrl(buildUrl({ showExpired: e.target.checked, page: 1 }));
-    });
-
-    document.getElementById('sort-field').addEventListener('change', function(e) {
-      STATE.sortField = e.target.value;
-      STATE.page = 1;
-      navigateToUrl(buildUrl({ sortField: e.target.value, page: 1 }));
     });
 
     document.getElementById('sort-order').addEventListener('click', function() {
@@ -1330,15 +1269,21 @@
       navigateToUrl(buildUrl({ sortOrder: newOrder, page: 1 }));
     });
 
+
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+
+
     document.getElementById('search-form').addEventListener('submit', function(e) {
       e.preventDefault();
+
       const searchValue = document.getElementById('search-input').value.trim();
       STATE.search = searchValue;
       STATE.page = 1;
-      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
-    });
 
-    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+      navigateToUrl(buildUrl({ search: searchValue, page: 1 }));
+
+    });
 
 
     document.getElementById('coupon-code').addEventListener('input', function(e) {
@@ -1367,15 +1312,245 @@
         closeConfirmModal();
       }
     });
+
+  }catch(err){
+    console.log(err);
+    
+    
+  }
   });
 
   window.addEventListener('popstate', function() {
     if (!STATE.isLoading) {
-      window.location.reload();
+   refetchAndUpdateCoupons()
     }
   });
 
   window.addEventListener('load', function() {
     hideLoading();
   });
+
+
+
+function updateHistory() {
+  const url = buildUrl();
+  // if (window.location.href !== url) {
+  //   window.history.pushState({ page: STATE.page, status: STATE.status, userTypeFilter: STATE.userTypeFilter, sortField: STATE.sortField, sortOrder: STATE.sortOrder, search: STATE.search, showExpired: STATE.showExpired }, '', url);
+  // }
+}
+
+async function refetchAndUpdateCoupons() {
+  showLoading();
+
+  try {
+    const params = new URLSearchParams();
+    params.set('page', STATE.page);
+    if (STATE.status !== 'all') params.set('status', STATE.status);
+    if (STATE.userTypeFilter !== 'all') params.set('userTypeFilter', STATE.userTypeFilter);
+    params.set('sortField', STATE.sortField);
+    params.set('sortOrder', STATE.sortOrder);
+    if (STATE.search) params.set('search', STATE.search);
+    if (STATE.showExpired) params.set('showExpired', STATE.showExpired);
+
+    console.debug('Fetching coupons with params:', params.toString());
+    const response = await fetch(`${BASE_URL}/admin/coupons/api/filtered/all?${params.toString()}`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`error occured!`);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      if (!data.coupons || !Array.isArray(data.coupons)) {
+        throw new Error('Invalid coupons data: Expected an array');
+      }
+      updateTable(data.coupons, data.totalCoupons, data.totalPages);
+      updatePagination(data.currentPage, data.totalPages);
+      updateStats(data.coupons.length, data.totalCoupons);
+      updateSortIndicators();
+      updateHistory();
+    } else {
+      console.error('Fetch failed:', data.message);
+      showGlobalToast(data.message || 'Failed to fetch coupons','error');
+    }
+  } catch (error) {
+    showGlobalToast('Error loading coupons: ' + error.message,'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function updateTable(coupons, totalCoupons, totalPages) {
+  const tableBody = document.querySelector('#coupons-table tbody');
+  tableBody.innerHTML = '';
+
+  if (coupons && coupons.length > 0) {
+    coupons.forEach(coupon => {
+      const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+      const isMaxedOut = coupon.usedCount >= coupon.maxUsage;
+      const row = document.createElement('tr');
+      row.className = `coupon-row ${coupon.isActive && !isExpired && !isMaxedOut ? '' : 'inactive-coupon'}`;
+      row.dataset.couponId = coupon._id;
+
+      row.innerHTML = `
+        <td class="coupon-code">
+          <div class="code-info">
+            <span class="code-text">${coupon.code || 'N/A'}</span>
+          </div>
+        </td>
+        <td class="coupon-discount">
+          <span class="discount-value">${coupon.discount}% OFF (max: ${coupon.maxDiscount})</span>
+        </td>
+        <td class="user-type">
+          <span class="user-type-badge ${coupon.onlyFor}">
+            ${coupon.onlyFor === 'all' ? 'All Users' : 
+              coupon.onlyFor === 'newUsers' ? 'New Users' : 'VIP Users'}
+          </span>
+        </td>
+        <td class="min-order">
+          ${coupon.minOrderAmount > 0 
+            ? `₹${coupon.minOrderAmount.toFixed(2)}` 
+            : '<span class="text-muted">No minimum</span>'}
+        </td>
+        <td class="usage-stats">
+          <div class="usage-info">
+            <span class="usage-count">${coupon.usedCount} / ${coupon.maxUsage}</span>
+            <div class="usage-bar">
+              <div class="usage-progress" style="width: ${(coupon.usedCount / coupon.maxUsage) * 100}%"></div>
+            </div>
+          </div>
+        </td>
+        <td class="expiry-date">
+          ${coupon.expiresAt 
+            ? `<span class="date-text ${isExpired ? 'expired' : ''}">${new Date(coupon.expiresAt).toLocaleDateString()}</span>
+               ${isExpired ? '<span class="expired-badge">EXPIRED</span>' : ''}`
+            : '<span class="no-expiry">No expiry</span>'}
+        </td>
+        <td class="coupon-status">
+          <div class="status-badges">
+            <span class="status-badge ${coupon.isActive && !isExpired && !isMaxedOut ? 'active' : 'inactive'}">
+              ${coupon.isActive && !isExpired && !isMaxedOut ? 'Active' : 
+                isExpired ? 'Expired' : 
+                isMaxedOut ? 'Maxed Out' : 'Inactive'}
+            </span>
+          </div>
+        </td>
+        <td class="coupon-actions">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-outline-primary edit-btn" 
+                    onclick="openCouponModal('edit', '${coupon._id}')"
+                    title="Edit Coupon">
+              <i class="lni lni-pencil"></i>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button class="btn btn-sm ${coupon.isActive ? 'btn-outline-danger' : 'btn-outline-success'} toggle-status-btn" 
+                    onclick="toggleStatus('${coupon._id}', '${coupon.code || 'Coupon'}', '${coupon.isActive}')"
+                    title="${coupon.isActive ? 'Deactivate' : 'Activate'} Coupon"
+                    ${isExpired ? 'disabled' : ''}>
+              <i class="lni lni-${coupon.isActive ? 'lock' : 'unlock'}"></i>
+              <span class="btn-text">${coupon.isActive ? 'Deactivate' : 'Activate'}</span>
+            </button>
+          </div>
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+    });
+  } else {
+    tableBody.innerHTML = `
+      <tr class="no-data-row">
+        <td colspan="8" class="no-data-cell">
+          <div class="no-data-content">
+            <div class="no-data-icon">
+              <i class="lni lni-ticket"></i>
+            </div>
+            <p>No coupons found</p>
+            ${STATE.search || STATE.status !== 'all' || STATE.userTypeFilter !== 'all' || STATE.showExpired
+              ? '<button class="btn btn-link" onclick="resetFilters()">Clear filters</button>'
+              : '<button class="btn btn-primary" onclick="openCouponModal(\'create\')"><i class="lni lni-plus"></i> Create First Coupon</button>'
+            }
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function updatePagination(currentPage, totalPages) {
+  STATE.page = currentPage;
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const pageInput = document.getElementById('page-number');
+  const pageTotal = document.querySelector('.page-total');
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInput.value = currentPage;
+  pageInput.max = totalPages;
+  pageTotal.textContent = `of ${totalPages}`;
+
+  prevBtn.setAttribute('onclick', `goToPage(${currentPage - 1})`);
+  nextBtn.setAttribute('onclick', `goToPage(${currentPage + 1})`);
+}
+
+function updateStats(resultCount, totalCoupons) {
+  const resultCountEl = document.getElementById('result-count');
+  const totalCountEl = document.getElementById('total-count');
+
+  resultCountEl.textContent = resultCount;
+  totalCountEl.textContent = totalCoupons;
+}
+
+function updateSortIndicators() {
+  const headers = document.querySelectorAll('.sortable-header');
+  headers.forEach(header => {
+    const content = header.querySelector('.header-content');
+    const field = header.getAttribute('onclick').match(/'([^']+)'/)[1];
+    const indicator = content.querySelector('.sort-indicator');
+
+    const searchField = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter')
+    const StatusFilter = document.getElementById('status-filter');
+    const showExpired = document.getElementById('show-expired');
+
+
+      if(categoryFilter){
+        categoryFilter.value = STATE.categoryFilter
+      }
+
+      if(StatusFilter){
+        StatusFilter.value = STATE.status
+        if(STATE.status == 'active'){
+          showExpired.checked = false
+        }else{
+          showExpired.checked = true
+        }
+      }
+
+      if(searchField){
+        searchField.value = STATE.search
+      }
+
+
+
+    if (field === STATE.sortField) {
+      if (!indicator) {
+        const span = document.createElement('span');
+        span.className = 'sort-indicator';
+        span.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+        content.appendChild(span);
+      } else {
+        indicator.textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+      }
+    } else if (indicator) {
+      indicator.remove();
+    }
+  });
+
+  const sortOrderBtn = document.getElementById('sort-order');
+  sortOrderBtn.querySelector('.sort-icon').textContent = STATE.sortOrder === 'asc' ? '↑' : '↓';
+}
 </script>

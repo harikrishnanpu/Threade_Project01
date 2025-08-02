@@ -17,6 +17,8 @@ const getAllCategories = async (query) => {
     parentFilter,
   } = getAllCategoriesQuery(query);
 
+  
+
   const skip = (page - 1) * limit;
 
   const [categories, total] = await Promise.all([
@@ -25,7 +27,7 @@ const getAllCategories = async (query) => {
       .sort(sort)
       .skip(skip)
       .limit(limit),
-    Category.countDocuments(filter),
+    Category.countDocuments(filter)
   ]);
 
   return {
@@ -57,21 +59,22 @@ const insertOneCategory = async (body) => {
   } = body;
 
   try {
-    const existingCategory = await Category.findOne({
-      name: name.trim(),
-      ...(parentCategory && { parentCategory }),
-    });
+
+const existingCategory = await Category.findOne({
+  name: { $regex: new RegExp(name.trim(), 'i') },
+  parentCategory: parentCategory || null
+});
 
     if (existingCategory) {
-      throw new Error("Category with this name already exists");
+      throw new Error("category with name already exists");
     }
 
     const newCat = new Category({
       name: name.trim(),
       description: description?.trim(),
       parentCategory: parentCategory || null,
-      isActive: isActive == "on" ? true : false,
-      isFeatured: isFeatured == "on" ? true : false,
+      isActive: (isActive == "on" || isActive == true ) ? true : false,
+      isFeatured: (isFeatured == "on" || isFeatured == true) ? true : false,
       createdBy,
     });
 
@@ -80,6 +83,9 @@ const insertOneCategory = async (body) => {
     throw new Error(err.message);
   }
 };
+
+
+
 
 const findOneCategoryById = async (catId) => {
   try {
@@ -117,11 +123,9 @@ const editCategoryById = async (catId, body) => {
 
     const trimmedDescription = description?.trim();
 
-    if (name &&  name !== cat.name) {
-
       let query = {
-        name: name.trim(),
-        _id: { $ne: catId }
+        name: { $regex: new RegExp(name.trim(), 'i') },
+        _id: { $ne: catId },
       };
 
 if (parentCategory) {
@@ -134,7 +138,7 @@ if (parentCategory) {
         throw new Error("another category with this name already exists");
       }
 
-    }
+  
 
     if (parentCategory && parentCategory.toString() === catId.toString()) {
       throw new Error("category cannot be its own parent");
@@ -149,7 +153,7 @@ if (parentCategory) {
     if (isActive !== undefined) {
 
 
-      const isActiveCat = isActive == 'on';
+      const isActiveCat = ( isActive == 'on' || isActive == true );
 
       updateData.isActive = isActiveCat;
 
@@ -160,7 +164,6 @@ if (parentCategory) {
         const subCategoiryIds = subCategoiries.map(cat => cat._id);
 
        const updatedProds = await productModel.updateMany(
-
         {category: {$in: [  cat._id, ...subCategoiryIds   ] } },
         {$set: {isActive: false,'variants.$[].isActive': false}}
       );
@@ -172,10 +175,10 @@ for (let subCat of subCategoiries) {
 }
 
 
-        console.log("jknfck f");
+        // console.log("jknfck f");
         
 
-        console.log(updatedProds);
+        // console.log(updatedProds);
         
       }else{
 
@@ -204,7 +207,7 @@ for (let subCat of subCategoiries) {
     }
 
     if (isFeatured !== undefined) {
-      updateData.isFeatured = isFeatured == 'on';
+      updateData.isFeatured = (isFeatured == 'on' || isFeatured == true);
     }
 
     if (createdBy !== undefined) updateData.createdBy = createdBy;
@@ -219,7 +222,6 @@ for (let subCat of subCategoiries) {
 
 const toggleCategoryStatusById = async (catId, isActive) => {
 
-
   try {
 
     const category = await Category.findById(catId);
@@ -229,7 +231,8 @@ const toggleCategoryStatusById = async (catId, isActive) => {
       throw new Error("category not found");
     }
     
-    isActive = isActive == "true" ? false : true;
+      isActive = (isActive === true || isActive === 'true') ? false : true;
+
 
 
     if(isActive){
@@ -276,9 +279,11 @@ for (let subCat of subCategoiries) {
     category.isActive = isActive;
 
     return await category.save();
+    
   } catch (err) {
     throw new Error(err.message);
   }
+
 };
 
 module.exports = {

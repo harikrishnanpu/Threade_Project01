@@ -1271,10 +1271,19 @@
         if (STATE.variants[idx].images.length < MIN_IMAGES) {
           return showFormError('variants-error', `Each variant needs at least ${MIN_IMAGES} images`);
         }
+        
+const actualPrice = parseInt(price);
+const sale = parseInt(salePrice);
 
-        if(price < salePrice){
-          return showFormError('variants-error', 'sale price cannot be grater than price')
-        }
+if (sale > actualPrice) {
+  return showFormError('variants-error', 'sale price cannot be greater than regular price');
+}
+
+const discountPercentage = ((actualPrice - sale) / actualPrice) * 100;
+
+if (discountPercentage > 90) {
+  return showFormError('variants-error', 'maximum 90% discount is allowed');
+}
 
 
 

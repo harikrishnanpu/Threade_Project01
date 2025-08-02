@@ -1,17 +1,20 @@
 const brandService = require('../../services/brandServices');
 const Category = require('../../models/categoryModel');
 const { getAllBrandListQuery } = require('../../utils/queries/getAllBrandQuery');
+const mongoose = require('mongoose');
+
 
 
 
 async function renderAllBrands(req, res, next) {
   try {
+
  const { query, sort, limit, skip, currentPage, finalSortField, finalSortOrder, ...filters } = getAllBrandListQuery(req.query);
 
     const [brands, totalBrands, categories] = await Promise.all([
       brandService.getBrands(query, sort, skip, limit),
       brandService.countBrands(query),
-      Category.find({ isActive: true }).select('name').sort({ name: 1 }),
+      Category.find({ isActive: true }).select('name').sort({ createdAt: -1 }),
     ]);
 
     const totalPages = Math.max(1, Math.ceil(totalBrands / limit));
@@ -26,27 +29,67 @@ async function renderAllBrands(req, res, next) {
       ...filters
     });
   } catch (error) {
-    console.error('Error rendering brands page:', error);
-    res.status(500).json({message: error.message})
+    res.status(500).json({message: error.message});
+    
+  }
+}
+
+
+
+async function getFilteredBrands(req, res, next) {
+  try {
+
+
+    const { query, sort, limit, skip, currentPage, finalSortField, finalSortOrder, ...filters } = getAllBrandListQuery(req.query);
+
+    const [brands, totalBrands, categories] = await Promise.all([
+      brandService.getBrands(query, sort, skip, limit),
+      brandService.countBrands(query),
+      Category.find({ isActive: true }).select('name').sort({ createdAt: -1 }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(totalBrands / limit));
+    const safePage = Math.min(currentPage, totalPages);
+
+    res.status(200).json({
+      success: true,
+      brands,
+      totalBrands,
+      categories,
+      currentPage: safePage,
+      totalPages,
+      ...filters
+    });
+
+
+  } catch (error) {
+    
+    res.status(500).json({message: error.message , success: false});
+
   }
 }
 
 
 async function getAllBrands(req, res, next) {
+
   try {
+
     const brands = await brandService.getAllBrands();
+
     res.status(200).json({ 
       success: true, 
       data: brands,
       count: brands.length 
     });
   } catch (error) {
-    console.error('Error getting all brands:', error);
+
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to fetch brands'
     });
+
   }
+
 }
 
 
@@ -95,6 +138,7 @@ async function createBrand(req, res, next) {
       data: brand, 
       message: 'Brand created successfully' 
     });
+
   } catch (error) {
 
     res.status(500).json({
@@ -116,34 +160,9 @@ async function updateBrand(req, res, next) {
       data: updatedBrand, 
       message: 'Brand updated successfully' 
     });
-  } catch (error) {
-    console.error('Error updating brand:', error);
-    
-    if (error.message === 'Brand not found') {
-      return res.status(404).json({
-        success: false,
-        message: error.message
-      });
-    }
-    
-    if (error.message === 'Brand name already exists') {
-      return res.status(409).json({
-        success: false,
-        message: error.message,
-        errors: { name: error.message }
-      });
-    }
-    
-    if (error.message === 'Invalid brand ID format') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid brand ID format'
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to update brand'
+  } catch (error) {    
+    res.status(500).json({success: false,
+      message: error.message
     });
   }
 }
@@ -157,14 +176,14 @@ async function toggleBrandStatus(req, res, next) {
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: 'Brand ID is required'
+        message: 'brand is required'
       });
     }
     
     if (typeof active !== 'boolean') {
       return res.status(400).json({
         success: false,
-        message: 'Active status must be a boolean'
+        message: 'status must be a boolean'
       });
     }
 
@@ -179,7 +198,7 @@ async function toggleBrandStatus(req, res, next) {
 
   } catch (error) {
 
-    console.log(error);
+    // console.log(error);
     
 
     if (error.message === 'Brand not found') {
@@ -260,14 +279,16 @@ async function toggleBrandListed(req, res, next) {
 
 async function uploadImage(req, res, next) {
   try {
+
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No image file provided'
+        message: 'no image file provided'
       });
     }
 
-    const imageUrl = `/uploads/brands/${req.file.filename}`;
+    const imageUrl = req.file.path;
     
     res.status(200).json({ 
       success: true, 
@@ -279,7 +300,7 @@ async function uploadImage(req, res, next) {
     });
     
   } catch (error) {
-    console.error('Error uploading image:', error);
+    
     res.status(500).json({
       success: false,
       message: 'Failed to upload image'
@@ -295,5 +316,6 @@ module.exports = {
   updateBrand,
   toggleBrandStatus,
   toggleBrandListed,
-  uploadImage
+  uploadImage,
+  getFilteredBrands
 };

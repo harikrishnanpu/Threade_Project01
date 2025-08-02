@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-const httpServer = require('./app');
+const {httpServer} = require('./app');
 
 
 
